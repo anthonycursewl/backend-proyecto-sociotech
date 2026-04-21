@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  role         String
+  firstName    String
+  lastName     String
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  patient       Patient?
+  medicalRecords MedicalRecord[]
+  appointmentsAsDoctor   Appointment[] @relation("DoctorAppointments")
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model Patient {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  medicalId        String   @unique
+  dateOfBirth      DateTime
+  phone            String
+  address          String
+  emergencyContact String
+  emergencyPhone   String
+  bloodType        String?
+  allergies        String[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments    Appointment[]
+  medicalRecords  MedicalRecord[]
+
+  @@map("patients")
+}
+
+model MedicalRecord {
+  id            String    @id @default(uuid())
+  patientId     String
+  doctorId      String
+  chiefComplaint String
+  symptoms      String[]
+  diagnosis     String
+  treatment     String
+  notes         String
+  isSigned      Boolean   @default(false)
+  signedAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  patient       Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor        User      @relation(fields: [doctorId], references: [id])
+  attachments   MedicalRecordAttachment[]
+
+  @@map("medical_records")
+}
+
+model MedicalRecordAttachment {
+  id              String   @id @default(uuid())
+  medicalRecordId String
+  fileUrl         String
+  fileName        String
+  mimeType        String
+  description     String?
+  uploadedAt      DateTime @default(now())
+
+  medicalRecord   MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+
+  @@map("medical_record_attachments")
+}
+
+model Appointment {
+  id                String    @id @default(uuid())
+  patientId         String
+  doctorId          String
+  scheduledAt       DateTime
+  durationMinutes   Int       @default(30)
+  status            String    @default("SCHEDULED")
+  reason            String
+  notes             String?
+  cancelledAt       DateTime?
+  cancelledBy       String?
+  cancellationReason String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  patient           Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor            User      @relation("DoctorAppointments", fields: [doctorId], references: [id])
+
+  @@map("appointments")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  action      String
+  entityType  String
+  entityId    String
+  oldValues   Json?
+  newValues   Json?
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime @default(now())
+
+  user        User?    @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+  @@index([entityType, entityId])
+  @@index([userId])
+}

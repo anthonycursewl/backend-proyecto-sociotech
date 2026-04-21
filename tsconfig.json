@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@identity/domain/*": ["src/modules/identity/domain/*"],
+      "@identity/application/*": ["src/modules/identity/application/*"],
+      "@identity/infrastructure/*": ["src/modules/identity/infrastructure/*"],
+      "@clinical/domain/*": ["src/modules/clinical/domain/*"],
+      "@clinical/application/*": ["src/modules/clinical/application/*"],
+      "@clinical/infrastructure/*": ["src/modules/clinical/infrastructure/*"],
+      "@scheduling/domain/*": ["src/modules/scheduling/domain/*"],
+      "@scheduling/application/*": ["src/modules/scheduling/application/*"],
+      "@scheduling/infrastructure/*": ["src/modules/scheduling/infrastructure/*"],
+      "@shared/*": ["src/shared/*"],
+      "@shared/notification/*": ["src/modules/shared/infrastructure/notification/*"],
+      "@prisma/*": ["src/prisma/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
