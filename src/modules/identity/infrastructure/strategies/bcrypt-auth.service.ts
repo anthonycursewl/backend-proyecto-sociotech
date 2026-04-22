@@ -6,7 +6,7 @@ import { AuthService, TokenPayload } from '../../domain/ports/auth-service.port'
 @Injectable()
 export class BcryptAuthService implements AuthService {
   private readonly jwtSecret: string;
-  private readonly accessTokenExpiresIn = '15m';
+  private readonly accessTokenExpiresIn = '10m';
   private readonly refreshTokenExpiresIn = '7d';
 
   constructor() {
@@ -40,5 +40,11 @@ export class BcryptAuthService implements AuthService {
       expiresIn: this.refreshTokenExpiresIn,
       algorithm: 'HS256',
     });
+  }
+
+  async verifyRefreshToken(token: string): Promise<TokenPayload> {
+    return jwt.verify(token, this.jwtSecret, {
+      algorithms: ['HS256'],
+    }) as TokenPayload;
   }
 }

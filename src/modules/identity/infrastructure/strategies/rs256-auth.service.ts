@@ -70,4 +70,11 @@ export class RS256AuthService implements AuthService {
       algorithm: 'RS256',
     });
   }
+
+  async verifyRefreshToken(token: string): Promise<TokenPayload> {
+    const { publicKey } = this.getKeyPair();
+    return jwt.verify(token, publicKey, {
+      algorithms: ['RS256'],
+    }) as TokenPayload;
+  }
 }

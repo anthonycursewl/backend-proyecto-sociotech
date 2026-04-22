@@ -6,6 +6,7 @@ export interface AuthService {
   generateToken(payload: TokenPayload): Promise<string>;
   verifyToken(token: string): Promise<TokenPayload>;
   generateRefreshToken(payload: TokenPayload): Promise<string>;
+  verifyRefreshToken(token: string): Promise<TokenPayload>;
 }
 
 export interface TokenPayload {

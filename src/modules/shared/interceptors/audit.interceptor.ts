@@ -4,9 +4,11 @@ import {
   ExecutionContext,
   CallHandler,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { AUDIT_REPOSITORY } from '@shared/common/audit-repository.port';
 import type { AuditRepository } from '@shared/common/audit-repository.port';
 import { User } from '@identity/domain/entities/user.entity';
 
@@ -14,7 +16,9 @@ import { User } from '@identity/domain/entities/user.entity';
 export class AuditInterceptor implements NestInterceptor {
   private readonly logger = new Logger(AuditInterceptor.name);
 
-  constructor(private readonly auditRepository: AuditRepository) {}
+  constructor(
+    @Inject(AUDIT_REPOSITORY) private readonly auditRepository: AuditRepository,
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();

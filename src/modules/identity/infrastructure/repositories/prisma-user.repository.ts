@@ -7,11 +7,11 @@ import { PrismaService } from '@prisma/prisma.service';
 export class PrismaUserRepository implements UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private toDomain(prismaUser: any): User {
+  private toDomain(prismaUser: any, includePassword = true): User {
     return new User({
       id: prismaUser.id,
       email: prismaUser.email,
-      passwordHash: prismaUser.passwordHash,
+      passwordHash: includePassword ? prismaUser.passwordHash : '',
       role: prismaUser.role as UserRole,
       firstName: prismaUser.firstName,
       lastName: prismaUser.lastName,
@@ -38,19 +38,22 @@ export class PrismaUserRepository implements UserRepository {
     return this.toDomain(prismaUser);
   }
 
-  async findById(id: string): Promise<User | null> {
-    const prismaUser = await this.prisma.user.findUnique({ where: { id } });
-    return prismaUser ? this.toDomain(prismaUser) : null;
+  async findById(id: string, includePassword = true): Promise<User | null> {
+    const prismaUser = await this.prisma.user.findUnique({
+      where: { id },
+      select: includePassword ? undefined : { id: true, email: true, role: true, firstName: true, lastName: true, isActive: true, createdAt: true, updatedAt: true },
+    });
+    return prismaUser ? this.toDomain(prismaUser, includePassword) : null;
   }
 
   async findByEmail(email: string): Promise<User | null> {
     const prismaUser = await this.prisma.user.findUnique({ where: { email } });
-    return prismaUser ? this.toDomain(prismaUser) : null;
+    return prismaUser ? this.toDomain(prismaUser, true) : null;
   }
 
   async findAll(): Promise<User[]> {
     const prismaUsers = await this.prisma.user.findMany();
-    return prismaUsers.map((u) => this.toDomain(u));
+    return prismaUsers.map((u) => this.toDomain(u, true));
   }
 
   async delete(id: string): Promise<void> {

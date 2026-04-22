@@ -31,7 +31,7 @@
       "@scheduling/domain/*": ["src/modules/scheduling/domain/*"],
       "@scheduling/application/*": ["src/modules/scheduling/application/*"],
       "@scheduling/infrastructure/*": ["src/modules/scheduling/infrastructure/*"],
-      "@shared/*": ["src/shared/*"],
+      "@shared/*": ["src/modules/shared/*"],
       "@shared/notification/*": ["src/modules/shared/infrastructure/notification/*"],
       "@prisma/*": ["src/prisma/*"]
     }

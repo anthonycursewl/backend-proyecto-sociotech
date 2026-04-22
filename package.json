@@ -20,11 +20,13 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
-    "seed:admin": "ts-node -r tsconfig-paths/register scripts/create-super-admin.ts"
+    "seed:admin": "ts-node -r tsconfig-paths/register scripts/create-super-admin.ts",
+    "seed:system": "ts-node -r tsconfig-paths/register scripts/seed-system.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1033.0",
     "@aws-sdk/s3-request-presigner": "^3.1033.0",
+    "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
@@ -34,7 +36,12 @@
     "@prisma/client": "^7.7.0",
     "@types/bcrypt": "^6.0.0",
     "bcrypt": "^6.0.0",
+    "cache-manager": "^7.2.8",
+    "cache-manager-redis-store": "^3.0.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "dotenv": "^17.4.2",
+    "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

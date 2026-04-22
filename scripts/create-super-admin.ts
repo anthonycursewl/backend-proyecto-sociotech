@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import 'dotenv/config';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { User, UserRole } from '../src/modules/identity/domain/entities/user.entity';
 import * as bcrypt from 'bcrypt';

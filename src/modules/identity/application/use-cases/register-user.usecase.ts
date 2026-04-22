@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, ConflictException, ForbiddenException } from '@nestjs/common';
 import { User, UserRole } from '@identity/domain/entities/user.entity';
 import type { UserRepository } from '@identity/domain/ports/user-repository.port';
 import { USER_REPOSITORY } from '@identity/domain/ports/user-repository.port';
@@ -11,7 +11,10 @@ export interface RegisterUserInput {
   password: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
+}
+
+export interface RegisterUserWithRoleInput extends RegisterUserInput {
+  role?: UserRole;
 }
 
 export interface RegisterUserOutput {
@@ -30,7 +33,7 @@ export class RegisterUserUseCase {
 
     const existingUser = await this.userRepository.findByEmail(email.value);
     if (existingUser) {
-      throw new Error('User with this email already exists');
+      throw new ConflictException('User with this email already exists');
     }
 
     const passwordHash = await this.authService.hashPassword(input.password);
@@ -39,7 +42,40 @@ export class RegisterUserUseCase {
       id: crypto.randomUUID(),
       email: email.value,
       passwordHash,
-      role: input.role,
+      role: UserRole.PATIENT,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const savedUser = await this.userRepository.save(user);
+
+    return { user: savedUser };
+  }
+
+  async executeWithRole(input: RegisterUserWithRoleInput, assignedBy: User): Promise<RegisterUserOutput> {
+    if (!assignedBy.canAssignRole(input.role || UserRole.PATIENT)) {
+      throw new ForbiddenException('You do not have permission to assign this role');
+    }
+
+    const email = new Email(input.email);
+
+    const existingUser = await this.userRepository.findByEmail(email.value);
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists');
+    }
+
+    const passwordHash = await this.authService.hashPassword(input.password);
+
+    const role = input.role || UserRole.PATIENT;
+
+    const user = new User({
+      id: crypto.randomUUID(),
+      email: email.value,
+      passwordHash,
+      role: role,
       firstName: input.firstName,
       lastName: input.lastName,
       isActive: true,

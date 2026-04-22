@@ -8,24 +8,7 @@ import { APPOINTMENT_REPOSITORY } from '@scheduling/domain/ports/appointment-rep
 import { RolesGuard } from '@identity/infrastructure/strategies/roles.guard';
 import { Roles } from '@identity/infrastructure/strategies/roles.decorator';
 import { UserRole } from '@identity/domain/entities/user.entity';
-
-class ScheduleAppointmentDto {
-  patientId: string;
-  doctorId: string;
-  scheduledAt: string;
-  durationMinutes: number;
-  reason: string;
-  notes?: string;
-}
-
-class CancelAppointmentDto {
-  cancelledBy: string;
-  reason: string;
-}
-
-class RescheduleAppointmentDto {
-  newScheduledAt: string;
-}
+import { ScheduleAppointmentDto, CancelAppointmentDto, RescheduleAppointmentDto } from './appointments.dto';
 
 @Controller('appointments')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -35,7 +18,7 @@ export class AppointmentsController {
     private readonly cancelAppointmentUseCase: CancelAppointmentUseCase,
     private readonly rescheduleAppointmentUseCase: RescheduleAppointmentUseCase,
     @Inject(APPOINTMENT_REPOSITORY) private readonly appointmentRepository: AppointmentRepository,
-  ) {}
+  ) { }
 
   @Post()
   @Roles(UserRole.DOCTOR, UserRole.SECRETARY)

@@ -1,75 +1,56 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { RegisterUserUseCase } from '../../application/use-cases/register-user.usecase';
-import { LoginUseCase } from '../../application/use-cases/login.usecase';
-import { UserRole } from '@identity/domain/entities/user.entity';
-
-class RegisterUserDto {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role: UserRole;
-}
-
-class LoginDto {
-  email: string;
-  password: string;
-}
-
-class AuthResponse {
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
-  tokens: {
-    accessToken: string;
-    refreshToken: string;
-  };
-}
+import { Injectable, Inject, NotFoundException, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import type { Request } from 'express';
+import type { User } from '@identity/domain/entities/user.entity';
+import { LoginUseCase, RefreshTokenUseCase, LoginOutput } from '../../application/use-cases';
+import { RegisterUserDto, LoginDto, RefreshTokenDto } from './auth.dto';
+import { ProfileResponseDto } from './profile.dto';
+import { ProfileService } from './profile.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
-    private readonly registerUserUseCase: RegisterUserUseCase,
     private readonly loginUseCase: LoginUseCase,
+    private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    private readonly profileService: ProfileService,
   ) {}
 
-  @Post('register')
-  @HttpCode(HttpStatus.CREATED)
-  async register(@Body() dto: RegisterUserDto): Promise<AuthResponse> {
-    const { user } = await this.registerUserUseCase.execute(dto);
-    const loginResult = await this.loginUseCase.execute({
-      email: dto.email,
-      password: dto.password,
-    });
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-      tokens: loginResult.tokens,
-    };
+  @Post('login')
+  async login(@Body() dto: LoginDto): Promise<LoginOutput> {
+    try {
+      return await this.loginUseCase.execute({
+        email: dto.email,
+        password: dto.password,
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
   }
 
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
-  async login(@Body() dto: LoginDto): Promise<AuthResponse> {
-    const { user, tokens } = await this.loginUseCase.execute(dto);
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-      tokens,
-    };
+  @Post('refresh')
+  async refresh(@Body() dto: RefreshTokenDto) {
+    try {
+      return await this.refreshTokenUseCase.execute({
+        refreshToken: dto.refreshToken,
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+  }
+
+  @Post('register')
+  async register(@Body() dto: RegisterUserDto): Promise<{ message: string }> {
+    throw new BadRequestException('Registration disabled. Contact administrator.');
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  async getProfile(@Req() req: Request): Promise<ProfileResponseDto> {
+    const user = req.user as User;
+    if (!user) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+    return this.profileService.getProfile(user);
   }
 }

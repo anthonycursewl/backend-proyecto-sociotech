@@ -1,18 +1,34 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { RegisterUserUseCase, LoginUseCase } from './application/use-cases';
+import Redis from 'ioredis';
+import { RegisterUserUseCase, LoginUseCase, RefreshTokenUseCase } from './application/use-cases';
 import { PrismaUserRepository } from './infrastructure/repositories/prisma-user.repository';
-import { PrismaAuditRepository } from './infrastructure/repositories/prisma-audit.repository';
 import { BcryptAuthService } from './infrastructure/strategies/bcrypt-auth.service';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { RolesGuard } from './infrastructure/strategies/roles.guard';
 import { AuthController } from './infrastructure/controllers/auth.controller';
 import { UsersController } from './infrastructure/controllers/users.controller';
+import { ProfileService, REDIS_CLIENT } from './infrastructure/controllers/profile.service';
 import { PrismaModule } from '@prisma/prisma.module';
 import { USER_REPOSITORY } from './domain/ports/user-repository.port';
 import { AUTH_SERVICE } from './domain/ports/auth-service.port';
-import { AUDIT_REPOSITORY } from '@shared/common/audit-repository.port';
+
+const redisClientFactory = {
+  provide: REDIS_CLIENT,
+  useFactory: () => {
+    if (!process.env.REDIS_HOST) {
+      return null;
+    }
+    return new Redis({
+      host: process.env.REDIS_HOST,
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      password: process.env.REDIS_PASSWORD,
+      lazyConnect: true,
+      retryStrategy: () => null,
+    });
+  },
+};
 
 @Module({
   imports: [
@@ -27,16 +43,15 @@ import { AUDIT_REPOSITORY } from '@shared/common/audit-repository.port';
   providers: [
     RegisterUserUseCase,
     LoginUseCase,
+    RefreshTokenUseCase,
     BcryptAuthService,
     JwtStrategy,
     RolesGuard,
+    ProfileService,
+    redisClientFactory,
     {
       provide: USER_REPOSITORY,
       useClass: PrismaUserRepository,
-    },
-    {
-      provide: AUDIT_REPOSITORY,
-      useClass: PrismaAuditRepository,
     },
     {
       provide: AUTH_SERVICE,
@@ -46,11 +61,12 @@ import { AUDIT_REPOSITORY } from '@shared/common/audit-repository.port';
   exports: [
     RegisterUserUseCase,
     LoginUseCase,
+    RefreshTokenUseCase,
     JwtStrategy,
     RolesGuard,
     USER_REPOSITORY,
-    AUDIT_REPOSITORY,
     AUTH_SERVICE,
+    ProfileService,
   ],
 })
 export class IdentityModule {}
