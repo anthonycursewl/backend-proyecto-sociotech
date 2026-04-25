@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Res, UseGuards, ParseUUIDPipe, Inject } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
-import { PdfGeneratorService, MedicalReportData } from '../pdf/pdf-generator.service';
+import { PdfGeneratorService, MedicalReportData } from '../../infrastructure/pdf/pdf-generator.service';
 import type { MedicalRecordRepository } from '@clinical/domain/ports/medical-record-repository.port';
 import { MEDICAL_RECORD_REPOSITORY } from '@clinical/domain/ports/medical-record-repository.port';
 import type { UserRepository } from '@identity/domain/ports/user-repository.port';

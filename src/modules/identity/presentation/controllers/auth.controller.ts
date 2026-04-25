@@ -3,7 +3,7 @@ import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
 import type { User } from '@identity/domain/entities/user.entity';
-import { LoginUseCase, RefreshTokenUseCase, LoginOutput } from '../../application/use-cases';
+import { LoginUseCase, RefreshTokenUseCase, LoginOutput } from '../../application/services';
 import { RegisterUserDto, LoginDto, RefreshTokenDto } from './auth.dto';
 import { ProfileResponseDto } from './profile.dto';
 import { ProfileService } from './profile.service';

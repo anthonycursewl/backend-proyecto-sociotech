@@ -7,7 +7,7 @@ import { USER_REPOSITORY } from '@identity/domain/ports/user-repository.port';
 import { RolesGuard } from '@identity/infrastructure/strategies/roles.guard';
 import { Permissions } from '@identity/infrastructure/strategies/permissions.decorator';
 import { CurrentUser } from '@identity/infrastructure/strategies/current-user.decorator';
-import { RegisterUserUseCase } from '../../application/use-cases/register-user.usecase';
+import { RegisterUserUseCase } from '../../application/services/register-user.usecase';
 import { CreateUserDto, UpdateRoleDto } from './users.dto';
 
 @Controller('users')

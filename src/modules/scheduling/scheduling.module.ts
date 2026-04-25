@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ScheduleAppointmentUseCase, CancelAppointmentUseCase, RescheduleAppointmentUseCase } from './application/use-cases';
+import { ScheduleAppointmentUseCase, CancelAppointmentUseCase, RescheduleAppointmentUseCase } from './application/services';
 import { PrismaAppointmentRepository } from './infrastructure/repositories/prisma-appointment.repository';
-import { AppointmentsController } from './infrastructure/controllers/appointments.controller';
+import { AppointmentsController } from './presentation/controllers/appointments.controller';
 import { PrismaModule } from '@prisma/prisma.module';
 import { APPOINTMENT_REPOSITORY } from './domain/ports/appointment-repository.port';
 

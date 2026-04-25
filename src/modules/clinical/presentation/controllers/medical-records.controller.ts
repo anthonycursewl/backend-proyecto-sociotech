@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Param, Body, UseGuards, ParseUUIDPipe, Inject } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { CreateMedicalRecordUseCase } from '../../application/use-cases/create-medical-record.usecase';
-import { SignMedicalRecordUseCase } from '../../application/use-cases/sign-medical-record.usecase';
+import { CreateMedicalRecordUseCase } from '../../application/services/create-medical-record.usecase';
+import { SignMedicalRecordUseCase } from '../../application/services/sign-medical-record.usecase';
 import type { MedicalRecordRepository } from '@clinical/domain/ports/medical-record-repository.port';
 import { MEDICAL_RECORD_REPOSITORY } from '@clinical/domain/ports/medical-record-repository.port';
 import { RolesGuard } from '@identity/infrastructure/strategies/roles.guard';

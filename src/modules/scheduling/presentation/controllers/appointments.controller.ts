@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, ParseUUIDPipe, Inject } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ScheduleAppointmentUseCase } from '../../application/use-cases/schedule-appointment.usecase';
-import { CancelAppointmentUseCase } from '../../application/use-cases/cancel-appointment.usecase';
-import { RescheduleAppointmentUseCase } from '../../application/use-cases/reschedule-appointment.usecase';
+import { ScheduleAppointmentUseCase } from '../../application/services/schedule-appointment.usecase';
+import { CancelAppointmentUseCase } from '../../application/services/cancel-appointment.usecase';
+import { RescheduleAppointmentUseCase } from '../../application/services/reschedule-appointment.usecase';
 import type { AppointmentRepository } from '@scheduling/domain/ports/appointment-repository.port';
 import { APPOINTMENT_REPOSITORY } from '@scheduling/domain/ports/appointment-repository.port';
 import { RolesGuard } from '@identity/infrastructure/strategies/roles.guard';

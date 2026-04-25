@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ExpoPushNotificationService } from './infrastructure/notification/expo-push.service';
 import { SystemController } from './infrastructure/system.controller';
 import { AuditInterceptor } from './interceptors/audit.interceptor';
+import { UnitOfWork } from './infrastructure/unit-of-work/unit-of-work';
 import { PrismaModule } from '@prisma/prisma.module';
 import { PrismaAuditRepository } from '@identity/infrastructure/repositories/prisma-audit.repository';
 import { AUDIT_REPOSITORY } from './common/audit-repository.port';
@@ -20,6 +21,7 @@ import { AUDIT_REPOSITORY } from './common/audit-repository.port';
   providers: [
     ExpoPushNotificationService,
     AuditInterceptor,
+    UnitOfWork,
     {
       provide: 'NotificationProvider',
       useClass: ExpoPushNotificationService,
@@ -34,6 +36,7 @@ import { AUDIT_REPOSITORY } from './common/audit-repository.port';
     'NotificationProvider',
     AuditInterceptor,
     AUDIT_REPOSITORY,
+    UnitOfWork,
   ],
 })
 export class SharedModule { }

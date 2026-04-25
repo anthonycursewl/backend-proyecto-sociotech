@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { CreateMedicalRecordUseCase, SignMedicalRecordUseCase } from './application/use-cases';
+import { CreateMedicalRecordUseCase, SignMedicalRecordUseCase } from './application/services';
 import { PrismaMedicalRecordRepository } from './infrastructure/repositories/prisma-medical-record.repository';
-import { MedicalRecordsController } from './infrastructure/controllers/medical-records.controller';
-import { ReportsController } from './infrastructure/controllers/reports.controller';
+import { MedicalRecordsController } from './presentation/controllers/medical-records.controller';
+import { ReportsController } from './presentation/controllers/reports.controller';
 import { PdfGeneratorService } from './infrastructure/pdf/pdf-generator.service';
 import { PrismaModule } from '@prisma/prisma.module';
 import { IdentityModule } from '../identity/identity.module';
