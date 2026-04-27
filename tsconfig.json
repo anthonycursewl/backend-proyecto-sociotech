@@ -22,20 +22,50 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@identity/domain/*": ["src/modules/identity/domain/*"],
-      "@identity/application/*": ["src/modules/identity/application/*"],
-      "@identity/infrastructure/*": ["src/modules/identity/infrastructure/*"],
-      "@clinical/domain/*": ["src/modules/clinical/domain/*"],
-      "@clinical/application/*": ["src/modules/clinical/application/*"],
-      "@clinical/infrastructure/*": ["src/modules/clinical/infrastructure/*"],
-      "@scheduling/domain/*": ["src/modules/scheduling/domain/*"],
-      "@scheduling/application/*": ["src/modules/scheduling/application/*"],
-      "@scheduling/infrastructure/*": ["src/modules/scheduling/infrastructure/*"],
-      "@shared/*": ["src/modules/shared/*"],
-      "@shared/notification/*": ["src/modules/shared/infrastructure/notification/*"],
-      "@prisma/*": ["src/prisma/*"]
+      "@clinical/application/*": [
+        "apps/main-service/src/application/*"
+      ],
+      "@clinical/domain/*": [
+        "apps/main-service/src/domain/*"
+      ],
+      "@clinical/infrastructure/*": [
+        "apps/main-service/src/infrastructure/*"
+      ],
+      "@identity/application/*": [
+        "apps/auth-service/src/application/*"
+      ],
+      "@identity/domain/*": [
+        "apps/auth-service/src/domain/*"
+      ],
+      "@identity/infrastructure/*": [
+        "apps/auth-service/src/infrastructure/*"
+      ],
+      "@prisma/*": [
+        "apps/backend-proyecto-sociotech/src/prisma/*"
+      ],
+      "@scheduling/application/*": [
+        "apps/main-service/src/application/*"
+      ],
+      "@scheduling/domain/*": [
+        "apps/main-service/src/domain/*"
+      ],
+      "@scheduling/infrastructure/*": [
+        "apps/main-service/src/infrastructure/*"
+      ],
+      "@shared/*": [
+        "apps/backend-proyecto-sociotech/src/modules/shared/*"
+      ],
+      "@shared/notification/*": [
+        "apps/backend-proyecto-sociotech/src/modules/shared/infrastructure/notification/*"
+      ]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "apps/**/*",
+    "libs/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
