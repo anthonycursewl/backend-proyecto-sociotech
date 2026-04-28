@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  gateway:
+    build: ./gateway
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - user-service
+      - main-service
+      - sync-service
+      - telemetry-service
+    networks:
+      - backend-network
+
+  # Auth Service
+  auth-service:
+    build: .
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=5002
+    command: npm run start
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - backend-network
+
+  # User Service
+  user-service:
+    build: .
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=5002
+    command: npm run start
+    depends_on:
+      - postgres
+    networks:
+      - backend-network
+
+  # Main Service (Clinical + Scheduling)
+  main-service:
+    build: .
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=5002
+    command: npm run start
+    depends_on:
+      - postgres
+    networks:
+      - backend-network
+
+  # Sync Service
+  sync-service:
+    build: .
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - MONGO_URI=${MONGO_URI}
+      - PORT=5002
+    command: npm run start
+    depends_on:
+      - postgres
+      - mongo
+    networks:
+      - backend-network
+
+  # Telemetry Service
+  telemetry-service:
+    build: .
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - PORT=5002
+    command: npm run start
+    depends_on:
+      - mongo
+    networks:
+      - backend-network
+
+  # PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - backend-network
+
+  # MongoDB
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - backend-network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  mongo-data:
+  redis-data:
