@@ -27,54 +27,7 @@ Este proyecto implementa una **arquitectura de microservicios** donde cada servi
 
 ## Diagrama del Sistema
 
-```
-┌────────────────────────────────────────────────────────────────────────────┐
-│                                    ARQUITECTURA DEL PROYECTO               │
-├────────────────────────────────────────────────────────────────────────────┤
-│                                                                            │
-│   ┌─────────────┐                                                          │
-│   │   FRONTEND  │                                                          │
-│   └──────┬──────┘                                                          │
-│          │ HTTP                                                            │
-│          ▼                                                                 │
-│   ┌─────────────────────────────────────────────────────────────────┐      │
-│   │                      NGINX GATEWAY (puerto 80)                  │      │
-│   │  ├── /api/auth/*        → auth-service:5001                     │      │
-│   │  ├── /api/users/*       → user-service:5002                     │      │
-│   │  ├── /api/medical-*    → main-service:5003                      │      │
-│   │  ├── /api/appointments*→ main-service:5003                      │      │
-│   │  └── /api/sync/*       → sync-service:5004                      │      │
-│   └─────────────────────────────────────────────────────────────────┘      │
-│                                                                            │
-│   ════════════════════════════════════════════════════════════════════     │
-│   MICROSERVICIOS (Cada uno es una aplicación NestJS independiente)         │
-│   ════════════════════════════════════════════════════════════════════     │
-│                                                                            │
-│   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
-│   │    AUTH      │  │    USER      │  │    MAIN      │  │    SYNC      │   │
-│   │  Service     │  │  Service     │  │  Service     │  │  Service     │   │
-│   │              │  │              │  │              │  │              │   │
-│   │ Puerto: 5001 │  │ Puerto: 5002 │  │ Puerto: 5003 │  │ Puerto: 5004 │   │
-│   │              │  │              │  │              │  │              │   │
-│   │ DB: auth_    │  │ DB: user_    │  │ DB:clinical_ │  │ DB: MongoDB  │   │
-│   │   service    │  │   service    │  │   service    │  │              │   │
-│   └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘   │
-│                                                                            │
-│   ════════════════════════════════════════════════════════════════════     │
-│   COMUNICACIÓN EVENT-DRIVEN (Redis Streams)                                │
-│   ════════════════════════════════════════════════════════════════════     │
-│                                                                            │
-│   Auth Service ──publish──→ [user:events stream] ──subscribe               │ 
-│   ──→ User Service                                                         │
-│                                                                            │
-│   ┌──────────────┐                                                         │
-│   │  TELEMETRY   │  (Escucha todos los eventos para logging/métricas)      │
-│   │  Service     │                                                         │
-│   │  Puerto: 5005│                                                         │
-│   └──────────────┘                                                         │
-│                                                                            │
-└────────────────────────────────────────────────────────────────────────────┘
-```
+![diagrama](/doc_assets/diagram_2.PNG)
 
 ---
 
