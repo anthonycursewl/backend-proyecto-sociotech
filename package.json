@@ -12,16 +12,12 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/backend-proyecto-sociotech/main",
-
-    "start:auth": "nest start auth-service --watch",
-    "start:user": "nest start user-service --watch",
-    "start:main": "nest start main-service --watch",
-
-    "start:sync": "nest start sync-service --watch",
-    "start:telemetry": "nest start telemetry-service --watch",
-
+    "start:auth": "dotenv -e ./apps/auth-service/.env -- nest start auth-service",
+    "start:user": "dotenv -e ./apps/user-service/.env -- nest start user-service",
+    "start:main": "dotenv -e ./apps/main-service/.env -- nest start main-service",
+    "start:sync": "dotenv -e ./apps/sync-service/.env -- nest start sync-service",
+    "start:telemetry": "dotenv -e ./apps/telemetry-service/.env -- nest start telemetry-service",
     "start:all": "npm run start:auth & npm run start:user & npm run start:main & npm run start:sync & npm run start:telemetry",
-
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -81,6 +77,7 @@
     "@types/pdfkit": "^0.17.6",
     "@types/pg": "^8.20.0",
     "@types/supertest": "^7.0.0",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",

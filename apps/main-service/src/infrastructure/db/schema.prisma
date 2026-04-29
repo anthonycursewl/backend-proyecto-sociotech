@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../../../node_modules/@prisma/client/main"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Patient {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  medicalId        String   @unique
+  dateOfBirth      DateTime
+  phone            String
+  address          String
+  emergencyContact String
+  emergencyPhone   String
+  bloodType        String?
+  allergies        String[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  appointments    Appointment[]
+  medicalRecords  MedicalRecord[]
+
+  @@map("patients")
+}
+
+model MedicalRecord {
+  id            String    @id @default(uuid())
+  patientId     String
+  doctorId      String
+  chiefComplaint String
+  symptoms      String[]
+  diagnosis     String
+  treatment     String
+  notes         String
+  isSigned      Boolean   @default(false)
+  signedAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  patient       Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  attachments   MedicalRecordAttachment[]
+
+  @@map("medical_records")
+}
+
+model MedicalRecordAttachment {
+  id              String   @id @default(uuid())
+  medicalRecordId String
+  fileUrl         String
+  fileName        String
+  mimeType        String
+  description     String?
+  uploadedAt      DateTime @default(now())
+
+  medicalRecord   MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+
+  @@map("medical_record_attachments")
+}
+
+model Appointment {
+  id                String    @id @default(uuid())
+  patientId         String
+  doctorId          String
+  scheduledAt       DateTime
+  durationMinutes   Int       @default(30)
+  status            String    @default("SCHEDULED")
+  reason            String
+  notes             String?
+  cancelledAt       DateTime?
+  cancelledBy       String?
+  cancellationReason String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  patient           Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@map("appointments")
+}

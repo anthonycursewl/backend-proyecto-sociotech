@@ -1,18 +1,17 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "apps/backend-proyecto-sociotech/src",
+  "sourceRoot": "apps/auth-service/src",
   "compilerOptions": {
     "deleteOutDir": true,
     "assets": [
       "**/*.prisma"
     ],
     "watchAssets": true,
-    "webpack": true,
-    "tsConfigPath": "apps/backend-proyecto-sociotech/tsconfig.app.json"
+    "webpack": true
   },
   "monorepo": true,
-  "root": "apps/backend-proyecto-sociotech",
+  "root": "apps/auth-service",
   "projects": {
     "auth-service": {
       "type": "application",
@@ -23,31 +22,22 @@
         "tsConfigPath": "apps/auth-service/tsconfig.app.json"
       }
     },
-    "backend-proyecto-sociotech": {
+    "user-service": {
       "type": "application",
-      "root": "apps/backend-proyecto-sociotech",
+      "root": "apps/user-service",
       "entryFile": "main",
-      "sourceRoot": "apps/backend-proyecto-sociotech/src",
+      "sourceRoot": "apps/user-service/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/backend-proyecto-sociotech/tsconfig.app.json"
+        "tsConfigPath": "apps/user-service/tsconfig.app.json"
       }
     },
     "main-service": {
       "type": "application",
-      "root": "apps/clinical-service",
+      "root": "apps/main-service",
       "entryFile": "main",
-      "sourceRoot": "apps/clinical-service/src",
+      "sourceRoot": "apps/main-service/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/clinical-service/tsconfig.app.json"
-      }
-    },
-    "scheduling-service": {
-      "type": "application",
-      "root": "apps/scheduling-service",
-      "entryFile": "main",
-      "sourceRoot": "apps/scheduling-service/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/scheduling-service/tsconfig.app.json"
+        "tsConfigPath": "apps/main-service/tsconfig.app.json"
       }
     },
     "sync-service": {
@@ -66,15 +56,6 @@
       "sourceRoot": "apps/telemetry-service/src",
       "compilerOptions": {
         "tsConfigPath": "apps/telemetry-service/tsconfig.app.json"
-      }
-    },
-    "user-service": {
-      "type": "application",
-      "root": "apps/user-service",
-      "entryFile": "main",
-      "sourceRoot": "apps/user-service/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/user-service/tsconfig.app.json"
       }
     }
   }
