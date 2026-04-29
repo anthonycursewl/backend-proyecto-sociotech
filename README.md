@@ -21,7 +21,7 @@
 
 Este proyecto implementa una **arquitectura de microservicios** donde cada servicio es independiente, tiene su propia base de datos y se comunica mediante eventos asíncronos (Redis Streams).
 
-![diagrama](/doc_assets/diagram_1.png)
+![diagrama](/doc_assets/diagram_1.PNG)
 
 ---
 
