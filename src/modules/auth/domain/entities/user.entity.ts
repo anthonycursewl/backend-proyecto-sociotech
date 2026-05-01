@@ -144,6 +144,8 @@ export interface UserProps {
   firstName: string;
   lastName: string;
   isActive: boolean;
+  refreshToken?: string;
+  refreshTokenExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -189,6 +191,14 @@ export class User {
 
   get updatedAt(): Date {
     return this.props.updatedAt;
+  }
+
+  get refreshToken(): string | undefined {
+    return this.props.refreshToken;
+  }
+
+  get refreshTokenExpires(): Date | undefined {
+    return this.props.refreshTokenExpires;
   }
 
   get fullName(): string {

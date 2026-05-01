@@ -10,10 +10,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepo: UserRepository,
   ) {
+    const secret = process.env.JWT_SECRET || 'dev_temp_secret_12345';
+    
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'i_like_donuts',
+      secretOrKey: secret,
     });
   }
 

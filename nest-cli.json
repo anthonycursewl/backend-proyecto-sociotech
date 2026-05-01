@@ -8,6 +8,6 @@
       "**/*.prisma"
     ],
     "watchAssets": true,
-    "webpack": true
+    "webpack": false
   }
 }

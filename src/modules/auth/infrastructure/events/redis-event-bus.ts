@@ -53,11 +53,18 @@ export class RedisEventBus implements IEventBus {
       timestamp: (event.timestamp || new Date()).toISOString(),
     };
 
-    await this.redis.xadd(
-      event.streamName,
-      '*',
-      ...Object.entries(eventData).flat(),
-    );
+    try {
+      await Promise.race([
+        this.redis.xadd(
+          event.streamName,
+          '*',
+          ...Object.entries(eventData).flat(),
+        ),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Redis timeout')), 3000)),
+      ]);
+    } catch (error) {
+      this.logger.warn(`Event publish failed: ${error.message}`);
+    }
   }
 
   async createConsumerGroup(streamName: string, groupName: string): Promise<void> {

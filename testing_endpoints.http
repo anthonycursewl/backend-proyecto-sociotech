@@ -1,7 +1,5 @@
-@API_BASE_URL = http://localhost:80
-@ACCESS_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3NGNiNjI4ZS1kZjljLTQ0MGYtOTA3YS0zNTBiZDhmMWVhZDgiLCJlbWFpbCI6InplcnBhYW50aG9ueS53eEBicmVhZHJpdXNzLmNvbSIsInJvbGUiOiJQQVRJRU5UIiwiaWF0IjoxNzc3NDgxMTUwLCJleHAiOjE3Nzc1Njc1NTB9.zKanKvfondjarHz8MHhQFaVx22zprXlxzH5FQfN76F4
-
-POST {{API_BASE_URL}}/api/auth/register
+@API_BASE_URL = http://localhost:5002
+@ACCESS_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZTJhYThlNC0zZTNlLTQ1YzUtOGUwMy00MmYwZTQ5OTY0OWMiLCJlbWFpbCI6InplcnBhYW50aG9ueS53eEBicmVhZHJpdXNzLmNvbSIsInJvbGUiOiJwYXRpZW50IiwiaWF0IjoxNzc3NjY5NjU4LCJleHAiOjE3Nzc2NzY4NTh9.yeJBgElcYUf-4Bm--eTDWGdu0RKN2PiZJU3VMJqCIfQ
 Content-Type: application/json
 
 {
@@ -13,7 +11,7 @@ Content-Type: application/json
 
 
 ### Login
-POST {{API_BASE_URL}}/api/auth/login
+POST {{API_BASE_URL}}/auth/login
 Content-Type: application/json
 
 {
@@ -22,7 +20,7 @@ Content-Type: application/json
 }
 
 ### Verificar token 
-GET {{API_BASE_URL}}/api/auth/me
+GET {{API_BASE_URL}}/auth/me
 Content-Type: application/json
 Authorization: Bearer {{ACCESS_TOKEN}}
 

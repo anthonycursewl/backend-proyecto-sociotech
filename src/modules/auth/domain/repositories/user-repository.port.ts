@@ -9,6 +9,7 @@ export interface UserRepository {
   findAll(): Promise<User[]>;
   delete(id: string): Promise<void>;
   update(id: string, data: Partial<User>): Promise<User>;
+  updateRefreshToken(userId: string, hashedRefreshToken: string, expiresAt: Date): Promise<void>;
   findByRole(role: string): Promise<User[]>;
   search(query: string, limit?: number): Promise<User[]>;
 }

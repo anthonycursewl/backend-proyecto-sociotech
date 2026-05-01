@@ -16,6 +16,8 @@ export class PrismaUserRepository implements UserRepository {
       firstName: prismaUser.firstName,
       lastName: prismaUser.lastName,
       isActive: prismaUser.isActive,
+      refreshToken: prismaUser.refreshToken,
+      refreshTokenExpires: prismaUser.refreshTokenExpires,
       createdAt: prismaUser.createdAt,
       updatedAt: prismaUser.updatedAt,
     });
@@ -73,6 +75,17 @@ export class PrismaUserRepository implements UserRepository {
       },
     });
     return this.toDomain(prismaUser);
+  }
+
+  async updateRefreshToken(userId: string, hashedRefreshToken: string, expiresAt: Date): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        refreshToken: hashedRefreshToken,
+        refreshTokenExpires: expiresAt,
+        updatedAt: new Date(),
+      },
+    });
   }
 
   async findByRole(role: string): Promise<User[]> {

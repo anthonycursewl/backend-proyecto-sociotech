@@ -21,52 +21,28 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
-    "paths": {
-      "@auth/application/*": [
-        "src/modules/auth/application/*"
-      ],
-      "@auth/domain/*": [
-        "src/modules/auth/domain/*"
-      ],
-      "@auth/infrastructure/*": [
-        "src/modules/auth/infrastructure/*"
-      ],
-      "@user/application/*": [
-        "src/modules/user/application/*"
-      ],
-      "@user/domain/*": [
-        "src/modules/user/domain/*"
-      ],
-      "@user/infrastructure/*": [
-        "src/modules/user/infrastructure/*"
-      ],
-      "@clinical/application/*": [
-        "src/modules/clinical/application/*"
-      ],
-      "@clinical/domain/*": [
-        "src/modules/clinical/domain/*"
-      ],
-      "@clinical/infrastructure/*": [
-        "src/modules/clinical/infrastructure/*"
-      ],
-      "@telemetry/application/*": [
-        "src/modules/telemetry/application/*"
-      ],
-      "@telemetry/domain/*": [
-        "src/modules/telemetry/domain/*"
-      ],
-      "@telemetry/infrastructure/*": [
-        "src/modules/telemetry/infrastructure/*"
-      ],
-      "@sync/application/*": [
-        "src/modules/sync/application/*"
-      ],
-      "@sync/domain/*": [
-        "src/modules/sync/domain/*"
-      ],
-      "@sync/infrastructure/*": [
-        "src/modules/sync/infrastructure/*"
-      ]
+"paths": {
+      "@auth/application/*": ["src/modules/auth/application/*"],
+      "@auth/domain/*": ["src/modules/auth/domain/*"],
+      "@auth/infrastructure/*": ["src/modules/auth/infrastructure/*"],
+      "@user/application/*": ["src/modules/user/application/*"],
+      "@user/domain/*": ["src/modules/user/domain/*"],
+      "@user/infrastructure/*": ["src/modules/user/infrastructure/*"],
+      "@clinical/application/*": ["src/modules/clinical/application/*"],
+      "@clinical/domain/*": ["src/modules/clinical/domain/*"],
+      "@clinical/infrastructure/*": ["src/modules/clinical/infrastructure/*"],
+      "@clinical/entities/*": ["src/modules/clinical/domain/entities/*"],
+      "@clinical/presentation/*": ["src/modules/clinical/presentation/*"],
+      "@telemetry/application/*": ["src/modules/telemetry/application/*"],
+      "@telemetry/domain/*": ["src/modules/telemetry/domain/*"],
+      "@telemetry/infrastructure/*": ["src/modules/telemetry/infrastructure/*"],
+      "@sync/application/*": ["src/modules/sync/application/*"],
+      "@sync/domain/*": ["src/modules/sync/domain/*"],
+      "@sync/infrastructure/*": ["src/modules/sync/infrastructure/*"],
+      "@services/application/*": ["src/modules/services/application/*"],
+      "@services/domain/*": ["src/modules/services/domain/*"],
+      "@services/infrastructure/*": ["src/modules/services/infrastructure/*"],
+      "@services/presentation/*": ["src/modules/services/presentation/*"]
     }
   },
   "include": [

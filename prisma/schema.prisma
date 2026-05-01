@@ -6,29 +6,74 @@ datasource db {
   provider = "postgresql"
 }
 
-// Auth & User models (unified)
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  passwordHash String
-  role         String
-  firstName    String
-  lastName     String
-  isActive     Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                  String    @id @default(uuid())
+  email               String    @unique
+  passwordHash        String
+  role                String
+  firstName           String
+  lastName            String
+  isActive            Boolean   @default(true)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   // Relations
-  patients     Patient[]
+  patients        Patient[]
+  createdServices Service[] @relation("ServiceCreator")
+  doctorProfile   Doctor?   @relation("DoctorUser")
+  doctorServices  Service[] @relation("UserDoctorServices")
+  services        Service[] @relation("UserRegularServices")
 
   @@map("users")
 }
 
-// Clinical models
+model Service {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  durationMin Int      @default(30)
+  price       Float?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy String
+  creator   User   @relation("ServiceCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+
+  doctors Doctor[] @relation("DoctorServices")
+
+  doctorUsers User[] @relation("UserDoctorServices")
+
+  userId String?
+  user   User?   @relation("UserRegularServices", fields: [userId], references: [id])
+
+  @@map("services")
+}
+
+model Doctor {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  specialty         String
+  licenseNumber     String   @unique
+  consultationPrice Float?
+  biography         String?
+  phoneNumber       String?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user     User      @relation("DoctorUser", fields: [userId], references: [id], onDelete: Cascade)
+  services Service[] @relation("DoctorServices")
+
+  @@map("doctors")
+}
+
 model Patient {
-  id               String   @id @default(uuid())
-  userId           String   @unique
-  medicalId        String   @unique
+  id               String          @id @default(uuid())
+  userId           String          @unique
+  medicalId        String          @unique
   dateOfBirth      DateTime
   phone            String
   address          String
@@ -36,84 +81,79 @@ model Patient {
   emergencyPhone   String
   bloodType        String?
   allergies        String[]
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  appointments    Appointment[]
-  medicalRecords  MedicalRecord[]
-  user            User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  appointments     Appointment[]
+  medicalRecords   MedicalRecord[]
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("patients")
 }
 
 model MedicalRecord {
-  id            String    @id @default(uuid())
-  patientId     String
-  doctorId      String
+  id             String                    @id @default(uuid())
+  patientId      String
+  doctorId       String
   chiefComplaint String
-  symptoms      String[]
-  diagnosis     String
-  treatment     String
-  notes         String
-  isSigned      Boolean   @default(false)
-  signedAt      DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  patient       Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  attachments   MedicalRecordAttachment[]
+  symptoms       String[]
+  diagnosis      String
+  treatment      String
+  notes          String
+  isSigned       Boolean                   @default(false)
+  signedAt       DateTime?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  attachments    MedicalRecordAttachment[]
+  patient        Patient                   @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   @@map("medical_records")
 }
 
 model MedicalRecordAttachment {
-  id              String   @id @default(uuid())
+  id              String        @id @default(uuid())
   medicalRecordId String
   fileUrl         String
   fileName        String
   mimeType        String
   description     String?
-  uploadedAt      DateTime @default(now())
-
+  uploadedAt      DateTime      @default(now())
   medicalRecord   MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
 
   @@map("medical_record_attachments")
 }
 
 model Appointment {
-  id                String    @id @default(uuid())
-  patientId         String
-  doctorId          String
-  scheduledAt       DateTime
-  durationMinutes   Int       @default(30)
-  status            String    @default("SCHEDULED")
-  reason            String
-  notes             String?
-  cancelledAt       DateTime?
-  cancelledBy       String?
+  id                 String    @id @default(uuid())
+  patientId          String
+  doctorId           String
+  scheduledAt        DateTime
+  durationMinutes    Int       @default(30)
+  status             String    @default("SCHEDULED")
+  reason             String
+  notes              String?
+  cancelledAt        DateTime?
+  cancelledBy        String?
   cancellationReason String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  patient           Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  patient            Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   @@map("appointments")
 }
 
-// Telemetry model
 model AuditLog {
-  id          String   @id @default(uuid())
-  userId      String?
-  action      String
-  entityType  String
-  entityId    String
-  oldValues   Json?
-  newValues   Json?
-  ipAddress   String?
-  userAgent   String?
-  timestamp   DateTime @default(now())
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?
+  userAgent  String?
+  timestamp  DateTime @default(now())
 
-  @@map("audit_logs")
   @@index([entityType, entityId])
   @@index([userId])
+  @@map("audit_logs")
 }
