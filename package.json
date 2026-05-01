@@ -7,29 +7,20 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/apps/backend-proyecto-sociotech/main",
-    "start:auth": "dotenv -e ./apps/auth-service/.env -- nest start auth-service",
-    "start:user": "dotenv -e ./apps/user-service/.env -- nest start user-service",
-    "start:main": "dotenv -e ./apps/main-service/.env -- nest start main-service",
-    "start:sync": "dotenv -e ./apps/sync-service/.env -- nest start sync-service",
-    "start:telemetry": "dotenv -e ./apps/telemetry-service/.env -- nest start telemetry-service",
-    "start:all": "npm run start:auth & npm run start:user & npm run start:main & npm run start:sync & npm run start:telemetry",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "start:prod": "node dist/src/main",
+    "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./apps/backend-proyecto-sociotech/test/jest-e2e.json",
-    "db:migrate": "prisma migrate dev",
-    "db:generate": "prisma generate",
-    "prisma:user:generate": "prisma generate --schema=apps/user-service/src/infrastructure/db/schema.prisma",
-    "prisma:main:generate": "prisma generate --schema=apps/main-service/src/infrastructure/db/schema.prisma",
-    "prisma:telemetry:generate": "prisma generate --schema=apps/telemetry-service/src/infrastructure/db/schema.prisma",
-    "prisma:all:generate": "npm run prisma:user:generate && npm run prisma:main:generate && npm run prisma:telemetry:generate",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "db:migrate": "prisma migrate dev --schema=prisma/schema.prisma",
+    "db:generate": "prisma generate --schema=prisma/schema.prisma",
+    "db:reset": "prisma migrate reset --schema=prisma/schema.prisma",
     "seed:admin": "ts-node -r tsconfig-paths/register scripts/create-super-admin.ts",
     "seed:system": "ts-node -r tsconfig-paths/register scripts/seed-system.ts"
   },
@@ -38,6 +29,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1033.0",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/mongoose": "^11.0.4",
@@ -111,7 +103,7 @@
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
     "roots": [
-      "<rootDir>/apps/"
+      "<rootDir>/src/"
     ]
   }
 }

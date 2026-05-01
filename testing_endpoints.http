@@ -1,0 +1,33 @@
+@API_BASE_URL = http://localhost:80
+@ACCESS_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3NGNiNjI4ZS1kZjljLTQ0MGYtOTA3YS0zNTBiZDhmMWVhZDgiLCJlbWFpbCI6InplcnBhYW50aG9ueS53eEBicmVhZHJpdXNzLmNvbSIsInJvbGUiOiJQQVRJRU5UIiwiaWF0IjoxNzc3NDgxMTUwLCJleHAiOjE3Nzc1Njc1NTB9.zKanKvfondjarHz8MHhQFaVx22zprXlxzH5FQfN76F4
+
+POST {{API_BASE_URL}}/api/auth/register
+Content-Type: application/json
+
+{
+    "firstName": "Yoyo",
+    "lastName": "Cursewl",
+    "email": "hello@breadriuss.com",
+    "password": "Jose1214#"
+}
+
+
+### Login
+POST {{API_BASE_URL}}/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "zerpaanthony.wx@breadriuss.com",
+    "password": "Jose1214#"
+}
+
+### Verificar token 
+GET {{API_BASE_URL}}/api/auth/me
+Content-Type: application/json
+Authorization: Bearer {{ACCESS_TOKEN}}
+
+
+### Recibir todos los endpoints uwu
+GET {{API_BASE_URL}}/system/permissions
+Content-Type: application/json
+Authorization: Bearer {{ACCESS_TOKEN}}

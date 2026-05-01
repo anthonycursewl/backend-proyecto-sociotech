@@ -22,47 +22,55 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
+      "@auth/application/*": [
+        "src/modules/auth/application/*"
+      ],
+      "@auth/domain/*": [
+        "src/modules/auth/domain/*"
+      ],
+      "@auth/infrastructure/*": [
+        "src/modules/auth/infrastructure/*"
+      ],
+      "@user/application/*": [
+        "src/modules/user/application/*"
+      ],
+      "@user/domain/*": [
+        "src/modules/user/domain/*"
+      ],
+      "@user/infrastructure/*": [
+        "src/modules/user/infrastructure/*"
+      ],
       "@clinical/application/*": [
-        "apps/main-service/src/application/*"
+        "src/modules/clinical/application/*"
       ],
       "@clinical/domain/*": [
-        "apps/main-service/src/domain/*"
+        "src/modules/clinical/domain/*"
       ],
       "@clinical/infrastructure/*": [
-        "apps/main-service/src/infrastructure/*"
+        "src/modules/clinical/infrastructure/*"
       ],
-      "@identity/application/*": [
-        "apps/auth-service/src/application/*"
+      "@telemetry/application/*": [
+        "src/modules/telemetry/application/*"
       ],
-      "@identity/domain/*": [
-        "apps/auth-service/src/domain/*"
+      "@telemetry/domain/*": [
+        "src/modules/telemetry/domain/*"
       ],
-      "@identity/infrastructure/*": [
-        "apps/auth-service/src/infrastructure/*"
+      "@telemetry/infrastructure/*": [
+        "src/modules/telemetry/infrastructure/*"
       ],
-      "@prisma/*": [
-        "apps/backend-proyecto-sociotech/src/prisma/*"
+      "@sync/application/*": [
+        "src/modules/sync/application/*"
       ],
-      "@scheduling/application/*": [
-        "apps/main-service/src/application/*"
+      "@sync/domain/*": [
+        "src/modules/sync/domain/*"
       ],
-      "@scheduling/domain/*": [
-        "apps/main-service/src/domain/*"
-      ],
-      "@scheduling/infrastructure/*": [
-        "apps/main-service/src/infrastructure/*"
-      ],
-      "@shared/*": [
-        "apps/backend-proyecto-sociotech/src/modules/shared/*"
-      ],
-      "@shared/notification/*": [
-        "apps/backend-proyecto-sociotech/src/modules/shared/infrastructure/notification/*"
+      "@sync/infrastructure/*": [
+        "src/modules/sync/infrastructure/*"
       ]
     }
   },
   "include": [
-    "apps/**/*",
-    "libs/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
