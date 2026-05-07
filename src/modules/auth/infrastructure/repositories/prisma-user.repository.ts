@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { User, UserProps, UserRole } from '../../domain/entities/user.entity';
+import { User } from '@user/domain/entities/user.entity';
 import { UserRepository } from '../../domain/repositories/user-repository.port';
 import { PrismaService } from '../db/prisma.service';
 
@@ -12,14 +12,14 @@ export class PrismaUserRepository implements UserRepository {
       id: prismaUser.id,
       email: prismaUser.email,
       passwordHash: includePassword ? prismaUser.passwordHash : '',
-      role: prismaUser.role as UserRole,
+      roleId: prismaUser.roleId,
       firstName: prismaUser.firstName,
       lastName: prismaUser.lastName,
       isActive: prismaUser.isActive,
-      refreshToken: prismaUser.refreshToken,
-      refreshTokenExpires: prismaUser.refreshTokenExpires,
       createdAt: prismaUser.createdAt,
       updatedAt: prismaUser.updatedAt,
+      roleName: prismaUser.role?.name,
+      permissions: prismaUser.role?.permissions?.map((rp: any) => rp.permission.name) || [],
     });
   }
 
@@ -29,7 +29,7 @@ export class PrismaUserRepository implements UserRepository {
         id: user.id,
         email: user.email,
         passwordHash: user.passwordHash,
-        role: user.role,
+        roleId: user.roleId,
         firstName: user.firstName,
         lastName: user.lastName,
         isActive: user.isActive,
@@ -47,13 +47,42 @@ export class PrismaUserRepository implements UserRepository {
     return prismaUser ? this.toDomain(prismaUser, includePassword) : null;
   }
 
+  async findByIdWithRole(id: string): Promise<User | null> {
+    const prismaUser = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        role: {
+          include: {
+            permissions: {
+              include: { permission: true },
+            },
+          },
+        },
+      },
+    });
+    return prismaUser ? this.toDomain(prismaUser, false) : null;
+  }
+
   async findByEmail(email: string): Promise<User | null> {
-    const prismaUser = await this.prisma.user.findUnique({ where: { email } });
+    const prismaUser = await this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        role: {
+          include: {
+            permissions: {
+              include: { permission: true },
+            },
+          },
+        },
+      },
+    });
     return prismaUser ? this.toDomain(prismaUser, true) : null;
   }
 
   async findAll(): Promise<User[]> {
-    const prismaUsers = await this.prisma.user.findMany();
+    const prismaUsers = await this.prisma.user.findMany({
+      include: { role: true },
+    });
     return prismaUsers.map((u) => this.toDomain(u, true));
   }
 
@@ -62,37 +91,38 @@ export class PrismaUserRepository implements UserRepository {
   }
 
   async update(id: string, data: Partial<User>): Promise<User> {
+    const updateData: any = {};
+    if (data.email) updateData.email = data.email;
+    if (data.passwordHash) updateData.passwordHash = data.passwordHash;
+    if (data.roleId) updateData.roleId = data.roleId;
+    if (data.firstName) updateData.firstName = data.firstName;
+    if (data.lastName) updateData.lastName = data.lastName;
+    if (data.isActive !== undefined) updateData.isActive = data.isActive;
+
     const prismaUser = await this.prisma.user.update({
       where: { id },
-      data: {
-        ...(data.email && { email: data.email }),
-        ...(data.passwordHash && { passwordHash: data.passwordHash }),
-        ...(data.role && { role: data.role }),
-        ...(data.firstName && { firstName: data.firstName }),
-        ...(data.lastName && { lastName: data.lastName }),
-        ...(data.isActive !== undefined && { isActive: data.isActive }),
-        updatedAt: new Date(),
-      },
+      data: updateData,
     });
     return this.toDomain(prismaUser);
   }
 
-  async updateRefreshToken(userId: string, hashedRefreshToken: string, expiresAt: Date): Promise<void> {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        refreshToken: hashedRefreshToken,
-        refreshTokenExpires: expiresAt,
-        updatedAt: new Date(),
-      },
+  async updateRoleId(id: string, roleId: string): Promise<User> {
+    const prismaUser = await this.prisma.user.update({
+      where: { id },
+      data: { roleId },
+      include: { role: true },
     });
+    return this.toDomain(prismaUser, false);
   }
 
-  async findByRole(role: string): Promise<User[]> {
-    const prismaUsers = await this.prisma.user.findMany({
-      where: { role },
+  async updateRefreshToken(id: string, refreshToken: string | null, expires?: Date): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        refreshToken,
+        refreshTokenExpires: expires,
+      },
     });
-    return prismaUsers.map((u) => this.toDomain(u, true));
   }
 
   async search(query: string, limit = 20): Promise<User[]> {
@@ -105,7 +135,15 @@ export class PrismaUserRepository implements UserRepository {
         ],
       },
       take: limit,
+      include: { role: true },
     });
     return prismaUsers.map((u) => this.toDomain(u, true));
+  }
+
+  async findDefaultPatientRoleId(): Promise<string | null> {
+    const role = await this.prisma.role.findUnique({
+      where: { name: 'PATIENT' },
+    });
+    return role?.id || null;
   }
 }

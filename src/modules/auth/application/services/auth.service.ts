@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import type { UserRepository } from '../../domain/repositories/user-repository.port';
 import { USER_REPOSITORY } from '../../domain/repositories/user-repository.port';
-import { User, UserRole } from '../../domain/entities/user.entity';
+import { User } from '@user/domain/entities/user.entity';
 import { BcryptAuthService } from '../../infrastructure/strategies/bcrypt-auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { RedisEventBus, DomainEvent } from '../../infrastructure/events';
@@ -10,8 +10,8 @@ import { RedisEventBus, DomainEvent } from '../../infrastructure/events';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private readonly ACCESS_TOKEN_EXPIRES_IN = '2h'; // 2 hours
-  private readonly REFRESH_TOKEN_EXPIRES_IN = '30d'; // 1 month
+  private readonly ACCESS_TOKEN_EXPIRES_IN = '2h';
+  private readonly REFRESH_TOKEN_EXPIRES_IN = '30d';
 
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepo: UserRepository,
@@ -20,18 +20,24 @@ export class AuthService {
     private readonly eventBus: RedisEventBus,
   ) {}
 
-  async register(dto: { email: string; password: string; firstName: string; lastName: string; role?: string }) {
+  async register(dto: { email: string; password: string; firstName: string; lastName: string }) {
     const existing = await this.userRepo.findByEmail(dto.email);
     if (existing) {
       throw new UnauthorizedException('Email already exists');
     }
 
     const passwordHash = await this.bcryptAuth.hashPassword(dto.password);
+
+    const defaultRole = await this.userRepo.findDefaultPatientRoleId();
+    if (!defaultRole) {
+      throw new Error('PATIENT role not found. Please run seeder.');
+    }
+
     const user = new User({
       id: crypto.randomUUID(),
       email: dto.email,
       passwordHash,
-      role: UserRole.PATIENT, // El rol siempre es PATIENT en el registro
+      roleId: defaultRole,
       firstName: dto.firstName,
       lastName: dto.lastName,
       isActive: true,
@@ -41,16 +47,17 @@ export class AuthService {
 
     const saved = await this.userRepo.save(user);
 
+    const userWithRole = await this.userRepo.findByIdWithRole(saved.id);
+
     const event: DomainEvent = {
       streamName: 'user:events',
       eventType: 'USER_REGISTERED',
       payload: {
         id: saved.id,
         email: saved.email,
-        passwordHash: saved.passwordHash,
         firstName: saved.firstName,
         lastName: saved.lastName,
-        role: saved.role,
+        roleId: saved.roleId,
       },
       timestamp: new Date(),
     };
@@ -59,7 +66,7 @@ export class AuthService {
     await this.eventBus.publish(event);
     this.logger.log(`[PUBLISH] Event published successfully for ${saved.id}`);
 
-    return this.generateTokens(saved);
+    return this.generateTokens(userWithRole || saved);
   }
 
   async login(dto: { email: string; password: string }) {
@@ -78,16 +85,13 @@ export class AuthService {
 
   async refreshToken(refreshToken: string) {
     try {
-      // Verify the refresh token using the configured JwtService (which uses JWT_SECRET from .env)
       const payload = this.jwtService.verify(refreshToken);
 
-      // Get user and check if refresh token matches
-      const user = await this.userRepo.findById(payload.userId);
+      const user = await this.userRepo.findByIdWithRole(payload.userId);
       if (!user || !user.isActive) {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      // Check if the refresh token matches the one in DB
       if (!user.refreshToken) {
         throw new UnauthorizedException('Invalid refresh token');
       }
@@ -97,12 +101,10 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      // Check if refresh token is expired
       if (user.refreshTokenExpires && new Date() > user.refreshTokenExpires) {
         throw new UnauthorizedException('Refresh token expired');
       }
 
-      // Generate new tokens
       return this.generateTokens(user);
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
@@ -110,7 +112,7 @@ export class AuthService {
   }
 
   async getProfile(userId: string) {
-    const user = await this.userRepo.findById(userId, false); // exclude passwordHash
+    const user = await this.userRepo.findByIdWithRole(userId);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
@@ -120,7 +122,9 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        roleId: user.roleId,
+        roleName: user.roleName,
+        permissions: user.permissions,
         isActive: user.isActive,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
@@ -129,24 +133,26 @@ export class AuthService {
   }
 
   private async generateTokens(user: User) {
-    const payload = { userId: user.id, email: user.email, role: user.role };
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      roleId: user.roleId,
+      roleName: user.roleName,
+      permissions: user.permissions,
+    };
 
-    // Generate access token (2 hours)
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: this.ACCESS_TOKEN_EXPIRES_IN,
     });
 
-    // Generate refresh token (1 month) - uses the secret from JwtModule config
     const refreshToken = this.jwtService.sign(payload, {
       expiresIn: this.REFRESH_TOKEN_EXPIRES_IN,
     });
 
-    // Hash the refresh token and store in DB
     const hashedRefreshToken = await this.bcryptAuth.hashPassword(refreshToken);
     const refreshTokenExpires = new Date();
-    refreshTokenExpires.setDate(refreshTokenExpires.getDate() + 30); // 30 days
+    refreshTokenExpires.setDate(refreshTokenExpires.getDate() + 30);
 
-    // Update user with refresh token
     await this.userRepo.updateRefreshToken(user.id, hashedRefreshToken, refreshTokenExpires);
 
     return {
@@ -157,7 +163,9 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        roleId: user.roleId,
+        roleName: user.roleName,
+        permissions: user.permissions,
       },
     };
   }

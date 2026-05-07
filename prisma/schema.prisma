@@ -10,7 +10,7 @@ model User {
   id                  String    @id @default(uuid())
   email               String    @unique
   passwordHash        String
-  role                String
+  roleId              String
   firstName           String
   lastName            String
   isActive            Boolean   @default(true)
@@ -19,7 +19,7 @@ model User {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  // Relations
+  role        Role      @relation(fields: [roleId], references: [id])
   patients        Patient[]
   createdServices Service[] @relation("ServiceCreator")
   doctorProfile   Doctor?   @relation("DoctorUser")
@@ -27,6 +27,47 @@ model User {
   services        Service[] @relation("UserRegularServices")
 
   @@map("users")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions RolePermission[]
+  users       User[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  resource    String
+  action      String
+  createdAt   DateTime @default(now())
+
+  roles RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(uuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
 }
 
 model Service {
@@ -49,6 +90,8 @@ model Service {
   userId String?
   user   User?   @relation("UserRegularServices", fields: [userId], references: [id])
 
+  appointments Appointment[]
+
   @@map("services")
 }
 
@@ -64,10 +107,28 @@ model Doctor {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  user     User      @relation("DoctorUser", fields: [userId], references: [id], onDelete: Cascade)
-  services Service[] @relation("DoctorServices")
+  user           User              @relation("DoctorUser", fields: [userId], references: [id], onDelete: Cascade)
+  services       Service[]         @relation("DoctorServices")
+  schedules      DoctorSchedule[]
+  appointments   Appointment[]
 
   @@map("doctors")
+}
+
+model DoctorSchedule {
+  id         String   @id @default(uuid())
+  doctorId   String
+  dayOfWeek  Int
+  startTime  String
+  endTime    String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, dayOfWeek])
+  @@map("doctor_schedules")
 }
 
 model Patient {
@@ -75,12 +136,17 @@ model Patient {
   userId           String          @unique
   medicalId        String          @unique
   dateOfBirth      DateTime
+  gender           String?
+  occupation       String?
+  civilStatus      String?
   phone            String
   address          String
   emergencyContact String
   emergencyPhone   String
   bloodType        String?
   allergies        String[]
+  currentMedications String[]
+  chronicDiseases  String[]
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   appointments     Appointment[]
@@ -126,17 +192,21 @@ model Appointment {
   id                 String    @id @default(uuid())
   patientId          String
   doctorId           String
+  serviceId          String
   scheduledAt        DateTime
+  timeSlot           String
   durationMinutes    Int       @default(30)
   status             String    @default("SCHEDULED")
   reason             String
   notes              String?
   cancelledAt        DateTime?
   cancelledBy        String?
-  cancellationReason String?
+  cancellationReason  String?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   patient            Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor             Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  service            Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   @@map("appointments")
 }

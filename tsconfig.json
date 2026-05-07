@@ -42,7 +42,9 @@
       "@services/application/*": ["src/modules/services/application/*"],
       "@services/domain/*": ["src/modules/services/domain/*"],
       "@services/infrastructure/*": ["src/modules/services/infrastructure/*"],
-      "@services/presentation/*": ["src/modules/services/presentation/*"]
+      "@services/presentation/*": ["src/modules/services/presentation/*"],
+      "@shared/*": ["src/modules/shared/*"],
+      "@patient/*": ["src/modules/patient/*"]
     }
   },
   "include": [

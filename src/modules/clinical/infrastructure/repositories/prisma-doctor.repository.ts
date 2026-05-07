@@ -43,11 +43,22 @@ export class PrismaDoctorRepository implements DoctorRepository {
     return this.toDomain(prismaDoctor);
   }
 
-  async findById(id: string): Promise<Doctor | null> {
+  async findById(id: string): Promise<any | null> {
     const prismaDoctor = await this.prisma.doctor.findUnique({
       where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        services: true,
+      },
     });
-    return prismaDoctor ? this.toDomain(prismaDoctor) : null;
+    return prismaDoctor ? { ...this.toDomain(prismaDoctor), user: prismaDoctor.user, services: prismaDoctor.services } : null;
   }
 
   async findByUserId(userId: string): Promise<Doctor | null> {
@@ -57,13 +68,28 @@ export class PrismaDoctorRepository implements DoctorRepository {
     return prismaDoctor ? this.toDomain(prismaDoctor) : null;
   }
 
-  async findAll(includeInactive = false): Promise<Doctor[]> {
+  async findAll(includeInactive = false): Promise<any[]> {
     const where: any = {};
     if (!includeInactive) {
       where.isActive = true;
     }
-    const doctors = await this.prisma.doctor.findMany({ where });
-    return doctors.map(d => this.toDomain(d));
+    const doctors = await this.prisma.doctor.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+    return doctors.map(d => ({
+      ...this.toDomain(d),
+      user: d.user,
+    }));
   }
 
   async update(id: string, data: Doctor): Promise<Doctor> {

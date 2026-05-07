@@ -1,32 +1,17 @@
-export enum UserRole {
-  PATIENT = 'PATIENT',
-  DOCTOR = 'DOCTOR',
-  ADMIN = 'ADMIN',
-  SUPER_ADMIN = 'SUPER_ADMIN',
-}
-
-export enum Permission {
-  USER_READ = 'USER_READ',
-  USER_CREATE = 'USER_CREATE',
-  USER_UPDATE = 'USER_UPDATE',
-  USER_DELETE = 'USER_DELETE',
-  USER_ASSIGN_ROLE = 'USER_ASSIGN_ROLE',
-  PATIENT_READ = 'PATIENT_READ',
-  PATIENT_LIST = 'PATIENT_LIST',
-  DOCTOR_READ = 'DOCTOR_READ',
-  DOCTOR_LIST = 'DOCTOR_LIST',
-}
-
 export interface UserProps {
   id: string;
   email: string;
   passwordHash: string;
-  role: UserRole;
+  roleId: string;
   firstName: string;
   lastName: string;
   isActive: boolean;
+  refreshToken?: string | null;
+  refreshTokenExpires?: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  permissions?: string[];
+  roleName?: string;
 }
 
 export class User {
@@ -36,39 +21,21 @@ export class User {
     this.props = { ...props };
   }
 
-  get id(): string {
-    return this.props.id;
-  }
+  get id(): string { return this.props.id; }
+  get email(): string { return this.props.email; }
+  get passwordHash(): string { return this.props.passwordHash; }
+  get roleId(): string { return this.props.roleId; }
+  get firstName(): string { return this.props.firstName; }
+  get lastName(): string { return this.props.lastName; }
+  get isActive(): boolean { return this.props.isActive; }
+  get refreshToken(): string | null | undefined { return this.props.refreshToken; }
+  get refreshTokenExpires(): Date | null | undefined { return this.props.refreshTokenExpires; }
+  get createdAt(): Date { return this.props.createdAt; }
+  get updatedAt(): Date { return this.props.updatedAt; }
+  get permissions(): string[] { return this.props.permissions || []; }
+  get roleName(): string { return this.props.roleName || ''; }
 
-  get email(): string {
-    return this.props.email;
-  }
-
-  get passwordHash(): string {
-    return this.props.passwordHash;
-  }
-
-  get role(): UserRole {
-    return this.props.role;
-  }
-
-  get firstName(): string {
-    return this.props.firstName;
-  }
-
-  get lastName(): string {
-    return this.props.lastName;
-  }
-
-  get isActive(): boolean {
-    return this.props.isActive;
-  }
-
-  get createdAt(): Date {
-    return this.props.createdAt;
-  }
-
-  get updatedAt(): Date {
-    return this.props.updatedAt;
+  update(data: Partial<UserProps>) {
+    Object.assign(this.props, data);
   }
 }

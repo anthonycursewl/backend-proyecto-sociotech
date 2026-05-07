@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { UserRole } from '../../domain/entities/user.entity';
 import type { User } from '../../domain/entities/user.entity';
 import type { UserRepository } from '../../domain/repositories/user-repository.port';
 import { USER_REPOSITORY } from '../../domain/repositories/user-repository.port';
@@ -26,7 +25,7 @@ export class UserService {
   ) {}
 
   async getProfile(userId: string): Promise<GetProfileOutput> {
-    const user = await this.userRepository.findById(userId);
+    const user = await this.userRepository.findByIdWithRole(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -48,19 +47,21 @@ export class UserService {
   }
 
   async getPatients(): Promise<User[]> {
-    return this.userRepository.findByRole(UserRole.PATIENT);
+    const patients = await this.userRepository.findAll();
+    return patients.filter(u => u.roleName === 'PATIENT');
   }
 
   async getPatientById(patientId: string): Promise<User | null> {
-    const patient = await this.userRepository.findById(patientId);
-    if (!patient || patient.role !== UserRole.PATIENT) {
+    const patient = await this.userRepository.findByIdWithRole(patientId);
+    if (!patient || patient.roleName !== 'PATIENT') {
       return null;
     }
     return patient;
   }
 
   async getDoctors(): Promise<User[]> {
-    return this.userRepository.findByRole(UserRole.DOCTOR);
+    const users = await this.userRepository.findAll();
+    return users.filter(u => u.roleName === 'DOCTOR');
   }
 
   async searchUsers(query: string, limit: number = 20): Promise<User[]> {

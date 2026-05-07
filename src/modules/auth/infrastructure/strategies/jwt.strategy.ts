@@ -11,7 +11,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     @Inject(USER_REPOSITORY) private readonly userRepo: UserRepository,
   ) {
     const secret = process.env.JWT_SECRET || 'dev_temp_secret_12345';
-    
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -20,10 +20,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    const user = await this.userRepo.findById(payload.userId);
+    const user = await this.userRepo.findByIdWithRole(payload.userId);
     if (!user || !user.isActive) {
       return null;
     }
-    return { userId: user.id, email: user.email, role: user.role };
+
+    return {
+      userId: user.id,
+      email: user.email,
+      roleId: user.roleId,
+      roleName: user.roleName,
+      permissions: user.permissions,
+    };
   }
 }
