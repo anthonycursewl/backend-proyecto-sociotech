@@ -48,6 +48,10 @@ export class AppointmentService {
     return await this.appointmentRepo.findByPatientId(patientId);
   }
 
+  async findAll(): Promise<Appointment[]> {
+    return await this.appointmentRepo.findAll();
+  }
+
   async findByDoctorId(doctorId: string): Promise<Appointment[]> {
     return await this.appointmentRepo.findByDoctorId(doctorId);
   }

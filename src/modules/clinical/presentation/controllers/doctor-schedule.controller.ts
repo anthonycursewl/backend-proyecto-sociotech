@@ -15,7 +15,7 @@ export class DoctorScheduleController {
 
   @Post('me/schedules')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('doctors', 'create')
+  @CheckPermissions('schedules', 'create:own')
   async createMySchedule(@Body() dto: CreateDoctorScheduleDto, @Req() req) {
     const doctor = await this.doctorService.findByUserId(req.user.userId);
     return this.scheduleService.createSchedule(doctor.id, dto);
@@ -23,7 +23,7 @@ export class DoctorScheduleController {
 
   @Get('me/schedules')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('doctors', 'read')
+  @CheckPermissions('schedules', 'create:own')
   async getMySchedules(@Req() req) {
     const doctor = await this.doctorService.findByUserId(req.user.userId);
     return this.scheduleService.getSchedulesByDoctor(doctor.id);
@@ -31,7 +31,7 @@ export class DoctorScheduleController {
 
   @Put('me/schedules/:id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('doctors', 'update')
+  @CheckPermissions('schedules', 'create:own')
   async updateMySchedule(@Param('id') id: string, @Body() dto: UpdateDoctorScheduleDto, @Req() req) {
     const doctor = await this.doctorService.findByUserId(req.user.userId);
     const schedule = await this.scheduleService.updateSchedule(id, dto);
@@ -43,7 +43,7 @@ export class DoctorScheduleController {
 
   @Delete('me/schedules/:id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('doctors', 'delete')
+  @CheckPermissions('schedules', 'create:own')
   async deleteMySchedule(@Param('id') id: string, @Req() req) {
     const doctor = await this.doctorService.findByUserId(req.user.userId);
     const schedule = await this.scheduleService.updateSchedule(id, { isActive: false } as any);
@@ -55,7 +55,7 @@ export class DoctorScheduleController {
 
   @Post(':doctorId/schedules')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('doctors', 'create')
+  @CheckPermissions('schedules', 'manage')
   async createSchedule(@Param('doctorId') doctorId: string, @Body() dto: CreateDoctorScheduleDto) {
     return this.scheduleService.createSchedule(doctorId, dto);
   }
@@ -67,14 +67,14 @@ export class DoctorScheduleController {
 
   @Put(':doctorId/schedules/:id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('doctors', 'update')
+  @CheckPermissions('schedules', 'manage')
   async updateSchedule(@Param('id') id: string, @Body() dto: UpdateDoctorScheduleDto) {
     return this.scheduleService.updateSchedule(id, dto);
   }
 
   @Delete(':doctorId/schedules/:id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('doctors', 'delete')
+  @CheckPermissions('schedules', 'manage')
   async deleteSchedule(@Param('id') id: string) {
     await this.scheduleService.deleteSchedule(id);
     return { success: true };

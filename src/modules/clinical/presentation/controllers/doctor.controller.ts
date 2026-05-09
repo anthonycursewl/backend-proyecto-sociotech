@@ -11,14 +11,14 @@ export class DoctorController {
 
   @Post('profile')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('doctors', 'create')
+  @CheckPermissions('doctors', 'create:own')
   async createProfile(@Body() dto: CreateDoctorDto, @Req() req) {
     return this.doctorService.create(req.user.userId, dto);
   }
 
   @Post()
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('doctors', 'create')
+  @CheckPermissions('doctors', 'manage')
   async create(@Body() dto: CreateDoctorDto, @Req() req) {
     return this.doctorService.create(req.user.userId, dto);
   }
@@ -41,14 +41,14 @@ export class DoctorController {
 
   @Put(':id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('doctors', 'update')
+  @CheckPermissions('doctors', 'manage')
   async update(@Param('id') id: string, @Body() dto: UpdateDoctorDto) {
     return this.doctorService.update(id, dto);
   }
 
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('doctors', 'delete')
+  @CheckPermissions('doctors', 'manage')
   async delete(@Param('id') id: string) {
     return this.doctorService.delete(id);
   }

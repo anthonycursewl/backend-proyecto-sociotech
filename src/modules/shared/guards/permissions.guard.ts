@@ -25,11 +25,25 @@ export class PermissionsGuard implements CanActivate {
       throw new ForbiddenException('No permissions found for user');
     }
 
-    const permissionName = `${requiredPermissions.resource}:${requiredPermissions.action}`;
-    const hasPermission = user.permissions.includes(permissionName);
+    const { resource, action } = requiredPermissions;
+    const hasPermission = user.permissions.some(userPerm => {
+      if (userPerm === `${resource}:${action}`) {
+        return true;
+      }
+
+      if (!action.includes(':') && (
+        userPerm === `${resource}:${action}` ||
+        userPerm.startsWith(`${resource}:${action}:`) ||
+        userPerm.startsWith(`${resource}:${action}/`)
+      )) {
+        return true;
+      }
+
+      return false;
+    });
 
     if (!hasPermission) {
-      throw new ForbiddenException(`Access denied. Required permission: ${permissionName}`);
+      throw new ForbiddenException(`Access denied. Required permission: ${resource}:${action}`);
     }
 
     return true;

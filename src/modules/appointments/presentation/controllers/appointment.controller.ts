@@ -12,12 +12,14 @@ export class AppointmentController {
 
   @Post()
   @UseGuards(PermissionsGuard)
-  @CheckPermissions('appointments', 'create')
+  @CheckPermissions('appointments', 'create:own')
   async create(@Body() dto: CreateAppointmentDto, @Req() req) {
     return this.appointmentService.create(req.user.userId, dto);
   }
 
   @Get('me')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('appointments', 'read:own')
   async getMyAppointments(@Req() req) {
     const appointments = await this.appointmentService.findByPatientId(req.user.userId);
     return { appointments };
@@ -33,6 +35,13 @@ export class AppointmentController {
     return { slots };
   }
 
+  @Get()
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('appointments', 'read')
+  async getAllAppointments() {
+    return this.appointmentService.findAll();
+  }
+
   @Get(':id')
   async findById(@Param('id', ParseUUIDPipe) id: string) {
     return this.appointmentService.findById(id);
@@ -40,7 +49,7 @@ export class AppointmentController {
 
   @Put(':id/cancel')
   @UseGuards(PermissionsGuard)
-  @CheckPermissions('appointments', 'cancel')
+  @CheckPermissions('appointments', 'cancel:own')
   async cancel(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CancelAppointmentDto,

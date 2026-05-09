@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Req, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Req, ParseUUIDPipe, NotFoundException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { PatientService } from '../../application/services/patient.service';
 import { CreatePatientDto, UpdatePatientDto, RegisterPatientDto } from './patient.dto';
@@ -33,9 +33,22 @@ export class PatientController {
   }
 
   @Get('me')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('patients', 'read:own')
   async getMyPatient(@Req() req) {
     const patient = await this.patientService.findByUserId(req.user.userId);
     return { patient };
+  }
+
+  @Put('me')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('patients', 'update:own')
+  async updateMyPatient(@Req() req, @Body() dto: UpdatePatientDto) {
+    const patient = await this.patientService.findByUserId(req.user.userId);
+    if (!patient) {
+      throw new NotFoundException('Patient profile not found');
+    }
+    return this.patientService.update(patient.id, dto);
   }
 
   @Get('search')
