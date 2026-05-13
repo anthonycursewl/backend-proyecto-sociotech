@@ -2,11 +2,23 @@ import { Service, ServiceProps } from '../entities/service.entity';
 
 export const SERVICE_REPOSITORY = Symbol('SERVICE_REPOSITORY');
 
+export interface CursorPaginationParams {
+  cursor?: string;
+  limit: number;
+  includeInactive?: boolean;
+}
+
+export interface PaginatedServices {
+  data: ServiceProps[];
+  nextCursor: string | null;
+}
+
 export interface ServiceRepository {
   save(service: Service): Promise<Service>;
   findById(id: string): Promise<Service | null>;
-  findAll(includeInactive?: boolean): Promise<Service[]>;
-  update(id: string, data: Partial<Service>): Promise<Service>;
+  findByName(name: string): Promise<Service | null>;
+  findAll(params?: CursorPaginationParams): Promise<PaginatedServices>;
+  update(id: string, data: Partial<ServiceProps>): Promise<Service>;
   delete(id: string): Promise<void>;
   findByDoctor(doctorId: string): Promise<Service[]>;
 }

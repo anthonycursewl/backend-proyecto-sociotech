@@ -1,9 +1,9 @@
 export interface ServiceProps {
   id: string;
   name: string;
-  description?: string;
+  description: string | null;
   durationMin: number;
-  price?: number;
+  price: number | null;
   isActive: boolean;
   createdBy: string;
   createdAt: Date;
@@ -25,7 +25,7 @@ export class Service {
     return this.props.name;
   }
 
-  get description(): string | undefined {
+  get description(): string | null {
     return this.props.description;
   }
 
@@ -33,7 +33,7 @@ export class Service {
     return this.props.durationMin;
   }
 
-  get price(): number | undefined {
+  get price(): number | null {
     return this.props.price;
   }
 

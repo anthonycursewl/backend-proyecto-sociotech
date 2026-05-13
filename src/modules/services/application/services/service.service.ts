@@ -1,66 +1,84 @@
-import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, Logger, Inject } from '@nestjs/common';
 import { SERVICE_REPOSITORY } from '@services/domain/repositories/service-repository.port';
+import type { ServiceRepository, CursorPaginationParams } from '@services/domain/repositories/service-repository.port';
 import { Service } from '@services/domain/entities/service.entity';
-import { CreateServiceDto, UpdateServiceDto } from '@services/presentation/controllers/service.dto';
+import type { CreateServiceDto, UpdateServiceDto, ServiceResponse, PaginatedServiceResponse } from '@services/presentation/controllers/service.dto';
 
 @Injectable()
 export class ServiceService {
   private readonly logger = new Logger(ServiceService.name);
 
   constructor(
-    @Inject(SERVICE_REPOSITORY) private readonly serviceRepo: any,
+    @Inject(SERVICE_REPOSITORY) private readonly serviceRepo: ServiceRepository,
   ) {}
 
-  async create(dto: CreateServiceDto, userId: string): Promise<Service> {
-    const existing = await this.serviceRepo.findByName?.(dto.name);
+  async create(dto: CreateServiceDto, userId: string): Promise<ServiceResponse> {
+    const existing = await this.serviceRepo.findByName(dto.name);
     if (existing) {
-      throw new ForbiddenException('Service with this name already exists');
+      throw new ConflictException('Service with this name already exists');
     }
 
     const service = new Service({
       id: crypto.randomUUID(),
       name: dto.name,
-      description: dto.description,
+      description: dto.description ?? null,
       durationMin: dto.durationMin || 30,
-      price: dto.price,
+      price: dto.price ?? null,
       isActive: true,
       createdBy: userId,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    return await this.serviceRepo.save(service);
+    const saved = await this.serviceRepo.save(service);
+    return saved.toPlain() as unknown as ServiceResponse;
   }
 
-  async findAll(includeInactive = false): Promise<Service[]> {
-    return await this.serviceRepo.findAll(includeInactive);
+  async findAll(params?: CursorPaginationParams): Promise<PaginatedServiceResponse> {
+    const result = await this.serviceRepo.findAll(params);
+    return result as unknown as PaginatedServiceResponse;
   }
 
-  async findById(id: string): Promise<Service> {
+  async findById(id: string): Promise<ServiceResponse> {
     const service = await this.serviceRepo.findById(id);
     if (!service) {
-      throw new ForbiddenException('Service not found');
+      throw new NotFoundException('Service not found');
     }
-    return service;
+    return service.toPlain() as unknown as ServiceResponse;
   }
 
-  async update(id: string, dto: UpdateServiceDto): Promise<Service> {
-    const service = await this.findById(id);
+  async update(id: string, dto: UpdateServiceDto): Promise<ServiceResponse> {
+    const service = await this.serviceRepo.findById(id);
+    if (!service) {
+      throw new NotFoundException('Service not found');
+    }
+
+    if (dto.name && dto.name !== service.name) {
+      const existing = await this.serviceRepo.findByName(dto.name);
+      if (existing) {
+        throw new ConflictException('Service with this name already exists');
+      }
+    }
+
     service.update({
       name: dto.name,
-      description: dto.description,
+      description: dto.description ?? null,
       durationMin: dto.durationMin,
-      price: dto.price,
+      price: dto.price ?? null,
       isActive: dto.isActive,
     });
-    return await this.serviceRepo.update(id, service);
+
+    const updated = await this.serviceRepo.update(id, service.toPlain());
+    return updated.toPlain() as unknown as ServiceResponse;
   }
 
   async delete(id: string): Promise<void> {
-    // Soft delete - just mark as inactive
-    const service = await this.findById(id);
+    const service = await this.serviceRepo.findById(id);
+    if (!service) {
+      throw new NotFoundException('Service not found');
+    }
+
     service.update({ isActive: false });
-    await this.serviceRepo.update(id, service);
+    await this.serviceRepo.update(id, service.toPlain());
   }
 }
