@@ -1,9 +1,12 @@
-import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { DOCTOR_SCHEDULE_REPOSITORY } from '@clinical/domain/repositories/doctor-schedule-repository.port';
 import { DOCTOR_REPOSITORY } from '@clinical/domain/repositories/doctor-repository.port';
 import { DoctorSchedule } from '@clinical/domain/entities/doctor-schedule.entity';
-import { CreateDoctorScheduleDto, UpdateDoctorScheduleDto } from '@clinical/presentation/controllers/doctor-schedule.dto';
+import {
+  CreateDoctorScheduleDto,
+  UpdateDoctorScheduleDto,
+} from '@clinical/presentation/controllers/doctor-schedule.dto';
 
 @Injectable()
 export class DoctorScheduleService {
@@ -14,15 +17,23 @@ export class DoctorScheduleService {
     @Inject(DOCTOR_REPOSITORY) private readonly doctorRepo: any,
   ) {}
 
-  async createSchedule(doctorId: string, dto: CreateDoctorScheduleDto): Promise<DoctorSchedule> {
+  async createSchedule(
+    doctorId: string,
+    dto: CreateDoctorScheduleDto,
+  ): Promise<DoctorSchedule> {
     const doctor = await this.doctorRepo.findById(doctorId);
     if (!doctor) {
       throw new ForbiddenException('Doctor not found');
     }
 
-    const existing = await this.scheduleRepo.findByDoctorIdAndDay(doctorId, dto.dayOfWeek);
+    const existing = await this.scheduleRepo.findByDoctorIdAndDay(
+      doctorId,
+      dto.dayOfWeek,
+    );
     if (existing) {
-      throw new ForbiddenException(`Schedule already exists for day ${dto.dayOfWeek}`);
+      throw new ForbiddenException(
+        `Schedule already exists for day ${dto.dayOfWeek}`,
+      );
     }
 
     const schedule = new DoctorSchedule({
@@ -39,6 +50,14 @@ export class DoctorScheduleService {
     return await this.scheduleRepo.save(schedule);
   }
 
+  async findById(scheduleId: string): Promise<DoctorSchedule> {
+    const schedule = await this.scheduleRepo.findById(scheduleId);
+    if (!schedule) {
+      throw new NotFoundException('Schedule not found');
+    }
+    return schedule;
+  }
+
   async getSchedulesByDoctor(doctorId: string): Promise<DoctorSchedule[]> {
     const doctor = await this.doctorRepo.findById(doctorId);
     if (!doctor) {
@@ -48,7 +67,10 @@ export class DoctorScheduleService {
     return await this.scheduleRepo.findByDoctorId(doctorId);
   }
 
-  async updateSchedule(scheduleId: string, dto: UpdateDoctorScheduleDto): Promise<DoctorSchedule> {
+  async updateSchedule(
+    scheduleId: string,
+    dto: UpdateDoctorScheduleDto,
+  ): Promise<DoctorSchedule> {
     const schedule = await this.scheduleRepo.findById(scheduleId);
     if (!schedule) {
       throw new ForbiddenException('Schedule not found');

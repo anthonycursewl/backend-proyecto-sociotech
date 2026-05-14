@@ -9,7 +9,9 @@ export class RedisEventBus implements IEventBus {
 
   constructor() {
     this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-    this.consumerRedis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+    this.consumerRedis = new Redis(
+      process.env.REDIS_URL || 'redis://localhost:6379',
+    );
   }
 
   async publish(event: DomainEvent): Promise<void> {
@@ -26,7 +28,10 @@ export class RedisEventBus implements IEventBus {
     );
   }
 
-  async createConsumerGroup(streamName: string, groupName: string): Promise<void> {
+  async createConsumerGroup(
+    streamName: string,
+    groupName: string,
+  ): Promise<void> {
     try {
       await this.redis.xgroup('CREATE', streamName, groupName, '$', 'MKSTREAM');
     } catch (error) {
@@ -47,14 +52,22 @@ export class RedisEventBus implements IEventBus {
     const processEvents = async () => {
       try {
         const results = await this.consumerRedis.xreadgroup(
-          'GROUP', consumerGroup, consumerName,
-          'COUNT', 10,
-          'BLOCK', 5000,
-          'STREAMS', streamName, '>',
+          'GROUP',
+          consumerGroup,
+          consumerName,
+          'COUNT',
+          10,
+          'BLOCK',
+          5000,
+          'STREAMS',
+          streamName,
+          '>',
         );
 
         if (results) {
-          for (const [stream, messages] of results as Array<[string, Array<[string, string[]]>]>) {
+          for (const [stream, messages] of results as Array<
+            [string, Array<[string, string[]]>]
+          >) {
             for (const [id, fields] of messages) {
               try {
                 const event = this.parseEvent(stream, fields);

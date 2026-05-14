@@ -15,11 +15,15 @@ export class RequestLoggerMiddleware implements NestMiddleware {
 📦 Body: ${JSON.stringify(body, null, 2)}
 🔍 Params: ${JSON.stringify(params, null, 2)}
 ❓ Query: ${JSON.stringify(query, null, 2)}
-📋 Headers: ${JSON.stringify({
-      'user-agent': headers['user-agent'],
-      'content-type': headers['content-type'],
-      'authorization': headers['authorization'] ? '***' : 'none',
-    }, null, 2)}
+📋 Headers: ${JSON.stringify(
+      {
+        'user-agent': headers['user-agent'],
+        'content-type': headers['content-type'],
+        authorization: headers['authorization'] ? '***' : 'none',
+      },
+      null,
+      2,
+    )}
 ===========================================
     `);
 

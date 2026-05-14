@@ -85,7 +85,9 @@ export class MedicalRecord {
     notes: string,
   ): void {
     if (this.props.isSigned) {
-      throw new Error('Cannot update a signed medical record. Create an attachment instead.');
+      throw new Error(
+        'Cannot update a signed medical record. Create an attachment instead.',
+      );
     }
     this.props.chiefComplaint = chiefComplaint;
     this.props.symptoms = symptoms;

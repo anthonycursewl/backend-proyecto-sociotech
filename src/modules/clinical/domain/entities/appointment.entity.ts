@@ -83,12 +83,16 @@ export class Appointment {
   }
 
   get endTime(): Date {
-    return new Date(this.props.scheduledAt.getTime() + this.props.durationMinutes * 60000);
+    return new Date(
+      this.props.scheduledAt.getTime() + this.props.durationMinutes * 60000,
+    );
   }
 
   confirm(): void {
     if (this.props.status !== AppointmentStatus.SCHEDULED) {
-      throw new Error('Cannot confirm appointment that is not in SCHEDULED status');
+      throw new Error(
+        'Cannot confirm appointment that is not in SCHEDULED status',
+      );
     }
     this.props.status = AppointmentStatus.CONFIRMED;
     this.props.updatedAt = new Date();
@@ -115,7 +119,9 @@ export class Appointment {
       this.props.status === AppointmentStatus.COMPLETED ||
       this.props.status === AppointmentStatus.CANCELLED
     ) {
-      throw new Error('Cannot cancel appointment that is already completed or cancelled');
+      throw new Error(
+        'Cannot cancel appointment that is already completed or cancelled',
+      );
     }
     this.props.status = AppointmentStatus.CANCELLED;
     this.props.cancelledAt = new Date();
@@ -129,7 +135,9 @@ export class Appointment {
       this.props.status === AppointmentStatus.COMPLETED ||
       this.props.status === AppointmentStatus.CANCELLED
     ) {
-      throw new Error('Cannot reschedule appointment that is already completed or cancelled');
+      throw new Error(
+        'Cannot reschedule appointment that is already completed or cancelled',
+      );
     }
     this.props.scheduledAt = newScheduledAt;
     this.props.updatedAt = new Date();
@@ -140,7 +148,9 @@ export class Appointment {
       this.props.status === AppointmentStatus.COMPLETED ||
       this.props.status === AppointmentStatus.CANCELLED
     ) {
-      throw new Error('Cannot mark as no-show an appointment that is already completed or cancelled');
+      throw new Error(
+        'Cannot mark as no-show an appointment that is already completed or cancelled',
+      );
     }
     this.props.status = AppointmentStatus.NO_SHOW;
     this.props.updatedAt = new Date();

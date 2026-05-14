@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@clinical/infrastructure/db/prisma.service';
-import { DOCTOR_SCHEDULE_REPOSITORY, DoctorScheduleRepository } from '@clinical/domain/repositories/doctor-schedule-repository.port';
+import {
+  DOCTOR_SCHEDULE_REPOSITORY,
+  DoctorScheduleRepository,
+} from '@clinical/domain/repositories/doctor-schedule-repository.port';
 import { DoctorSchedule } from '@clinical/domain/entities/doctor-schedule.entity';
 
 @Injectable()
@@ -12,10 +15,13 @@ export class PrismaDoctorScheduleRepository implements DoctorScheduleRepository 
       where: { doctorId },
       orderBy: { dayOfWeek: 'asc' },
     });
-    return schedules.map(s => new DoctorSchedule(s));
+    return schedules.map((s) => new DoctorSchedule(s));
   }
 
-  async findByDoctorIdAndDay(doctorId: string, dayOfWeek: number): Promise<DoctorSchedule | null> {
+  async findByDoctorIdAndDay(
+    doctorId: string,
+    dayOfWeek: number,
+  ): Promise<DoctorSchedule | null> {
     const schedule = await this.prisma.doctorSchedule.findUnique({
       where: {
         doctorId_dayOfWeek: { doctorId, dayOfWeek },

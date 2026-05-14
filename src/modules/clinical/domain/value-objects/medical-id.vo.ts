@@ -4,7 +4,9 @@ export class MedicalID {
   constructor(medicalId: string) {
     const normalized = medicalId.toUpperCase().trim();
     if (!MedicalID.isValid(normalized)) {
-      throw new Error('Invalid Medical ID format. Expected format: MED-XXXXXXXX');
+      throw new Error(
+        'Invalid Medical ID format. Expected format: MED-XXXXXXXX',
+      );
     }
     this._value = normalized;
   }
@@ -15,7 +17,10 @@ export class MedicalID {
   }
 
   static generate(): MedicalID {
-    const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+    const randomPart = Math.random()
+      .toString(36)
+      .substring(2, 10)
+      .toUpperCase();
     return new MedicalID(`MED-${randomPart}`);
   }
 

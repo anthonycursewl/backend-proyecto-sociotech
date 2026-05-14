@@ -1,4 +1,13 @@
-import { IsString, IsUUID, IsOptional, IsNumber, IsPositive, Min, Max, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsUUID,
+  IsOptional,
+  IsNumber,
+  IsPositive,
+  Min,
+  Max,
+  IsDateString,
+} from 'class-validator';
 
 export class ScheduleAppointmentDto {
   @IsUUID()

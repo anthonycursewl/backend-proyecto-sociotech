@@ -7,7 +7,9 @@ import { Prisma } from '@prisma/client';
 export class PrismaUnitOfWork implements IUnitOfWork {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute<T>(work: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+  async execute<T>(
+    work: (tx: Prisma.TransactionClient) => Promise<T>,
+  ): Promise<T> {
     return this.prisma.$transaction(async (tx) => {
       return work(tx);
     });

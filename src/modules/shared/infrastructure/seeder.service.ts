@@ -41,72 +41,312 @@ export class SeederService implements OnModuleInit {
   private getPermissions(): PermissionSeed[] {
     return [
       // Users
-      { name: 'users:read', description: 'Ver usuarios', resource: 'users', action: 'read' },
-      { name: 'users:create', description: 'Crear usuarios', resource: 'users', action: 'create' },
-      { name: 'users:update', description: 'Actualizar usuarios', resource: 'users', action: 'update' },
-      { name: 'users:delete', description: 'Eliminar usuarios', resource: 'users', action: 'delete' },
-      { name: 'users:assign-role', description: 'Asignar rol a usuarios', resource: 'users', action: 'assign-role' },
+      {
+        name: 'users:read',
+        description: 'Ver usuarios',
+        resource: 'users',
+        action: 'read',
+      },
+      {
+        name: 'users:create',
+        description: 'Crear usuarios',
+        resource: 'users',
+        action: 'create',
+      },
+      {
+        name: 'users:update',
+        description: 'Actualizar usuarios',
+        resource: 'users',
+        action: 'update',
+      },
+      {
+        name: 'users:delete',
+        description: 'Eliminar usuarios',
+        resource: 'users',
+        action: 'delete',
+      },
+      {
+        name: 'users:assign-role',
+        description: 'Asignar rol a usuarios',
+        resource: 'users',
+        action: 'assign-role',
+      },
 
       // Roles
-      { name: 'roles:read', description: 'Ver roles', resource: 'roles', action: 'read' },
-      { name: 'roles:create', description: 'Crear roles', resource: 'roles', action: 'create' },
-      { name: 'roles:update', description: 'Actualizar roles', resource: 'roles', action: 'update' },
-      { name: 'roles:delete', description: 'Eliminar roles', resource: 'roles', action: 'delete' },
+      {
+        name: 'roles:read',
+        description: 'Ver roles',
+        resource: 'roles',
+        action: 'read',
+      },
+      {
+        name: 'roles:create',
+        description: 'Crear roles',
+        resource: 'roles',
+        action: 'create',
+      },
+      {
+        name: 'roles:update',
+        description: 'Actualizar roles',
+        resource: 'roles',
+        action: 'update',
+      },
+      {
+        name: 'roles:delete',
+        description: 'Eliminar roles',
+        resource: 'roles',
+        action: 'delete',
+      },
 
       // Patients
-      { name: 'patients:read', description: 'Ver pacientes', resource: 'patients', action: 'read' },
-      { name: 'patients:read:own', description: 'Ver propio perfil de paciente', resource: 'patients', action: 'read:own' },
-      { name: 'patients:create', description: 'Crear pacientes', resource: 'patients', action: 'create' },
-      { name: 'patients:create:own', description: 'Registrar propio perfil de paciente', resource: 'patients', action: 'create:own' },
-      { name: 'patients:update', description: 'Actualizar pacientes', resource: 'patients', action: 'update' },
-      { name: 'patients:update:own', description: 'Actualizar propio perfil de paciente', resource: 'patients', action: 'update:own' },
-      { name: 'patients:delete', description: 'Eliminar pacientes', resource: 'patients', action: 'delete' },
-      { name: 'patients:register', description: 'Auto-registrar paciente', resource: 'patients', action: 'register' },
+      {
+        name: 'patients:read',
+        description: 'Ver pacientes',
+        resource: 'patients',
+        action: 'read',
+      },
+      {
+        name: 'patients:read:own',
+        description: 'Ver propio perfil de paciente',
+        resource: 'patients',
+        action: 'read:own',
+      },
+      {
+        name: 'patients:create',
+        description: 'Crear pacientes',
+        resource: 'patients',
+        action: 'create',
+      },
+      {
+        name: 'patients:create:own',
+        description: 'Registrar propio perfil de paciente',
+        resource: 'patients',
+        action: 'create:own',
+      },
+      {
+        name: 'patients:update',
+        description: 'Actualizar pacientes',
+        resource: 'patients',
+        action: 'update',
+      },
+      {
+        name: 'patients:update:own',
+        description: 'Actualizar propio perfil de paciente',
+        resource: 'patients',
+        action: 'update:own',
+      },
+      {
+        name: 'patients:delete',
+        description: 'Eliminar pacientes',
+        resource: 'patients',
+        action: 'delete',
+      },
+      {
+        name: 'patients:register',
+        description: 'Auto-registrar paciente',
+        resource: 'patients',
+        action: 'register',
+      },
 
       // Services
-      { name: 'services:read', description: 'Ver servicios', resource: 'services', action: 'read' },
-      { name: 'services:create', description: 'Crear servicios', resource: 'services', action: 'create' },
-      { name: 'services:update', description: 'Actualizar servicios', resource: 'services', action: 'update' },
-      { name: 'services:delete', description: 'Eliminar servicios', resource: 'services', action: 'delete' },
+      {
+        name: 'services:read',
+        description: 'Ver servicios',
+        resource: 'services',
+        action: 'read',
+      },
+      {
+        name: 'services:create',
+        description: 'Crear servicios',
+        resource: 'services',
+        action: 'create',
+      },
+      {
+        name: 'services:update',
+        description: 'Actualizar servicios',
+        resource: 'services',
+        action: 'update',
+      },
+      {
+        name: 'services:delete',
+        description: 'Eliminar servicios',
+        resource: 'services',
+        action: 'delete',
+      },
 
       // Medical Records
-      { name: 'medical-records:read', description: 'Ver historias clínicas', resource: 'medical-records', action: 'read' },
-      { name: 'medical-records:read:own', description: 'Ver propias historias clínicas', resource: 'medical-records', action: 'read:own' },
-      { name: 'medical-records:create', description: 'Crear historias clínicas', resource: 'medical-records', action: 'create' },
-      { name: 'medical-records:update', description: 'Actualizar historias clínicas', resource: 'medical-records', action: 'update' },
-      { name: 'medical-records:delete', description: 'Eliminar historias clínicas', resource: 'medical-records', action: 'delete' },
-      { name: 'medical-records:sign', description: 'Firmar historias clínicas', resource: 'medical-records', action: 'sign' },
+      {
+        name: 'medical-records:read',
+        description: 'Ver historias clínicas',
+        resource: 'medical-records',
+        action: 'read',
+      },
+      {
+        name: 'medical-records:read:own',
+        description: 'Ver propias historias clínicas',
+        resource: 'medical-records',
+        action: 'read:own',
+      },
+      {
+        name: 'medical-records:create',
+        description: 'Crear historias clínicas',
+        resource: 'medical-records',
+        action: 'create',
+      },
+      {
+        name: 'medical-records:update',
+        description: 'Actualizar historias clínicas',
+        resource: 'medical-records',
+        action: 'update',
+      },
+      {
+        name: 'medical-records:delete',
+        description: 'Eliminar historias clínicas',
+        resource: 'medical-records',
+        action: 'delete',
+      },
+      {
+        name: 'medical-records:sign',
+        description: 'Firmar historias clínicas',
+        resource: 'medical-records',
+        action: 'sign',
+      },
 
       // Appointments
-      { name: 'appointments:read', description: 'Ver citas', resource: 'appointments', action: 'read' },
-      { name: 'appointments:read:own', description: 'Ver propias citas', resource: 'appointments', action: 'read:own' },
-      { name: 'appointments:create', description: 'Crear citas (admin)', resource: 'appointments', action: 'create' },
-      { name: 'appointments:create:own', description: 'Crear propias citas', resource: 'appointments', action: 'create:own' },
-      { name: 'appointments:update', description: 'Actualizar citas (admin)', resource: 'appointments', action: 'update' },
-      { name: 'appointments:update:own', description: 'Actualizar propias citas', resource: 'appointments', action: 'update:own' },
-      { name: 'appointments:cancel', description: 'Cancelar citas (admin)', resource: 'appointments', action: 'cancel' },
-      { name: 'appointments:cancel:own', description: 'Cancelar propias citas', resource: 'appointments', action: 'cancel:own' },
-      { name: 'appointments:manage', description: 'Gestionar todas las citas', resource: 'appointments', action: 'manage' },
+      {
+        name: 'appointments:read',
+        description: 'Ver citas',
+        resource: 'appointments',
+        action: 'read',
+      },
+      {
+        name: 'appointments:read:own',
+        description: 'Ver propias citas',
+        resource: 'appointments',
+        action: 'read:own',
+      },
+      {
+        name: 'appointments:create',
+        description: 'Crear citas (admin)',
+        resource: 'appointments',
+        action: 'create',
+      },
+      {
+        name: 'appointments:create:own',
+        description: 'Crear propias citas',
+        resource: 'appointments',
+        action: 'create:own',
+      },
+      {
+        name: 'appointments:update',
+        description: 'Actualizar citas (admin)',
+        resource: 'appointments',
+        action: 'update',
+      },
+      {
+        name: 'appointments:update:own',
+        description: 'Actualizar propias citas',
+        resource: 'appointments',
+        action: 'update:own',
+      },
+      {
+        name: 'appointments:cancel',
+        description: 'Cancelar citas (admin)',
+        resource: 'appointments',
+        action: 'cancel',
+      },
+      {
+        name: 'appointments:cancel:own',
+        description: 'Cancelar propias citas',
+        resource: 'appointments',
+        action: 'cancel:own',
+      },
+      {
+        name: 'appointments:manage',
+        description: 'Gestionar todas las citas',
+        resource: 'appointments',
+        action: 'manage',
+      },
 
       // Doctors
-      { name: 'doctors:read', description: 'Ver doctores', resource: 'doctors', action: 'read' },
-      { name: 'doctors:create', description: 'Crear doctores (admin)', resource: 'doctors', action: 'create' },
-      { name: 'doctors:update', description: 'Actualizar doctores (admin)', resource: 'doctors', action: 'update' },
-      { name: 'doctors:delete', description: 'Eliminar doctores (admin)', resource: 'doctors', action: 'delete' },
-      { name: 'doctors:create:own', description: 'Doctor crea su propio perfil', resource: 'doctors', action: 'create:own' },
-      { name: 'doctors:manage', description: 'Admin gestiona doctores (CRUD completo)', resource: 'doctors', action: 'manage' },
+      {
+        name: 'doctors:read',
+        description: 'Ver doctores',
+        resource: 'doctors',
+        action: 'read',
+      },
+      {
+        name: 'doctors:create',
+        description: 'Crear doctores (admin)',
+        resource: 'doctors',
+        action: 'create',
+      },
+      {
+        name: 'doctors:update',
+        description: 'Actualizar doctores (admin)',
+        resource: 'doctors',
+        action: 'update',
+      },
+      {
+        name: 'doctors:delete',
+        description: 'Eliminar doctores (admin)',
+        resource: 'doctors',
+        action: 'delete',
+      },
+      {
+        name: 'doctors:create:own',
+        description: 'Doctor crea su propio perfil',
+        resource: 'doctors',
+        action: 'create:own',
+      },
+      {
+        name: 'doctors:manage',
+        description: 'Admin gestiona doctores (CRUD completo)',
+        resource: 'doctors',
+        action: 'manage',
+      },
 
       // Schedules
-      { name: 'schedules:create:own', description: 'Doctor gestiona sus propios horarios', resource: 'schedules', action: 'create:own' },
-      { name: 'schedules:manage', description: 'Admin gestiona todos los horarios', resource: 'schedules', action: 'manage' },
+      {
+        name: 'schedules:create:own',
+        description: 'Doctor gestiona sus propios horarios',
+        resource: 'schedules',
+        action: 'create:own',
+      },
+      {
+        name: 'schedules:manage',
+        description: 'Admin gestiona todos los horarios',
+        resource: 'schedules',
+        action: 'manage',
+      },
 
       // Reports
-      { name: 'reports:read', description: 'Ver reportes', resource: 'reports', action: 'read' },
-      { name: 'reports:generate', description: 'Generar reportes', resource: 'reports', action: 'generate' },
-      { name: 'reports:export', description: 'Exportar reportes', resource: 'reports', action: 'export' },
+      {
+        name: 'reports:read',
+        description: 'Ver reportes',
+        resource: 'reports',
+        action: 'read',
+      },
+      {
+        name: 'reports:generate',
+        description: 'Generar reportes',
+        resource: 'reports',
+        action: 'generate',
+      },
+      {
+        name: 'reports:export',
+        description: 'Exportar reportes',
+        resource: 'reports',
+        action: 'export',
+      },
 
       // Audit
-      { name: 'audit:read', description: 'Ver logs de auditoría', resource: 'audit', action: 'read' },
+      {
+        name: 'audit:read',
+        description: 'Ver logs de auditoría',
+        resource: 'audit',
+        action: 'read',
+      },
     ];
   }
 

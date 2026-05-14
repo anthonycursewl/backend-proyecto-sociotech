@@ -1,6 +1,21 @@
-import { Controller, Get, Put, Body, Param, Query, UseGuards, ParseUUIDPipe, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Put,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  ParseUUIDPipe,
+  NotFoundException,
+  UseInterceptors,
+  Req,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { UserService, UpdateProfileInput } from '../../application/services/user.service';
+import {
+  UserService,
+  UpdateProfileInput,
+} from '../../application/services/user.service';
 import { User } from '../../domain/entities/user.entity';
 
 export class UpdateProfileDto {
@@ -8,8 +23,12 @@ export class UpdateProfileDto {
   lastName?: string;
 }
 
+import { Audit } from '../../../audit/audit.decorator';
+import { AuditInterceptor } from '../../../audit/audit.interceptor';
+
 @Controller('users')
 @UseGuards(AuthGuard('jwt'))
+@UseInterceptors(AuditInterceptor)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -19,10 +38,20 @@ export class UserController {
   }
 
   @Put('profile/:userId')
+  @Audit('users:update', 'User', true)
   async updateProfile(
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() dto: UpdateProfileDto,
+    @Req() req,
   ) {
+    const { user: oldUser } = await this.userService.getProfile(userId);
+    (req as any).auditSnapshot = {
+      id: oldUser.id,
+      email: oldUser.email,
+      firstName: oldUser.firstName,
+      lastName: oldUser.lastName,
+      isActive: oldUser.isActive,
+    };
     return this.userService.updateProfile({
       userId,
       firstName: dto.firstName,
@@ -53,7 +82,10 @@ export class UserController {
 
   @Get('search')
   async searchUsers(@Query('q') query: string, @Query('limit') limit?: string) {
-    const users = await this.userService.searchUsers(query, parseInt(limit || '20'));
+    const users = await this.userService.searchUsers(
+      query,
+      parseInt(limit || '20'),
+    );
     return { users };
   }
 }

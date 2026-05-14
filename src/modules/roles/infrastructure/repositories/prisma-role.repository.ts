@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { ROLE_REPOSITORY, RoleRepository } from '../../domain/repositories/role-repository.port';
+import {
+  ROLE_REPOSITORY,
+  RoleRepository,
+} from '../../domain/repositories/role-repository.port';
 import { Role } from '../../domain/entities/role.entity';
 import { RolesPrismaService } from '../db/prisma.service';
 
@@ -24,7 +27,7 @@ export class PrismaRoleRepository implements RoleRepository {
 
   async findAll(): Promise<Role[]> {
     const roles = await this.prisma.role.findMany();
-    return roles.map(r => this.toDomain(r));
+    return roles.map((r) => this.toDomain(r));
   }
 
   async findById(id: string): Promise<Role | null> {
@@ -68,7 +71,8 @@ export class PrismaRoleRepository implements RoleRepository {
 
   async update(id: string, data: Partial<Role>): Promise<Role> {
     const updateData: any = {};
-    if (data.description !== undefined) updateData.description = data.description;
+    if (data.description !== undefined)
+      updateData.description = data.description;
 
     const r = await this.prisma.role.update({
       where: { id },
@@ -96,7 +100,7 @@ export class PrismaRoleRepository implements RoleRepository {
   async setPermissions(roleId: string, permissionIds: string[]): Promise<void> {
     await this.prisma.$transaction([
       this.prisma.rolePermission.deleteMany({ where: { roleId } }),
-      ...permissionIds.map(permissionId =>
+      ...permissionIds.map((permissionId) =>
         this.prisma.rolePermission.create({
           data: { roleId, permissionId },
         }),

@@ -1,21 +1,39 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+  UseInterceptors,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { DoctorScheduleService } from '@clinical/application/services/doctor-schedule.service';
 import { DoctorService } from '@clinical/application/services/doctor.service';
-import { CreateDoctorScheduleDto, UpdateDoctorScheduleDto } from '@clinical/presentation/controllers/doctor-schedule.dto';
+import {
+  CreateDoctorScheduleDto,
+  UpdateDoctorScheduleDto,
+} from '@clinical/presentation/controllers/doctor-schedule.dto';
 import { PermissionsGuard } from '@shared/guards/permissions.guard';
 import { CheckPermissions } from '@shared/decorators/permissions.decorator';
+import { Audit } from '../../../audit/audit.decorator';
+import { AuditInterceptor } from '../../../audit/audit.interceptor';
 
 @Controller('doctors')
+@UseInterceptors(AuditInterceptor)
 export class DoctorScheduleController {
   constructor(
     private readonly scheduleService: DoctorScheduleService,
     private readonly doctorService: DoctorService,
-  ) { }
+  ) {}
 
   @Post('me/schedules')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('schedules', 'create:own')
+  @Audit('schedules:create:own', 'DoctorSchedule')
   async createMySchedule(@Body() dto: CreateDoctorScheduleDto, @Req() req) {
     const doctor = await this.doctorService.findByUserId(req.user.userId);
     return this.scheduleService.createSchedule(doctor.id, dto);
@@ -32,23 +50,32 @@ export class DoctorScheduleController {
   @Put('me/schedules/:id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('schedules', 'create:own')
-  async updateMySchedule(@Param('id') id: string, @Body() dto: UpdateDoctorScheduleDto, @Req() req) {
+  @Audit('schedules:update:own', 'DoctorSchedule', true)
+  async updateMySchedule(
+    @Param('id') id: string,
+    @Body() dto: UpdateDoctorScheduleDto,
+    @Req() req,
+  ) {
     const doctor = await this.doctorService.findByUserId(req.user.userId);
-    const schedule = await this.scheduleService.updateSchedule(id, dto);
-    if (schedule.doctorId !== doctor.id) {
-      throw new Error('Cannot update another doctor\'s schedule');
+    const oldSchedule = await this.scheduleService.findById(id);
+    if (oldSchedule.doctorId !== doctor.id) {
+      throw new Error("Cannot update another doctor's schedule");
     }
-    return schedule;
+    (req as any).auditSnapshot = { ...oldSchedule };
+    return this.scheduleService.updateSchedule(id, dto);
   }
 
   @Delete('me/schedules/:id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('schedules', 'create:own')
+  @Audit('schedules:delete:own', 'DoctorSchedule')
   async deleteMySchedule(@Param('id') id: string, @Req() req) {
     const doctor = await this.doctorService.findByUserId(req.user.userId);
-    const schedule = await this.scheduleService.updateSchedule(id, { isActive: false } as any);
+    const schedule = await this.scheduleService.updateSchedule(id, {
+      isActive: false,
+    });
     if (schedule.doctorId !== doctor.id) {
-      throw new Error('Cannot delete another doctor\'s schedule');
+      throw new Error("Cannot delete another doctor's schedule");
     }
     return { success: true };
   }
@@ -56,7 +83,11 @@ export class DoctorScheduleController {
   @Post(':doctorId/schedules')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('schedules', 'manage')
-  async createSchedule(@Param('doctorId') doctorId: string, @Body() dto: CreateDoctorScheduleDto) {
+  @Audit('schedules:create', 'DoctorSchedule')
+  async createSchedule(
+    @Param('doctorId') doctorId: string,
+    @Body() dto: CreateDoctorScheduleDto,
+  ) {
     return this.scheduleService.createSchedule(doctorId, dto);
   }
 
@@ -68,13 +99,20 @@ export class DoctorScheduleController {
   @Put(':doctorId/schedules/:id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('schedules', 'manage')
-  async updateSchedule(@Param('id') id: string, @Body() dto: UpdateDoctorScheduleDto) {
+  @Audit('schedules:update', 'DoctorSchedule', true)
+  async updateSchedule(
+    @Param('id') id: string,
+    @Body() dto: UpdateDoctorScheduleDto,
+    @Req() req,
+  ) {
+    (req as any).auditSnapshot = { ...(await this.scheduleService.findById(id)) };
     return this.scheduleService.updateSchedule(id, dto);
   }
 
   @Delete(':doctorId/schedules/:id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('schedules', 'manage')
+  @Audit('schedules:delete', 'DoctorSchedule')
   async deleteSchedule(@Param('id') id: string) {
     await this.scheduleService.deleteSchedule(id);
     return { success: true };

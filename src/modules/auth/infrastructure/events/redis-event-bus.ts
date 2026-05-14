@@ -11,11 +11,13 @@ export class RedisEventBus implements IEventBus {
 
   constructor() {
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    
+
     this.redis = new Redis(redisUrl, {
       retryStrategy: (times) => {
         if (times > 3) {
-          this.logger.warn('Redis connection failed, events will not be published');
+          this.logger.warn(
+            'Redis connection failed, events will not be published',
+          );
           return null;
         }
         return Math.min(times * 100, 3000);
@@ -60,14 +62,19 @@ export class RedisEventBus implements IEventBus {
           '*',
           ...Object.entries(eventData).flat(),
         ),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Redis timeout')), 3000)),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Redis timeout')), 3000),
+        ),
       ]);
     } catch (error) {
       this.logger.warn(`Event publish failed: ${error.message}`);
     }
   }
 
-  async createConsumerGroup(streamName: string, groupName: string): Promise<void> {
+  async createConsumerGroup(
+    streamName: string,
+    groupName: string,
+  ): Promise<void> {
     try {
       await this.redis.xgroup('CREATE', streamName, groupName, '$', 'MKSTREAM');
     } catch (error) {
@@ -88,14 +95,23 @@ export class RedisEventBus implements IEventBus {
     const processEvents = async () => {
       try {
         const results = await this.consumerRedis.xreadgroup(
-          'GROUP', consumerGroup, consumerName,
-          'COUNT', 10,
-          'BLOCK', 5000,
-          'STREAMS', streamName, '>',
+          'GROUP',
+          consumerGroup,
+          consumerName,
+          'COUNT',
+          10,
+          'BLOCK',
+          5000,
+          'STREAMS',
+          streamName,
+          '>',
         );
 
         if (results) {
-          for (const [stream, messages] of results as [string, Array<[string, string[]]>][]) {
+          for (const [stream, messages] of results as [
+            string,
+            Array<[string, string[]]>,
+          ][]) {
             for (const [id, fields] of messages) {
               try {
                 const event = this.parseEvent(stream, fields);

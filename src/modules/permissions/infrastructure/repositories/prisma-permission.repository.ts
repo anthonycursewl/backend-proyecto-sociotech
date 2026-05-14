@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { PERMISSION_REPOSITORY, PermissionRepository } from '../../domain/repositories/permission-repository.port';
+import {
+  PERMISSION_REPOSITORY,
+  PermissionRepository,
+} from '../../domain/repositories/permission-repository.port';
 import { Permission } from '../../domain/entities/permission.entity';
 import { PermissionsPrismaService } from '../db/prisma.service';
 
 @Injectable()
 export class PrismaPermissionRepository implements PermissionRepository {
   constructor(
-    @Inject(PermissionsPrismaService) private readonly prisma: PermissionsPrismaService,
+    @Inject(PermissionsPrismaService)
+    private readonly prisma: PermissionsPrismaService,
   ) {}
 
   private toDomain(p: any): Permission {
@@ -23,7 +27,7 @@ export class PrismaPermissionRepository implements PermissionRepository {
 
   async findAll(): Promise<Permission[]> {
     const permissions = await this.prisma.permission.findMany();
-    return permissions.map(p => this.toDomain(p));
+    return permissions.map((p) => this.toDomain(p));
   }
 
   async findById(id: string): Promise<Permission | null> {
@@ -40,7 +44,7 @@ export class PrismaPermissionRepository implements PermissionRepository {
     const permissions = await this.prisma.permission.findMany({
       where: { resource },
     });
-    return permissions.map(p => this.toDomain(p));
+    return permissions.map((p) => this.toDomain(p));
   }
 
   async save(permission: Permission): Promise<Permission> {

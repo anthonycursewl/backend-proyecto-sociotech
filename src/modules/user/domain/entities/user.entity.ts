@@ -21,19 +21,45 @@ export class User {
     this.props = { ...props };
   }
 
-  get id(): string { return this.props.id; }
-  get email(): string { return this.props.email; }
-  get passwordHash(): string { return this.props.passwordHash; }
-  get roleId(): string { return this.props.roleId; }
-  get firstName(): string { return this.props.firstName; }
-  get lastName(): string { return this.props.lastName; }
-  get isActive(): boolean { return this.props.isActive; }
-  get refreshToken(): string | null | undefined { return this.props.refreshToken; }
-  get refreshTokenExpires(): Date | null | undefined { return this.props.refreshTokenExpires; }
-  get createdAt(): Date { return this.props.createdAt; }
-  get updatedAt(): Date { return this.props.updatedAt; }
-  get permissions(): string[] { return this.props.permissions || []; }
-  get roleName(): string { return this.props.roleName || ''; }
+  get id(): string {
+    return this.props.id;
+  }
+  get email(): string {
+    return this.props.email;
+  }
+  get passwordHash(): string {
+    return this.props.passwordHash;
+  }
+  get roleId(): string {
+    return this.props.roleId;
+  }
+  get firstName(): string {
+    return this.props.firstName;
+  }
+  get lastName(): string {
+    return this.props.lastName;
+  }
+  get isActive(): boolean {
+    return this.props.isActive;
+  }
+  get refreshToken(): string | null | undefined {
+    return this.props.refreshToken;
+  }
+  get refreshTokenExpires(): Date | null | undefined {
+    return this.props.refreshTokenExpires;
+  }
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
+  get updatedAt(): Date {
+    return this.props.updatedAt;
+  }
+  get permissions(): string[] {
+    return this.props.permissions || [];
+  }
+  get roleName(): string {
+    return this.props.roleName || '';
+  }
 
   update(data: Partial<UserProps>) {
     Object.assign(this.props, data);

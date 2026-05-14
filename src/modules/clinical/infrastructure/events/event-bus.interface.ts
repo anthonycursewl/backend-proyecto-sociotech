@@ -11,6 +11,11 @@ export interface DomainEvent {
 
 export interface IEventBus {
   publish(event: DomainEvent): Promise<void>;
-  subscribe(streamName: string, consumerGroup: string, consumerName: string, handler: (event: DomainEvent) => Promise<void>): Promise<void>;
+  subscribe(
+    streamName: string,
+    consumerGroup: string,
+    consumerName: string,
+    handler: (event: DomainEvent) => Promise<void>,
+  ): Promise<void>;
   createConsumerGroup(streamName: string, groupName: string): Promise<void>;
 }

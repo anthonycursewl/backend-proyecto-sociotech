@@ -19,7 +19,9 @@ export class PrismaUserRepository implements UserRepository {
       createdAt: prismaUser.createdAt,
       updatedAt: prismaUser.updatedAt,
       roleName: prismaUser.role?.name,
-      permissions: prismaUser.role?.permissions?.map((rp: any) => rp.permission.name) || [],
+      permissions:
+        prismaUser.role?.permissions?.map((rp: any) => rp.permission.name) ||
+        [],
     });
   }
 
@@ -115,7 +117,11 @@ export class PrismaUserRepository implements UserRepository {
     return this.toDomain(prismaUser, false);
   }
 
-  async updateRefreshToken(id: string, refreshToken: string | null, expires?: Date): Promise<void> {
+  async updateRefreshToken(
+    id: string,
+    refreshToken: string | null,
+    expires?: Date,
+  ): Promise<void> {
     await this.prisma.user.update({
       where: { id },
       data: {

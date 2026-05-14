@@ -31,7 +31,9 @@ export class RedisEventBus implements IEventBus, OnModuleInit {
     this.redis = new Redis(redisUrl, {
       retryStrategy: (times) => {
         if (times > 3) {
-          this.logger.warn('Redis connection failed, events will not be published');
+          this.logger.warn(
+            'Redis connection failed, events will not be published',
+          );
           return null;
         }
         return Math.min(times * 100, 3000);
@@ -80,7 +82,10 @@ export class RedisEventBus implements IEventBus, OnModuleInit {
     );
   }
 
-  async createConsumerGroup(streamName: string, groupName: string): Promise<void> {
+  async createConsumerGroup(
+    streamName: string,
+    groupName: string,
+  ): Promise<void> {
     try {
       await this.redis.xgroup('CREATE', streamName, groupName, '$', 'MKSTREAM');
     } catch (error) {
@@ -101,14 +106,23 @@ export class RedisEventBus implements IEventBus, OnModuleInit {
     const processEvents = async () => {
       try {
         const results = await this.consumerRedis.xreadgroup(
-          'GROUP', consumerGroup, consumerName,
-          'COUNT', 10,
-          'BLOCK', 5000,
-          'STREAMS', streamName, '>',
+          'GROUP',
+          consumerGroup,
+          consumerName,
+          'COUNT',
+          10,
+          'BLOCK',
+          5000,
+          'STREAMS',
+          streamName,
+          '>',
         );
 
         if (results) {
-          for (const [stream, messages] of results as [string, Array<[string, string[]]>][]) {
+          for (const [stream, messages] of results as [
+            string,
+            Array<[string, string[]]>,
+          ][]) {
             for (const [id, fields] of messages) {
               try {
                 const event = this.parseEvent(stream, fields);

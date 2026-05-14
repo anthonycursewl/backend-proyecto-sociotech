@@ -1,13 +1,16 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { ROLE_REPOSITORY } from '../../domain/repositories/role-repository.port';
 import { Role } from '../../domain/entities/role.entity';
 
 @Injectable()
 export class RoleService {
-  constructor(
-    @Inject(ROLE_REPOSITORY) private readonly roleRepo: any,
-  ) {}
+  constructor(@Inject(ROLE_REPOSITORY) private readonly roleRepo: any) {}
 
   async findAll(): Promise<Role[]> {
     return this.roleRepo.findAll();

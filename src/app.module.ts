@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { ClinicalModule } from './modules/clinical/clinical.module';
@@ -9,6 +10,8 @@ import { SyncModule } from './modules/sync/sync.module';
 import { SharedModule } from './modules/shared/shared.module';
 import { PatientModule } from './modules/patient/patient.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { FlusherModule } from './modules/flusher/flusher.module';
 import { RedisEventBus } from './modules/auth/infrastructure/events/redis-event-bus';
 
 @Module({
@@ -17,6 +20,9 @@ import { RedisEventBus } from './modules/auth/infrastructure/events/redis-event-
       isGlobal: true,
       envFilePath: '.env',
     }),
+    MongooseModule.forRoot(
+      process.env.MONGODB_URL || 'mongodb://localhost:27017/consultorio',
+    ),
     SharedModule,
     AuthModule,
     UserModule,
@@ -26,10 +32,10 @@ import { RedisEventBus } from './modules/auth/infrastructure/events/redis-event-
     SyncModule,
     PatientModule,
     AppointmentsModule,
+    AuditModule,
+    FlusherModule,
   ],
-  providers: [
-    RedisEventBus,
-  ],
+  providers: [RedisEventBus],
   exports: [RedisEventBus],
 })
-export class AppModule { }
+export class AppModule {}

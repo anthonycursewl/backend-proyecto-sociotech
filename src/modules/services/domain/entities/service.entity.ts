@@ -55,8 +55,10 @@ export class Service {
 
   update(data: Partial<ServiceProps>): void {
     if (data.name !== undefined) this.props.name = data.name;
-    if (data.description !== undefined) this.props.description = data.description;
-    if (data.durationMin !== undefined) this.props.durationMin = data.durationMin;
+    if (data.description !== undefined)
+      this.props.description = data.description;
+    if (data.durationMin !== undefined)
+      this.props.durationMin = data.durationMin;
     if (data.price !== undefined) this.props.price = data.price;
     if (data.isActive !== undefined) this.props.isActive = data.isActive;
     this.props.updatedAt = new Date();

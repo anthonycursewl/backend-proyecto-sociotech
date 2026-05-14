@@ -8,7 +8,11 @@ export interface AppointmentRepository {
   findByPatientId(patientId: string): Promise<Appointment[]>;
   findByDoctorId(doctorId: string): Promise<Appointment[]>;
   findByDateRange(startDate: Date, endDate: Date): Promise<Appointment[]>;
-  findConflicting(doctorId: string, scheduledAt: Date, durationMinutes: number): Promise<Appointment | null>;
+  findConflicting(
+    doctorId: string,
+    scheduledAt: Date,
+    durationMinutes: number,
+  ): Promise<Appointment | null>;
   delete(id: string): Promise<void>;
   update(appointment: Appointment): Promise<Appointment>;
 }

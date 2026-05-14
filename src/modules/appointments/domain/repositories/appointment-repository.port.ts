@@ -8,8 +8,17 @@ export interface AppointmentRepository {
   findAll(): Promise<Appointment[]>;
   findByPatientId(patientId: string): Promise<Appointment[]>;
   findByDoctorId(doctorId: string): Promise<Appointment[]>;
-  findByDateRange(doctorId: string, startDate: Date, endDate: Date): Promise<Appointment[]>;
-  findConflicting(doctorId: string, date: Date, timeSlot: string, durationMinutes: number): Promise<Appointment | null>;
+  findByDateRange(
+    doctorId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Appointment[]>;
+  findConflicting(
+    doctorId: string,
+    date: Date,
+    timeSlot: string,
+    durationMinutes: number,
+  ): Promise<Appointment | null>;
   update(id: string, data: Partial<Appointment>): Promise<Appointment>;
   delete(id: string): Promise<void>;
 }

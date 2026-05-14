@@ -2,21 +2,24 @@ import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { DOCTOR_REPOSITORY } from '@clinical/domain/repositories/doctor-repository.port';
 import { Doctor } from '@clinical/entities/doctor.entity';
-import { CreateDoctorDto, UpdateDoctorDto } from '@clinical/presentation/controllers/doctor.dto';
+import {
+  CreateDoctorDto,
+  UpdateDoctorDto,
+} from '@clinical/presentation/controllers/doctor.dto';
 
 @Injectable()
 export class DoctorService {
   private readonly logger = new Logger(DoctorService.name);
 
-  constructor(
-    @Inject(DOCTOR_REPOSITORY) private readonly doctorRepo: any,
-  ) {}
+  constructor(@Inject(DOCTOR_REPOSITORY) private readonly doctorRepo: any) {}
 
   async create(userId: string, dto: CreateDoctorDto): Promise<Doctor> {
     // Check if doctor profile already exists for this user
     const existing = await this.doctorRepo.findByUserId(userId);
     if (existing) {
-      throw new ForbiddenException('Doctor profile already exists for this user');
+      throw new ForbiddenException(
+        'Doctor profile already exists for this user',
+      );
     }
 
     const doctor = new Doctor({

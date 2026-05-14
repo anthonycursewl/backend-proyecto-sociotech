@@ -9,6 +9,12 @@ import { PermissionsModule } from '../permissions/permissions.module';
 @Module({
   imports: [RolesModule, PermissionsModule],
   providers: [RolesGuard, PermissionsGuard, SeederService],
-  exports: [RolesGuard, PermissionsGuard, SeederService, RolesModule, PermissionsModule],
+  exports: [
+    RolesGuard,
+    PermissionsGuard,
+    SeederService,
+    RolesModule,
+    PermissionsModule,
+  ],
 })
 export class SharedModule {}

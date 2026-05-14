@@ -60,10 +60,13 @@ export class Doctor {
 
   update(data: Partial<DoctorProps>): void {
     if (data.specialty !== undefined) this.props.specialty = data.specialty;
-    if (data.licenseNumber !== undefined) this.props.licenseNumber = data.licenseNumber;
-    if (data.consultationPrice !== undefined) this.props.consultationPrice = data.consultationPrice;
+    if (data.licenseNumber !== undefined)
+      this.props.licenseNumber = data.licenseNumber;
+    if (data.consultationPrice !== undefined)
+      this.props.consultationPrice = data.consultationPrice;
     if (data.biography !== undefined) this.props.biography = data.biography;
-    if (data.phoneNumber !== undefined) this.props.phoneNumber = data.phoneNumber;
+    if (data.phoneNumber !== undefined)
+      this.props.phoneNumber = data.phoneNumber;
     if (data.isActive !== undefined) this.props.isActive = data.isActive;
     this.props.updatedAt = new Date();
   }

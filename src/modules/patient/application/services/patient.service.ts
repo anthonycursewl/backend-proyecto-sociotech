@@ -1,9 +1,17 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { PATIENT_REPOSITORY } from '../../domain/repositories/patient-repository.port';
 import type { PatientRepository } from '../../domain/repositories/patient-repository.port';
 import { Patient } from '../../domain/entities/patient.entity';
-import { CreatePatientDto, UpdatePatientDto, RegisterPatientDto } from '../../presentation/controllers/patient.dto';
+import {
+  CreatePatientDto,
+  UpdatePatientDto,
+  RegisterPatientDto,
+} from '../../presentation/controllers/patient.dto';
 
 @Injectable()
 export class PatientService {
@@ -47,10 +55,15 @@ export class PatientService {
     return this.patientRepo.save(patient);
   }
 
-  async registerPatientForUser(userId: string, dto: RegisterPatientDto): Promise<Patient> {
+  async registerPatientForUser(
+    userId: string,
+    dto: RegisterPatientDto,
+  ): Promise<Patient> {
     const existing = await this.patientRepo.findByUserId(userId);
     if (existing) {
-      throw new BadRequestException('You already have a patient record. You can only register once.');
+      throw new BadRequestException(
+        'You already have a patient record. You can only register once.',
+      );
     }
 
     const patient = new Patient({
@@ -96,6 +109,7 @@ export class PatientService {
   async update(id: string, dto: UpdatePatientDto): Promise<Patient> {
     const patient = await this.findById(id);
     patient.update({
+      cedula: dto.cedula,
       dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
       gender: dto.gender,
       occupation: dto.occupation,

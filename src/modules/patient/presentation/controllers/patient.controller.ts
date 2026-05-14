@@ -1,10 +1,31 @@
-import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Req, ParseUUIDPipe, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Req,
+  ParseUUIDPipe,
+  NotFoundException,
+  UseInterceptors,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
 import { PatientService } from '../../application/services/patient.service';
-import { CreatePatientDto, UpdatePatientDto, RegisterPatientDto, PatientResponse, toPatientResponse } from './patient.dto';
+import {
+  CreatePatientDto,
+  UpdatePatientDto,
+  RegisterPatientDto,
+  PatientResponse,
+  toPatientResponse,
+} from './patient.dto';
 import { PermissionsGuard } from '@shared/guards/permissions.guard';
 import { CheckPermissions } from '@shared/decorators/permissions.decorator';
+import { Audit } from '../../../audit/audit.decorator';
+import { AuditInterceptor } from '../../../audit/audit.interceptor';
 
 interface RequestWithUser extends Request {
   user: {
@@ -14,16 +35,19 @@ interface RequestWithUser extends Request {
     roleName: string;
     permissions: string[];
   };
+  auditSnapshot?: Record<string, unknown> | null;
 }
 
 @Controller('patients')
 @UseGuards(AuthGuard('jwt'))
+@UseInterceptors(AuditInterceptor)
 export class PatientController {
   constructor(private readonly patientService: PatientService) {}
 
   @Post()
   @UseGuards(PermissionsGuard)
   @CheckPermissions('patients', 'create')
+  @Audit('patients:create', 'Patient')
   async create(@Body() dto: CreatePatientDto): Promise<PatientResponse> {
     return toPatientResponse(await this.patientService.create(dto));
   }
@@ -31,8 +55,14 @@ export class PatientController {
   @Post('me')
   @UseGuards(PermissionsGuard)
   @CheckPermissions('patients', 'create:own')
-  async createMyPatient(@Body() dto: RegisterPatientDto, @Req() req: RequestWithUser): Promise<PatientResponse> {
-    return toPatientResponse(await this.patientService.registerPatientForUser(req.user.userId, dto));
+  @Audit('patients:create:own', 'Patient')
+  async createMyPatient(
+    @Body() dto: RegisterPatientDto,
+    @Req() req: RequestWithUser,
+  ): Promise<PatientResponse> {
+    return toPatientResponse(
+      await this.patientService.registerPatientForUser(req.user.userId, dto),
+    );
   }
 
   @Get()
@@ -57,33 +87,56 @@ export class PatientController {
   @Put('me')
   @UseGuards(PermissionsGuard)
   @CheckPermissions('patients', 'update:own')
-  async updateMyPatient(@Req() req: RequestWithUser, @Body() dto: UpdatePatientDto): Promise<PatientResponse> {
+  @Audit('patients:update:own', 'Patient', true)
+  async updateMyPatient(
+    @Req() req: RequestWithUser,
+    @Body() dto: UpdatePatientDto,
+  ): Promise<PatientResponse> {
     const patient = await this.patientService.findByUserId(req.user.userId);
     if (!patient) {
       throw new NotFoundException('Patient profile not found');
     }
+    req.auditSnapshot = patient.toPlain() as unknown as Record<string, unknown>;
     return toPatientResponse(await this.patientService.update(patient.id, dto));
   }
 
   @Get('search')
   @UseGuards(PermissionsGuard)
   @CheckPermissions('patients', 'read')
-  async search(@Query('q') query: string, @Query('limit') limit?: string): Promise<PatientResponse[]> {
-    const patients = await this.patientService.search(query, parseInt(limit || '20'));
+  async search(
+    @Query('q') query: string,
+    @Query('limit') limit?: string,
+  ): Promise<PatientResponse[]> {
+    const patients = await this.patientService.search(
+      query,
+      parseInt(limit || '20'),
+    );
     return patients.map(toPatientResponse);
   }
 
   @Get(':id')
   @UseGuards(PermissionsGuard)
   @CheckPermissions('patients', 'read')
-  async findById(@Param('id', ParseUUIDPipe) id: string): Promise<PatientResponse> {
+  async findById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<PatientResponse> {
     return toPatientResponse(await this.patientService.findById(id));
   }
 
   @Put(':id')
   @UseGuards(PermissionsGuard)
   @CheckPermissions('patients', 'update')
-  async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePatientDto): Promise<PatientResponse> {
+  @Audit('patients:update', 'Patient', true)
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdatePatientDto,
+    @Req() req: RequestWithUser,
+  ): Promise<PatientResponse> {
+    const oldPatient = await this.patientService.findById(id);
+    if (!oldPatient) {
+      throw new NotFoundException('Patient not found');
+    }
+    req.auditSnapshot = oldPatient.toPlain() as unknown as Record<string, unknown>;
     return toPatientResponse(await this.patientService.update(id, dto));
   }
 }

@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { DOCTOR_REPOSITORY, DoctorRepository } from '@clinical/domain/repositories/doctor-repository.port';
+import {
+  DOCTOR_REPOSITORY,
+  DoctorRepository,
+} from '@clinical/domain/repositories/doctor-repository.port';
 import { Doctor } from '@clinical/entities/doctor.entity';
 import { PrismaService } from '@clinical/infrastructure/db/prisma.service';
 
 @Injectable()
 export class PrismaDoctorRepository implements DoctorRepository {
-  constructor(
-    @Inject(PrismaService) private readonly prisma: any,
-  ) {}
+  constructor(@Inject(PrismaService) private readonly prisma: any) {}
 
   private toDomain(prismaDoctor: any): Doctor {
     return new Doctor({
@@ -58,7 +59,13 @@ export class PrismaDoctorRepository implements DoctorRepository {
         services: true,
       },
     });
-    return prismaDoctor ? { ...this.toDomain(prismaDoctor), user: prismaDoctor.user, services: prismaDoctor.services } : null;
+    return prismaDoctor
+      ? {
+          ...this.toDomain(prismaDoctor),
+          user: prismaDoctor.user,
+          services: prismaDoctor.services,
+        }
+      : null;
   }
 
   async findByUserId(userId: string): Promise<Doctor | null> {
@@ -86,7 +93,7 @@ export class PrismaDoctorRepository implements DoctorRepository {
         },
       },
     });
-    return doctors.map(d => ({
+    return doctors.map((d) => ({
       ...this.toDomain(d),
       user: d.user,
     }));
@@ -97,10 +104,16 @@ export class PrismaDoctorRepository implements DoctorRepository {
       where: { id },
       data: {
         ...(data.specialty !== undefined && { specialty: data.specialty }),
-        ...(data.licenseNumber !== undefined && { licenseNumber: data.licenseNumber }),
-        ...(data.consultationPrice !== undefined && { consultationPrice: data.consultationPrice }),
+        ...(data.licenseNumber !== undefined && {
+          licenseNumber: data.licenseNumber,
+        }),
+        ...(data.consultationPrice !== undefined && {
+          consultationPrice: data.consultationPrice,
+        }),
         ...(data.biography !== undefined && { biography: data.biography }),
-        ...(data.phoneNumber !== undefined && { phoneNumber: data.phoneNumber }),
+        ...(data.phoneNumber !== undefined && {
+          phoneNumber: data.phoneNumber,
+        }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
         updatedAt: new Date(),
       },

@@ -30,30 +30,39 @@ export class UserEventSubscriber implements OnModuleInit {
   }
 
   private async handleUserEvent(event: DomainEvent): Promise<void> {
-    this.logger.log(`[EVENT RECEIVED] Type: ${event.eventType}, Stream: ${event.streamName}`);
+    this.logger.log(
+      `[EVENT RECEIVED] Type: ${event.eventType}, Stream: ${event.streamName}`,
+    );
     this.logger.log(`[EVENT PAYLOAD] ${JSON.stringify(event.payload)}`);
 
     try {
       if (event.eventType === 'USER_REGISTERED') {
-        const { id, email, passwordHash, firstName, lastName, role } = event.payload as {
-          id: string;
-          email: string;
-          passwordHash: string;
-          firstName: string;
-          lastName: string;
-          role: string;
-        };
+        const { id, email, passwordHash, firstName, lastName, role } =
+          event.payload as {
+            id: string;
+            email: string;
+            passwordHash: string;
+            firstName: string;
+            lastName: string;
+            role: string;
+          };
 
         this.logger.log(`[USER_REGISTERED] Processing user: ${id} - ${email}`);
-        this.logger.log(`[USER_REGISTERED] passwordHash received: ${passwordHash ? 'yes' : 'no'}`);
+        this.logger.log(
+          `[USER_REGISTERED] passwordHash received: ${passwordHash ? 'yes' : 'no'}`,
+        );
 
         const existing = await this.userRepo.findById(id);
         if (existing) {
-          this.logger.warn(`[USER_REGISTERED] User ${id} already exists, skipping`);
+          this.logger.warn(
+            `[USER_REGISTERED] User ${id} already exists, skipping`,
+          );
           return;
         }
 
-        this.logger.log(`[USER_REGISTERED] Creating user in user-service DB...`);
+        this.logger.log(
+          `[USER_REGISTERED] Creating user in user-service DB...`,
+        );
 
         const user = {
           id,
@@ -68,7 +77,9 @@ export class UserEventSubscriber implements OnModuleInit {
         };
 
         await this.userRepo.save(user as any);
-        this.logger.log(`[USER_REGISTERED] SUCCESS - User ${id} replicated to user-service`);
+        this.logger.log(
+          `[USER_REGISTERED] SUCCESS - User ${id} replicated to user-service`,
+        );
       } else {
         this.logger.warn(`[UNKNOWN EVENT] ${event.eventType}`);
       }

@@ -11,7 +11,11 @@ export interface UserRepository {
   delete(id: string): Promise<void>;
   update(id: string, data: Partial<User>): Promise<User>;
   updateRoleId(id: string, roleId: string): Promise<User>;
-  updateRefreshToken(id: string, refreshToken: string | null, expires?: Date): Promise<void>;
+  updateRefreshToken(
+    id: string,
+    refreshToken: string | null,
+    expires?: Date,
+  ): Promise<void>;
   search(query: string, limit?: number): Promise<User[]>;
   findDefaultPatientRoleId(): Promise<string | null>;
 }

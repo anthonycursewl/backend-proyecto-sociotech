@@ -42,13 +42,13 @@ export class UserService {
     if (input.firstName) updateData.firstName = input.firstName;
     if (input.lastName) updateData.lastName = input.lastName;
 
-    const updated = await this.userRepository.update(input.userId, updateData as any);
+    const updated = await this.userRepository.update(input.userId, updateData);
     return { user: updated };
   }
 
   async getPatients(): Promise<User[]> {
     const patients = await this.userRepository.findAll();
-    return patients.filter(u => u.roleName === 'PATIENT');
+    return patients.filter((u) => u.roleName === 'PATIENT');
   }
 
   async getPatientById(patientId: string): Promise<User | null> {
@@ -61,7 +61,7 @@ export class UserService {
 
   async getDoctors(): Promise<User[]> {
     const users = await this.userRepository.findAll();
-    return users.filter(u => u.roleName === 'DOCTOR');
+    return users.filter((u) => u.roleName === 'DOCTOR');
   }
 
   async searchUsers(query: string, limit: number = 20): Promise<User[]> {

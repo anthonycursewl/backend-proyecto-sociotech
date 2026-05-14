@@ -20,7 +20,12 @@ export class AuthService {
     private readonly eventBus: RedisEventBus,
   ) {}
 
-  async register(dto: { email: string; password: string; firstName: string; lastName: string }) {
+  async register(dto: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+  }) {
     const existing = await this.userRepo.findByEmail(dto.email);
     if (existing) {
       throw new UnauthorizedException('Email already exists');
@@ -62,7 +67,9 @@ export class AuthService {
       timestamp: new Date(),
     };
 
-    this.logger.log(`[PUBLISH] Publishing USER_REGISTERED event for ${saved.id}`);
+    this.logger.log(
+      `[PUBLISH] Publishing USER_REGISTERED event for ${saved.id}`,
+    );
     await this.eventBus.publish(event);
     this.logger.log(`[PUBLISH] Event published successfully for ${saved.id}`);
 
@@ -75,7 +82,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await this.bcryptAuth.comparePassword(dto.password, user.passwordHash);
+    const isPasswordValid = await this.bcryptAuth.comparePassword(
+      dto.password,
+      user.passwordHash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -96,7 +106,10 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      const isRefreshTokenValid = await this.bcryptAuth.comparePassword(refreshToken, user.refreshToken);
+      const isRefreshTokenValid = await this.bcryptAuth.comparePassword(
+        refreshToken,
+        user.refreshToken,
+      );
       if (!isRefreshTokenValid) {
         throw new UnauthorizedException('Invalid refresh token');
       }
@@ -153,7 +166,11 @@ export class AuthService {
     const refreshTokenExpires = new Date();
     refreshTokenExpires.setDate(refreshTokenExpires.getDate() + 30);
 
-    await this.userRepo.updateRefreshToken(user.id, hashedRefreshToken, refreshTokenExpires);
+    await this.userRepo.updateRefreshToken(
+      user.id,
+      hashedRefreshToken,
+      refreshTokenExpires,
+    );
 
     return {
       accessToken,

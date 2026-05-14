@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsOptional, IsDateString, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsDateString,
+  IsArray,
+} from 'class-validator';
 import { Patient } from '../../domain/entities/patient.entity';
 
 export class CreatePatientDto {
@@ -63,6 +69,10 @@ export class CreatePatientDto {
 }
 
 export class UpdatePatientDto {
+  @IsOptional()
+  @IsString()
+  cedula?: string;
+
   @IsOptional()
   @IsDateString()
   dateOfBirth?: string;

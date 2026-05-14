@@ -1,13 +1,19 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { SERVICE_REPOSITORY, ServiceRepository, CursorPaginationParams, PaginatedServices } from '@services/domain/repositories/service-repository.port';
-import { Service, ServiceProps } from '@services/domain/entities/service.entity';
+import {
+  SERVICE_REPOSITORY,
+  ServiceRepository,
+  CursorPaginationParams,
+  PaginatedServices,
+} from '@services/domain/repositories/service-repository.port';
+import {
+  Service,
+  ServiceProps,
+} from '@services/domain/entities/service.entity';
 import { PrismaService } from '@services/infrastructure/db/prisma.service';
 
 @Injectable()
 export class PrismaServiceRepository implements ServiceRepository {
-  constructor(
-    @Inject(PrismaService) private readonly prisma: PrismaService,
-  ) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   private toDomain(raw: ServiceProps): Service {
     return new Service(raw);
@@ -42,21 +48,21 @@ export class PrismaServiceRepository implements ServiceRepository {
         updatedAt: data.updatedAt,
       },
     });
-    return this.toDomain(this.toProps(created as ServiceProps));
+    return this.toDomain(this.toProps(created));
   }
 
   async findById(id: string): Promise<Service | null> {
     const service = await this.prisma.service.findUnique({
       where: { id },
     });
-    return service ? this.toDomain(this.toProps(service as ServiceProps)) : null;
+    return service ? this.toDomain(this.toProps(service)) : null;
   }
 
   async findByName(name: string): Promise<Service | null> {
     const service = await this.prisma.service.findUnique({
       where: { name },
     });
-    return service ? this.toDomain(this.toProps(service as ServiceProps)) : null;
+    return service ? this.toDomain(this.toProps(service)) : null;
   }
 
   async findAll(params?: CursorPaginationParams): Promise<PaginatedServices> {
@@ -79,7 +85,7 @@ export class PrismaServiceRepository implements ServiceRepository {
     const nextCursor = hasMore ? items[items.length - 1].id : null;
 
     return {
-      data: items.map(s => this.toProps(s as ServiceProps)),
+      data: items.map((s) => this.toProps(s as ServiceProps)),
       nextCursor,
     };
   }
@@ -89,14 +95,18 @@ export class PrismaServiceRepository implements ServiceRepository {
       where: { id },
       data: {
         ...(data.name !== undefined && { name: data.name }),
-        ...(data.description !== undefined && { description: data.description }),
-        ...(data.durationMin !== undefined && { durationMin: data.durationMin }),
+        ...(data.description !== undefined && {
+          description: data.description,
+        }),
+        ...(data.durationMin !== undefined && {
+          durationMin: data.durationMin,
+        }),
         ...(data.price !== undefined && { price: data.price }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
         updatedAt: new Date(),
       },
     });
-    return this.toDomain(this.toProps(updated as ServiceProps));
+    return this.toDomain(this.toProps(updated));
   }
 
   async delete(id: string): Promise<void> {
@@ -114,6 +124,6 @@ export class PrismaServiceRepository implements ServiceRepository {
         },
       },
     });
-    return services.map(s => this.toDomain(this.toProps(s as ServiceProps)));
+    return services.map((s) => this.toDomain(this.toProps(s as ServiceProps)));
   }
 }

@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 
@@ -7,10 +12,10 @@ export class PermissionsGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredPermissions = this.reflector.getAllAndOverride<{ resource: string; action: string }>(PERMISSIONS_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredPermissions = this.reflector.getAllAndOverride<{
+      resource: string;
+      action: string;
+    }>(PERMISSIONS_KEY, [context.getHandler(), context.getClass()]);
 
     if (!requiredPermissions) {
       return true;
@@ -26,16 +31,17 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const { resource, action } = requiredPermissions;
-    const hasPermission = user.permissions.some(userPerm => {
+    const hasPermission = user.permissions.some((userPerm) => {
       if (userPerm === `${resource}:${action}`) {
         return true;
       }
 
-      if (!action.includes(':') && (
-        userPerm === `${resource}:${action}` ||
-        userPerm.startsWith(`${resource}:${action}:`) ||
-        userPerm.startsWith(`${resource}:${action}/`)
-      )) {
+      if (
+        !action.includes(':') &&
+        (userPerm === `${resource}:${action}` ||
+          userPerm.startsWith(`${resource}:${action}:`) ||
+          userPerm.startsWith(`${resource}:${action}/`))
+      ) {
         return true;
       }
 
@@ -43,7 +49,9 @@ export class PermissionsGuard implements CanActivate {
     });
 
     if (!hasPermission) {
-      throw new ForbiddenException(`Access denied. Required permission: ${resource}:${action}`);
+      throw new ForbiddenException(
+        `Access denied. Required permission: ${resource}:${action}`,
+      );
     }
 
     return true;

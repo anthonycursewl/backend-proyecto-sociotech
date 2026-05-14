@@ -79,7 +79,7 @@ export class PrismaPatientRepository implements PatientRepository {
 
   async findAll(): Promise<Patient[]> {
     const patients = await this.prisma.patient.findMany();
-    return patients.map(p => this.toDomain(p));
+    return patients.map((p) => this.toDomain(p));
   }
 
   async update(id: string, data: PatientProps): Promise<Patient> {
@@ -108,6 +108,6 @@ export class PrismaPatientRepository implements PatientRepository {
       },
       take: limit,
     });
-    return patients.map(p => this.toDomain(p));
+    return patients.map((p) => this.toDomain(p));
   }
 }

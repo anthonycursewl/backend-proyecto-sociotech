@@ -53,7 +53,9 @@ export class AppointmentDate {
   }
 
   addMinutes(minutes: number): AppointmentDate {
-    return new AppointmentDate(new Date(this._value.getTime() + minutes * 60000));
+    return new AppointmentDate(
+      new Date(this._value.getTime() + minutes * 60000),
+    );
   }
 
   toString(): string {
