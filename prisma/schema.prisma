@@ -135,6 +135,7 @@ model Patient {
   id               String          @id @default(uuid())
   userId           String          @unique
   medicalId        String          @unique
+  cedula           String?         @unique
   dateOfBirth      DateTime
   gender           String?
   occupation       String?

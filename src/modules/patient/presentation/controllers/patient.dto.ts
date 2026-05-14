@@ -1,9 +1,14 @@
-import { IsString, IsNotEmpty, IsOptional, IsDateString, IsArray, IsPhoneNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsDateString, IsArray } from 'class-validator';
+import { Patient } from '../../domain/entities/patient.entity';
 
 export class CreatePatientDto {
   @IsString()
   @IsNotEmpty()
   userId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  cedula: string;
 
   @IsDateString()
   @IsNotEmpty()
@@ -111,6 +116,10 @@ export class UpdatePatientDto {
 }
 
 export class RegisterPatientDto {
+  @IsString()
+  @IsNotEmpty()
+  cedula: string;
+
   @IsDateString()
   @IsNotEmpty()
   dateOfBirth: string;
@@ -161,4 +170,48 @@ export class RegisterPatientDto {
   @IsArray()
   @IsString({ each: true })
   chronicDiseases?: string[];
+}
+
+export interface PatientResponse {
+  id: string;
+  userId: string;
+  medicalId: string;
+  cedula: string | null;
+  dateOfBirth: string;
+  gender: string | null;
+  occupation: string | null;
+  civilStatus: string | null;
+  phone: string;
+  address: string;
+  emergencyContact: string;
+  emergencyPhone: string;
+  bloodType: string | null;
+  allergies: string[];
+  currentMedications: string[];
+  chronicDiseases: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function toPatientResponse(patient: Patient): PatientResponse {
+  return {
+    id: patient.id,
+    userId: patient.userId,
+    medicalId: patient.medicalId,
+    cedula: patient.cedula ?? null,
+    dateOfBirth: patient.dateOfBirth.toISOString(),
+    gender: patient.gender ?? null,
+    occupation: patient.occupation ?? null,
+    civilStatus: patient.civilStatus ?? null,
+    phone: patient.phone,
+    address: patient.address,
+    emergencyContact: patient.emergencyContact,
+    emergencyPhone: patient.emergencyPhone,
+    bloodType: patient.bloodType ?? null,
+    allergies: patient.allergies,
+    currentMedications: patient.currentMedications,
+    chronicDiseases: patient.chronicDiseases,
+    createdAt: patient.createdAt.toISOString(),
+    updatedAt: patient.updatedAt.toISOString(),
+  };
 }

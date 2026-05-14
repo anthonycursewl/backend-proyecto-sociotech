@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { PATIENT_REPOSITORY, PatientRepository } from '../../domain/repositories/patient-repository.port';
-import { Patient } from '../../domain/entities/patient.entity';
+import type { Prisma } from '@prisma/client';
+import { PatientRepository } from '../../domain/repositories/patient-repository.port';
+import { Patient, PatientProps } from '../../domain/entities/patient.entity';
 import { PatientPrismaService } from '../db/prisma.service';
+
+type PatientModel = Prisma.PatientGetPayload<{}>;
 
 @Injectable()
 export class PrismaPatientRepository implements PatientRepository {
@@ -10,23 +13,24 @@ export class PrismaPatientRepository implements PatientRepository {
     @Inject(PatientPrismaService) private readonly prisma: PatientPrismaService,
   ) {}
 
-  private toDomain(p: any): Patient {
+  private toDomain(p: PatientModel): Patient {
     return new Patient({
       id: p.id,
       userId: p.userId,
       medicalId: p.medicalId,
+      cedula: p.cedula ?? undefined,
       dateOfBirth: p.dateOfBirth,
-      gender: p.gender,
-      occupation: p.occupation,
-      civilStatus: p.civilStatus,
+      gender: p.gender ?? undefined,
+      occupation: p.occupation ?? undefined,
+      civilStatus: p.civilStatus ?? undefined,
       phone: p.phone,
       address: p.address,
       emergencyContact: p.emergencyContact,
       emergencyPhone: p.emergencyPhone,
-      bloodType: p.bloodType,
-      allergies: p.allergies || [],
-      currentMedications: p.currentMedications || [],
-      chronicDiseases: p.chronicDiseases || [],
+      bloodType: p.bloodType ?? undefined,
+      allergies: p.allergies ?? [],
+      currentMedications: p.currentMedications ?? [],
+      chronicDiseases: p.chronicDiseases ?? [],
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
     });
@@ -38,6 +42,7 @@ export class PrismaPatientRepository implements PatientRepository {
         id: patient.id,
         userId: patient.userId,
         medicalId: patient.medicalId,
+        cedula: patient.cedula,
         dateOfBirth: patient.dateOfBirth,
         gender: patient.gender,
         occupation: patient.occupation,
@@ -77,21 +82,11 @@ export class PrismaPatientRepository implements PatientRepository {
     return patients.map(p => this.toDomain(p));
   }
 
-  async update(id: string, data: Partial<Patient>): Promise<Patient> {
+  async update(id: string, data: PatientProps): Promise<Patient> {
     const p = await this.prisma.patient.update({
       where: { id },
       data: {
-        ...(data.gender !== undefined && { gender: data.gender }),
-        ...(data.occupation !== undefined && { occupation: data.occupation }),
-        ...(data.civilStatus !== undefined && { civilStatus: data.civilStatus }),
-        ...(data.phone !== undefined && { phone: data.phone }),
-        ...(data.address !== undefined && { address: data.address }),
-        ...(data.emergencyContact !== undefined && { emergencyContact: data.emergencyContact }),
-        ...(data.emergencyPhone !== undefined && { emergencyPhone: data.emergencyPhone }),
-        ...(data.bloodType !== undefined && { bloodType: data.bloodType }),
-        ...(data.allergies !== undefined && { allergies: data.allergies }),
-        ...(data.currentMedications !== undefined && { currentMedications: data.currentMedications }),
-        ...(data.chronicDiseases !== undefined && { chronicDiseases: data.chronicDiseases }),
+        ...data,
         updatedAt: new Date(),
       },
     });

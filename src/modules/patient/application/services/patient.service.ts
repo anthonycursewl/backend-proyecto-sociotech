@@ -1,13 +1,14 @@
-import { Injectable, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { PATIENT_REPOSITORY } from '../../domain/repositories/patient-repository.port';
+import type { PatientRepository } from '../../domain/repositories/patient-repository.port';
 import { Patient } from '../../domain/entities/patient.entity';
 import { CreatePatientDto, UpdatePatientDto, RegisterPatientDto } from '../../presentation/controllers/patient.dto';
 
 @Injectable()
 export class PatientService {
   constructor(
-    @Inject(PATIENT_REPOSITORY) private readonly patientRepo: any,
+    @Inject(PATIENT_REPOSITORY) private readonly patientRepo: PatientRepository,
   ) {}
 
   private generateMedicalId(): string {
@@ -26,6 +27,7 @@ export class PatientService {
       id: crypto.randomUUID(),
       userId: dto.userId,
       medicalId: this.generateMedicalId(),
+      cedula: dto.cedula,
       dateOfBirth: new Date(dto.dateOfBirth),
       gender: dto.gender,
       occupation: dto.occupation,
@@ -35,14 +37,14 @@ export class PatientService {
       emergencyContact: dto.emergencyContact,
       emergencyPhone: dto.emergencyPhone,
       bloodType: dto.bloodType,
-      allergies: dto.allergies || [],
-      currentMedications: dto.currentMedications || [],
-      chronicDiseases: dto.chronicDiseases || [],
+      allergies: dto.allergies ?? [],
+      currentMedications: dto.currentMedications ?? [],
+      chronicDiseases: dto.chronicDiseases ?? [],
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    return await this.patientRepo.save(patient);
+    return this.patientRepo.save(patient);
   }
 
   async registerPatientForUser(userId: string, dto: RegisterPatientDto): Promise<Patient> {
@@ -53,8 +55,9 @@ export class PatientService {
 
     const patient = new Patient({
       id: crypto.randomUUID(),
-      userId: userId,
+      userId,
       medicalId: this.generateMedicalId(),
+      cedula: dto.cedula,
       dateOfBirth: new Date(dto.dateOfBirth),
       gender: dto.gender,
       occupation: dto.occupation,
@@ -64,14 +67,14 @@ export class PatientService {
       emergencyContact: dto.emergencyContact,
       emergencyPhone: dto.emergencyPhone,
       bloodType: dto.bloodType,
-      allergies: dto.allergies || [],
-      currentMedications: dto.currentMedications || [],
-      chronicDiseases: dto.chronicDiseases || [],
+      allergies: dto.allergies ?? [],
+      currentMedications: dto.currentMedications ?? [],
+      chronicDiseases: dto.chronicDiseases ?? [],
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    return await this.patientRepo.save(patient);
+    return this.patientRepo.save(patient);
   }
 
   async findById(id: string): Promise<Patient> {
@@ -83,11 +86,11 @@ export class PatientService {
   }
 
   async findByUserId(userId: string): Promise<Patient | null> {
-    return await this.patientRepo.findByUserId(userId);
+    return this.patientRepo.findByUserId(userId);
   }
 
   async findAll(): Promise<Patient[]> {
-    return await this.patientRepo.findAll();
+    return this.patientRepo.findAll();
   }
 
   async update(id: string, dto: UpdatePatientDto): Promise<Patient> {
@@ -106,10 +109,10 @@ export class PatientService {
       currentMedications: dto.currentMedications,
       chronicDiseases: dto.chronicDiseases,
     });
-    return await this.patientRepo.update(id, patient);
+    return this.patientRepo.update(id, patient.toPlain());
   }
 
   async search(query: string, limit?: number): Promise<Patient[]> {
-    return await this.patientRepo.search(query, limit);
+    return this.patientRepo.search(query, limit);
   }
 }
