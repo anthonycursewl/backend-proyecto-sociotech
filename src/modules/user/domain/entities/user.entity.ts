@@ -61,6 +61,23 @@ export class User {
     return this.props.roleName || '';
   }
 
+  toJSON() {
+    return {
+      id: this.id,
+      email: this.email,
+      roleId: this.roleId,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      isActive: this.isActive,
+      refreshToken: this.refreshToken,
+      refreshTokenExpires: this.refreshTokenExpires,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      permissions: this.permissions,
+      roleName: this.roleName,
+    };
+  }
+
   update(data: Partial<UserProps>) {
     Object.assign(this.props, data);
   }

@@ -18,8 +18,15 @@ import {
 } from '../../application/services/user.service';
 import { User } from '../../domain/entities/user.entity';
 
+import { IsOptional, IsString } from 'class-validator';
+
 export class UpdateProfileDto {
+  @IsOptional()
+  @IsString()
   firstName?: string;
+
+  @IsOptional()
+  @IsString()
   lastName?: string;
 }
 
@@ -35,6 +42,28 @@ export class UserController {
   @Get('profile/:userId')
   async getProfile(@Param('userId', ParseUUIDPipe) userId: string) {
     return this.userService.getProfile(userId);
+  }
+
+  @Put('me/profile')
+  @Audit('users:update', 'User', true)
+  async updateMyProfile(
+    @Body() dto: UpdateProfileDto,
+    @Req() req,
+  ) {
+    const userId = req.user.userId;
+    const { user: oldUser } = await this.userService.getProfile(userId);
+    (req as any).auditSnapshot = {
+      id: oldUser.id,
+      email: oldUser.email,
+      firstName: oldUser.firstName,
+      lastName: oldUser.lastName,
+      isActive: oldUser.isActive,
+    };
+    return this.userService.updateProfile({
+      userId,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+    });
   }
 
   @Put('profile/:userId')

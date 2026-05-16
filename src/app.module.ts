@@ -20,7 +20,7 @@ import { RedisEventBus } from './modules/auth/infrastructure/events/redis-event-
       isGlobal: true,
       envFilePath: '.env',
     }),
-    MongooseModule.forRoot(process.env.MONGO_URI),
+    MongooseModule.forRoot(process.env.MONGO_URI!),
     SharedModule,
     AuthModule,
     UserModule,
