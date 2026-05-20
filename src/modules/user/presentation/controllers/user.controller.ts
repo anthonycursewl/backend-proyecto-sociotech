@@ -19,6 +19,7 @@ import {
 import { User } from '../../domain/entities/user.entity';
 
 import { IsOptional, IsString } from 'class-validator';
+import { IsUuidString } from '../../../shared/validators/is-uuid-string.validator';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -30,8 +31,15 @@ export class UpdateProfileDto {
   lastName?: string;
 }
 
+export class ChangeRoleDto {
+  @IsUuidString()
+  roleId: string;
+}
+
 import { Audit } from '../../../audit/audit.decorator';
 import { AuditInterceptor } from '../../../audit/audit.interceptor';
+import { PermissionsGuard } from '../../../shared/guards/permissions.guard';
+import { CheckPermissions } from '../../../shared/decorators/permissions.decorator';
 
 @Controller('users')
 @UseGuards(AuthGuard('jwt'))
@@ -89,9 +97,12 @@ export class UserController {
   }
 
   @Get('patients')
-  async getPatients() {
-    const patients = await this.userService.getPatients();
-    return { patients };
+  async getPatients(
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const parsedLimit = limit ? parseInt(limit) : undefined;
+    return this.userService.getPatientsCursor(cursor, parsedLimit);
   }
 
   @Get('patients/:patientId')
@@ -104,9 +115,12 @@ export class UserController {
   }
 
   @Get('doctors')
-  async getDoctors() {
-    const doctors = await this.userService.getDoctors();
-    return { doctors };
+  async getDoctors(
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const parsedLimit = limit ? parseInt(limit) : undefined;
+    return this.userService.getDoctorsCursor(cursor, parsedLimit);
   }
 
   @Get('search')
@@ -116,5 +130,65 @@ export class UserController {
       parseInt(limit || '20'),
     );
     return { users };
+  }
+
+  @Get('admin/list')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('users', 'read')
+  async listUsers(
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+    @Query('isActive') isActive?: string,
+  ) {
+    const parsedLimit = limit ? parseInt(limit) : undefined;
+    const parsedActive =
+      isActive === 'true' ? true : isActive === 'false' ? false : undefined;
+    return this.userService.listUsers({
+      cursor,
+      limit: parsedLimit,
+      isActive: parsedActive,
+    });
+  }
+
+  @Put('admin/:userId/toggle-active')
+  @Audit('users:update', 'User', true)
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('users', 'update')
+  async toggleActive(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Req() req,
+  ) {
+    const { user: oldUser } = await this.userService.getProfile(userId);
+    (req as any).auditSnapshot = {
+      id: oldUser.id,
+      email: oldUser.email,
+      firstName: oldUser.firstName,
+      lastName: oldUser.lastName,
+      isActive: oldUser.isActive,
+    };
+    return this.userService.toggleUserActive(userId, req.user.userId);
+  }
+
+  @Put('admin/:userId/role')
+  @Audit('users:assign-role', 'User', true)
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('users', 'assign-role')
+  async changeRole(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body() dto: ChangeRoleDto,
+    @Req() req,
+  ) {
+    const { user: oldUser } = await this.userService.getProfile(userId);
+    (req as any).auditSnapshot = {
+      id: oldUser.id,
+      email: oldUser.email,
+      roleId: oldUser.roleId,
+      roleName: oldUser.roleName,
+    };
+    return this.userService.changeUserRole({
+      userId,
+      roleId: dto.roleId,
+      requesterUserId: req.user.userId,
+    });
   }
 }

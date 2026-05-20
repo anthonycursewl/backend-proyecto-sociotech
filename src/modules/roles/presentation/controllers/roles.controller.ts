@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   ParseUUIDPipe,
   UseInterceptors,
@@ -33,13 +34,18 @@ export class RolesController {
   constructor(private readonly roleService: RoleService) {}
 
   @Get()
-  async findAll() {
-    return this.roleService.findAll();
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('roles', 'read')
+  async findAll(@Query('cursor') cursor?: string, @Query('limit') limit?: string) {
+    const parsedLimit = limit ? parseInt(limit) : undefined;
+    return this.roleService.findManyCursor(cursor, parsedLimit);
   }
 
   @Get(':id')
-  async findById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.roleService.findById(id);
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('roles', 'read')
+  async findDetail(@Param('id', ParseUUIDPipe) id: string) {
+    return this.roleService.findDetail(id);
   }
 
   @Post()
@@ -67,9 +73,37 @@ export class RolesController {
   @Delete(':id')
   @UseGuards(PermissionsGuard)
   @CheckPermissions('roles', 'delete')
-  @Audit('roles:delete', 'Role')
-  async delete(@Param('id', ParseUUIDPipe) id: string) {
+  @Audit('roles:delete', 'Role', true)
+  async softDelete(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req,
+  ) {
+    const old = await this.roleService.findById(id);
+    (req as any).auditSnapshot = { id: old.id, name: old.name, description: old.description, isSystem: old.isSystem };
     return this.roleService.delete(id);
+  }
+
+  @Get('trash')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('roles', 'read')
+  async getTrashed() {
+    return this.roleService.getTrashed();
+  }
+
+  @Post('trash/:id/restore')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('roles', 'restore')
+  @Audit('roles:restore', 'Role')
+  async restore(@Param('id', ParseUUIDPipe) id: string) {
+    return this.roleService.restore(id);
+  }
+
+  @Delete('trash/:id/permanent')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('roles', 'delete:permanent')
+  @Audit('roles:permanent-delete', 'Role')
+  async permanentDelete(@Param('id', ParseUUIDPipe) id: string) {
+    return this.roleService.permanentDelete(id);
   }
 
   @Post(':id/permissions')

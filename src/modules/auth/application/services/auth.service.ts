@@ -26,7 +26,11 @@ export class AuthService {
     firstName: string;
     lastName: string;
   }) {
-    const existing = await this.userRepo.findByEmail(dto.email);
+    const normalizedEmail = dto.email.trim().toLowerCase();
+    const normalizedFirstName = dto.firstName.trim();
+    const normalizedLastName = dto.lastName.trim();
+
+    const existing = await this.userRepo.findByEmail(normalizedEmail);
     if (existing) {
       throw new UnauthorizedException('Email already exists');
     }
@@ -40,11 +44,11 @@ export class AuthService {
 
     const user = new User({
       id: crypto.randomUUID(),
-      email: dto.email,
+      email: normalizedEmail,
       passwordHash,
       roleId: defaultRole,
-      firstName: dto.firstName,
-      lastName: dto.lastName,
+      firstName: normalizedFirstName,
+      lastName: normalizedLastName,
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -77,7 +81,8 @@ export class AuthService {
   }
 
   async login(dto: { email: string; password: string }) {
-    const user = await this.userRepo.findByEmail(dto.email);
+    const normalizedEmail = dto.email.trim().toLowerCase();
+    const user = await this.userRepo.findByEmail(normalizedEmail);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }

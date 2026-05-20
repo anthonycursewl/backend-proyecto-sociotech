@@ -37,6 +37,18 @@ export class Role {
     return this.props.permissions || [];
   }
 
+  toJSON() {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      isSystem: this.isSystem,
+      permissions: this.permissions,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+    };
+  }
+
   update(data: Partial<Pick<RoleProps, 'description'>>) {
     if (data.description !== undefined) {
       this.props.description = data.description;

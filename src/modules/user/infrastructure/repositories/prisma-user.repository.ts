@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { User, UserProps } from '../../domain/entities/user.entity';
-import { UserRepository } from '../../domain/repositories/user-repository.port';
+import { UserRepository, UserSummary, PaginatedUsers } from '../../domain/repositories/user-repository.port';
 import { PrismaService } from '../db/prisma.service';
 
 @Injectable()
@@ -23,6 +23,19 @@ export class PrismaUserRepository implements UserRepository {
         prismaUser.role?.permissions?.map((rp: any) => rp.permission.name) ||
         [],
     });
+  }
+
+  private toSummary(prismaUser: any): UserSummary {
+    return {
+      id: prismaUser.id,
+      email: prismaUser.email,
+      firstName: prismaUser.firstName,
+      lastName: prismaUser.lastName,
+      roleId: prismaUser.roleId,
+      roleName: prismaUser.role?.name || '',
+      isActive: prismaUser.isActive,
+      createdAt: prismaUser.createdAt,
+    };
   }
 
   async save(user: User): Promise<User> {
@@ -162,5 +175,166 @@ export class PrismaUserRepository implements UserRepository {
       where: { name: 'PATIENT' },
     });
     return role?.id || null;
+  }
+
+  async findManyCursor(
+    cursor?: string,
+    limit = 20,
+    isActive?: boolean,
+  ): Promise<PaginatedUsers> {
+    const take = Math.min(limit, 100);
+    const where: any = cursor ? { id: { lt: cursor } } : {};
+    if (isActive !== undefined) {
+      where.isActive = isActive;
+    }
+
+    const users = await this.prisma.user.findMany({
+      where,
+      take: take + 1,
+      orderBy: { id: 'desc' },
+      include: { role: true },
+    });
+
+    const hasNext = users.length > take;
+    if (hasNext) {
+      users.pop();
+    }
+
+    const nextCursor = hasNext ? users[users.length - 1]?.id ?? null : null;
+
+    return {
+      users: users.map((u) => this.toSummary(u)),
+      nextCursor,
+      hasNext,
+    };
+  }
+
+  async findPatientsCursor(
+    cursor?: string,
+    limit = 20,
+  ): Promise<PaginatedUsers> {
+    const take = Math.min(limit, 100);
+    const where: any = cursor ? { id: { lt: cursor } } : {};
+    where.role = { name: 'PATIENT' };
+
+    const users = await this.prisma.user.findMany({
+      where,
+      take: take + 1,
+      orderBy: { id: 'desc' },
+      include: { role: true },
+    });
+
+    const hasNext = users.length > take;
+    if (hasNext) {
+      users.pop();
+    }
+
+    const nextCursor = hasNext ? users[users.length - 1]?.id ?? null : null;
+
+    return {
+      users: users.map((u) => this.toSummary(u)),
+      nextCursor,
+      hasNext,
+    };
+  }
+
+  async findDoctorsCursor(
+    cursor?: string,
+    limit = 20,
+  ): Promise<PaginatedUsers> {
+    const take = Math.min(limit, 100);
+    const where: any = cursor ? { id: { lt: cursor } } : {};
+    where.role = { name: 'DOCTOR' };
+
+    const users = await this.prisma.user.findMany({
+      where,
+      take: take + 1,
+      orderBy: { id: 'desc' },
+      include: { role: true },
+    });
+
+    const hasNext = users.length > take;
+    if (hasNext) {
+      users.pop();
+    }
+
+    const nextCursor = hasNext ? users[users.length - 1]?.id ?? null : null;
+
+    return {
+      users: users.map((u) => this.toSummary(u)),
+      nextCursor,
+      hasNext,
+    };
+  }
+
+  async toggleActive(id: string): Promise<User> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: { role: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.role.isSystem) {
+      throw new ForbiddenException('Cannot toggle user with a system role');
+    }
+
+    const prismaUser = await this.prisma.user.update({
+      where: { id },
+      data: { isActive: !user.isActive },
+      include: {
+        role: {
+          include: {
+            permissions: {
+              include: { permission: true },
+            },
+          },
+        },
+      },
+    });
+    return this.toDomain(prismaUser, false);
+  }
+
+  async assignRole(id: string, roleId: string, requesterUserId: string): Promise<User> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: { role: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.role.isSystem) {
+      throw new ForbiddenException('Cannot change role of a user with a system role');
+    }
+
+    if (id === requesterUserId) {
+      throw new ForbiddenException('Cannot change your own role');
+    }
+
+    const targetRole = await this.prisma.role.findUnique({ where: { id: roleId } });
+    if (!targetRole) {
+      throw new NotFoundException('Target role not found');
+    }
+
+    if (targetRole.isSystem) {
+      throw new ForbiddenException('Cannot assign a system role via this endpoint');
+    }
+
+    const prismaUser = await this.prisma.user.update({
+      where: { id },
+      data: { roleId },
+      include: {
+        role: {
+          include: {
+            permissions: {
+              include: { permission: true },
+            },
+          },
+        },
+      },
+    });
+    return this.toDomain(prismaUser, false);
   }
 }

@@ -3,6 +3,10 @@ import { Inject } from '@nestjs/common';
 import {
   ROLE_REPOSITORY,
   RoleRepository,
+  RoleSummary,
+  PaginatedRoles,
+  RoleDetail,
+  PermissionSummary,
 } from '../../domain/repositories/role-repository.port';
 import { Role } from '../../domain/entities/role.entity';
 import { RolesPrismaService } from '../db/prisma.service';
@@ -25,6 +29,18 @@ export class PrismaRoleRepository implements RoleRepository {
     });
   }
 
+  private toSummary(r: any): RoleSummary {
+    return {
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      isSystem: r.isSystem,
+      deletedAt: r.deletedAt,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    };
+  }
+
   async findAll(): Promise<Role[]> {
     const roles = await this.prisma.role.findMany();
     return roles.map((r) => this.toDomain(r));
@@ -33,6 +49,48 @@ export class PrismaRoleRepository implements RoleRepository {
   async findById(id: string): Promise<Role | null> {
     const r = await this.prisma.role.findUnique({ where: { id } });
     return r ? this.toDomain(r) : null;
+  }
+
+  async findDetailById(id: string): Promise<RoleDetail | null> {
+    const r = await this.prisma.role.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        isSystem: true,
+        createdAt: true,
+        updatedAt: true,
+        permissions: {
+          select: {
+            permission: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                resource: true,
+                action: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!r) return null;
+
+    const permissions: PermissionSummary[] = r.permissions.map(
+      (rp: any) => rp.permission,
+    );
+
+    return {
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      isSystem: r.isSystem,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+      permissions,
+    };
   }
 
   async findByName(name: string): Promise<Role | null> {
@@ -106,5 +164,60 @@ export class PrismaRoleRepository implements RoleRepository {
         }),
       ),
     ]);
+  }
+
+  async findManyCursor(
+    cursor?: string,
+    limit = 20,
+  ): Promise<PaginatedRoles> {
+    const take = Math.min(limit, 100);
+    const where: any = cursor ? { id: { lt: cursor } } : {};
+    where.deletedAt = null;
+
+    const roles = await this.prisma.role.findMany({
+      where,
+      take: take + 1,
+      orderBy: { id: 'desc' },
+    });
+
+    const hasNext = roles.length > take;
+    if (hasNext) {
+      roles.pop();
+    }
+
+    const nextCursor = hasNext ? roles[roles.length - 1]?.id ?? null : null;
+
+    return {
+      roles: roles.map((r) => this.toSummary(r)),
+      nextCursor,
+      hasNext,
+    };
+  }
+
+  async softDelete(id: string): Promise<void> {
+    await this.prisma.role.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  async restore(id: string): Promise<Role | null> {
+    const r = await this.prisma.role.update({
+      where: { id },
+      data: { deletedAt: null },
+    });
+    return r ? this.toDomain(r) : null;
+  }
+
+  async permanentDelete(id: string): Promise<void> {
+    await this.prisma.role.delete({ where: { id } });
+  }
+
+  async findTrashed(): Promise<RoleSummary[]> {
+    const roles = await this.prisma.role.findMany({
+      where: { deletedAt: { not: null } },
+      orderBy: { deletedAt: 'desc' },
+    });
+    return roles.map((r) => this.toSummary(r));
   }
 }
