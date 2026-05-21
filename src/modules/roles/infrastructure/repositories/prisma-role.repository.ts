@@ -129,8 +129,8 @@ export class PrismaRoleRepository implements RoleRepository {
 
   async update(id: string, data: Partial<Role>): Promise<Role> {
     const updateData: any = {};
-    if (data.description !== undefined)
-      updateData.description = data.description;
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.description !== undefined) updateData.description = data.description;
 
     const r = await this.prisma.role.update({
       where: { id },
@@ -219,5 +219,19 @@ export class PrismaRoleRepository implements RoleRepository {
       orderBy: { deletedAt: 'desc' },
     });
     return roles.map((r) => this.toSummary(r));
+  }
+
+  async findAllPermissions(): Promise<PermissionSummary[]> {
+    const permissions = await this.prisma.permission.findMany({
+      orderBy: [{ resource: 'asc' }, { action: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        resource: true,
+        action: true,
+      },
+    });
+    return permissions;
   }
 }

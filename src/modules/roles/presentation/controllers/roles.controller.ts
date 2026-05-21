@@ -41,6 +41,20 @@ export class RolesController {
     return this.roleService.findManyCursor(cursor, parsedLimit);
   }
 
+  @Get('trash')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('roles', 'read')
+  async getTrashed() {
+    return this.roleService.getTrashed();
+  }
+
+  @Get('permissions')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('roles', 'read')
+  async getAllPermissions() {
+    return this.roleService.findAllPermissions();
+  }
+
   @Get(':id')
   @UseGuards(PermissionsGuard)
   @CheckPermissions('roles', 'read')
@@ -81,13 +95,6 @@ export class RolesController {
     const old = await this.roleService.findById(id);
     (req as any).auditSnapshot = { id: old.id, name: old.name, description: old.description, isSystem: old.isSystem };
     return this.roleService.delete(id);
-  }
-
-  @Get('trash')
-  @UseGuards(PermissionsGuard)
-  @CheckPermissions('roles', 'read')
-  async getTrashed() {
-    return this.roleService.getTrashed();
   }
 
   @Post('trash/:id/restore')

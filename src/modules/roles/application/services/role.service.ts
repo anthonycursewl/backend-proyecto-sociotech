@@ -7,7 +7,7 @@ import {
 import { Inject } from '@nestjs/common';
 import { ROLE_REPOSITORY } from '../../domain/repositories/role-repository.port';
 import { Role } from '../../domain/entities/role.entity';
-import type { PaginatedRoles, RoleSummary, RoleDetail } from '../../domain/repositories/role-repository.port';
+import type { PaginatedRoles, RoleSummary, RoleDetail, PermissionSummary } from '../../domain/repositories/role-repository.port';
 
 @Injectable()
 export class RoleService {
@@ -60,13 +60,20 @@ export class RoleService {
     return this.roleRepo.save(role);
   }
 
-  async update(id: string, data: { description?: string }): Promise<Role> {
+  async update(id: string, data: { name?: string; description?: string }): Promise<Role> {
     const role = await this.roleRepo.findById(id);
     if (!role) {
       throw new NotFoundException('Role not found');
     }
     if (role.isSystem) {
       throw new ForbiddenException('Cannot modify system role');
+    }
+
+    if (data.name) {
+      const existing = await this.roleRepo.findByName(data.name);
+      if (existing && existing.id !== id) {
+        throw new BadRequestException('Role with this name already exists');
+      }
     }
 
     role.update(data);
@@ -154,5 +161,9 @@ export class RoleService {
 
     await this.roleRepo.setPermissions(roleId, permissionIds);
     return this.findById(roleId);
+  }
+
+  async findAllPermissions(): Promise<PermissionSummary[]> {
+    return this.roleRepo.findAllPermissions();
   }
 }

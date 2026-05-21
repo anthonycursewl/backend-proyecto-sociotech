@@ -49,7 +49,10 @@ export class Role {
     };
   }
 
-  update(data: Partial<Pick<RoleProps, 'description'>>) {
+  update(data: Partial<Pick<RoleProps, 'name' | 'description'>>) {
+    if (data.name !== undefined) {
+      this.props.name = data.name;
+    }
     if (data.description !== undefined) {
       this.props.description = data.description;
     }

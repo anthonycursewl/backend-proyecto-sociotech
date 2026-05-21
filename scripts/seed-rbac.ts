@@ -139,6 +139,8 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'users:delete',
     'users:assign-role',
     'roles:read',
+    'roles:create',
+    'roles:update',
     'roles:delete',
     'roles:restore',
     'patients:read',

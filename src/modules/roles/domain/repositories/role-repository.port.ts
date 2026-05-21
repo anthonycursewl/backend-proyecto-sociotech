@@ -55,4 +55,5 @@ export interface RoleRepository {
     cursor?: string,
     limit?: number,
   ): Promise<PaginatedRoles>;
+  findAllPermissions(): Promise<PermissionSummary[]>;
 }
