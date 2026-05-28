@@ -1,3 +1,11 @@
+export interface DoctorScheduleData {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+}
+
 export interface DoctorProps {
   id: string;
   userId: string;
@@ -7,6 +15,10 @@ export interface DoctorProps {
   biography?: string;
   phoneNumber?: string;
   isActive: boolean;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  schedules?: DoctorScheduleData[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,45 +30,20 @@ export class Doctor {
     this.props = props;
   }
 
-  get id(): string {
-    return this.props.id;
-  }
-
-  get userId(): string {
-    return this.props.userId;
-  }
-
-  get specialty(): string {
-    return this.props.specialty;
-  }
-
-  get licenseNumber(): string {
-    return this.props.licenseNumber;
-  }
-
-  get consultationPrice(): number | undefined {
-    return this.props.consultationPrice;
-  }
-
-  get biography(): string | undefined {
-    return this.props.biography;
-  }
-
-  get phoneNumber(): string | undefined {
-    return this.props.phoneNumber;
-  }
-
-  get isActive(): boolean {
-    return this.props.isActive;
-  }
-
-  get createdAt(): Date {
-    return this.props.createdAt;
-  }
-
-  get updatedAt(): Date {
-    return this.props.updatedAt;
-  }
+  get id(): string { return this.props.id; }
+  get userId(): string { return this.props.userId; }
+  get specialty(): string { return this.props.specialty; }
+  get licenseNumber(): string { return this.props.licenseNumber; }
+  get consultationPrice(): number | undefined { return this.props.consultationPrice; }
+  get biography(): string | undefined { return this.props.biography; }
+  get phoneNumber(): string | undefined { return this.props.phoneNumber; }
+  get isActive(): boolean { return this.props.isActive; }
+  get firstName(): string | undefined { return this.props.firstName; }
+  get lastName(): string | undefined { return this.props.lastName; }
+  get email(): string | undefined { return this.props.email; }
+  get schedules(): DoctorScheduleData[] | undefined { return this.props.schedules; }
+  get createdAt(): Date { return this.props.createdAt; }
+  get updatedAt(): Date { return this.props.updatedAt; }
 
   update(data: Partial<DoctorProps>): void {
     if (data.specialty !== undefined) this.props.specialty = data.specialty;
@@ -72,6 +59,40 @@ export class Doctor {
   }
 
   toPlain(): DoctorProps {
-    return { ...this.props };
+    return {
+      id: this.id,
+      userId: this.userId,
+      specialty: this.specialty,
+      licenseNumber: this.licenseNumber,
+      consultationPrice: this.consultationPrice,
+      biography: this.biography,
+      phoneNumber: this.phoneNumber,
+      isActive: this.isActive,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      email: this.email,
+      schedules: this.schedules,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+    };
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      userId: this.userId,
+      specialty: this.specialty,
+      licenseNumber: this.licenseNumber,
+      consultationPrice: this.consultationPrice,
+      biography: this.biography,
+      phoneNumber: this.phoneNumber,
+      isActive: this.isActive,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      email: this.email,
+      schedules: this.schedules,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+    };
   }
 }

@@ -1,15 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  UseGuards,
-  Req,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req, UseInterceptors, ForbiddenException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { DoctorScheduleService } from '@clinical/application/services/doctor-schedule.service';
 import { DoctorService } from '@clinical/application/services/doctor.service';
@@ -41,7 +30,7 @@ export class DoctorScheduleController {
 
   @Get('me/schedules')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('schedules', 'create:own')
+  @CheckPermissions('schedules', 'read:own')
   async getMySchedules(@Req() req) {
     const doctor = await this.doctorService.findByUserId(req.user.userId);
     return this.scheduleService.getSchedulesByDoctor(doctor.id);
@@ -49,7 +38,7 @@ export class DoctorScheduleController {
 
   @Put('me/schedules/:id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('schedules', 'create:own')
+  @CheckPermissions('schedules', 'update:own')
   @Audit('schedules:update:own', 'DoctorSchedule', true)
   async updateMySchedule(
     @Param('id') id: string,
@@ -59,7 +48,7 @@ export class DoctorScheduleController {
     const doctor = await this.doctorService.findByUserId(req.user.userId);
     const oldSchedule = await this.scheduleService.findById(id);
     if (oldSchedule.doctorId !== doctor.id) {
-      throw new Error("Cannot update another doctor's schedule");
+      throw new ForbiddenException("Cannot update another doctor's schedule");
     }
     (req as any).auditSnapshot = { ...oldSchedule };
     return this.scheduleService.updateSchedule(id, dto);
@@ -67,16 +56,15 @@ export class DoctorScheduleController {
 
   @Delete('me/schedules/:id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
-  @CheckPermissions('schedules', 'create:own')
+  @CheckPermissions('schedules', 'delete:own')
   @Audit('schedules:delete:own', 'DoctorSchedule')
   async deleteMySchedule(@Param('id') id: string, @Req() req) {
     const doctor = await this.doctorService.findByUserId(req.user.userId);
-    const schedule = await this.scheduleService.updateSchedule(id, {
-      isActive: false,
-    });
+    const schedule = await this.scheduleService.findById(id);
     if (schedule.doctorId !== doctor.id) {
-      throw new Error("Cannot delete another doctor's schedule");
+      throw new ForbiddenException("Cannot delete another doctor's schedule");
     }
+    await this.scheduleService.deleteSchedule(id);
     return { success: true };
   }
 

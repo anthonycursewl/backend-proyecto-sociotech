@@ -1,28 +1,58 @@
-import { Injectable } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import {
   DOCTOR_REPOSITORY,
   DoctorRepository,
+  PaginatedDoctors,
 } from '@clinical/domain/repositories/doctor-repository.port';
-import { Doctor } from '@clinical/entities/doctor.entity';
+import { Doctor, DoctorScheduleData } from '@clinical/entities/doctor.entity';
 import { PrismaService } from '@clinical/infrastructure/db/prisma.service';
+
+type DoctorModel = Prisma.DoctorGetPayload<{}>;
+type DoctorWithUser = Prisma.DoctorGetPayload<{
+  include: { user: { select: { firstName: true; lastName: true; email: true } } }
+}>;
+type DoctorFull = Prisma.DoctorGetPayload<{
+  include: {
+    user: { select: { firstName: true; lastName: true; email: true } }
+    schedules: { where: { isActive: true } }
+  }
+}>;
+
+function mapSchedules(schedules: { id: string; dayOfWeek: number; startTime: string; endTime: string; isActive: boolean }[]): DoctorScheduleData[] {
+  return schedules.map(s => ({
+    id: s.id,
+    dayOfWeek: s.dayOfWeek,
+    startTime: s.startTime,
+    endTime: s.endTime,
+    isActive: s.isActive,
+  }));
+}
 
 @Injectable()
 export class PrismaDoctorRepository implements DoctorRepository {
-  constructor(@Inject(PrismaService) private readonly prisma: any) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  private toDomain(prismaDoctor: any): Doctor {
+  private toDomain(
+    p: DoctorModel,
+    user?: { firstName: string; lastName: string; email: string },
+    schedules?: DoctorScheduleData[],
+  ): Doctor {
     return new Doctor({
-      id: prismaDoctor.id,
-      userId: prismaDoctor.userId,
-      specialty: prismaDoctor.specialty,
-      licenseNumber: prismaDoctor.licenseNumber,
-      consultationPrice: prismaDoctor.consultationPrice,
-      biography: prismaDoctor.biography,
-      phoneNumber: prismaDoctor.phoneNumber,
-      isActive: prismaDoctor.isActive,
-      createdAt: prismaDoctor.createdAt,
-      updatedAt: prismaDoctor.updatedAt,
+      id: p.id,
+      userId: p.userId,
+      specialty: p.specialty,
+      licenseNumber: p.licenseNumber,
+      consultationPrice: p.consultationPrice ?? undefined,
+      biography: p.biography ?? undefined,
+      phoneNumber: p.phoneNumber ?? undefined,
+      isActive: p.isActive,
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+      email: user?.email,
+      schedules,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
     });
   }
 
@@ -44,59 +74,79 @@ export class PrismaDoctorRepository implements DoctorRepository {
     return this.toDomain(prismaDoctor);
   }
 
-  async findById(id: string): Promise<any | null> {
-    const prismaDoctor = await this.prisma.doctor.findUnique({
+  async findById(id: string): Promise<Doctor | null> {
+    const p: DoctorFull | null = await this.prisma.doctor.findUnique({
       where: { id },
       include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-        services: true,
+        user: { select: { firstName: true, lastName: true, email: true } },
+        schedules: { where: { isActive: true } },
       },
     });
-    return prismaDoctor
-      ? {
-          ...this.toDomain(prismaDoctor),
-          user: prismaDoctor.user,
-          services: prismaDoctor.services,
-        }
-      : null;
+    if (!p) return null;
+    return this.toDomain(p, p.user, mapSchedules(p.schedules));
   }
 
   async findByUserId(userId: string): Promise<Doctor | null> {
-    const prismaDoctor = await this.prisma.doctor.findUnique({
-      where: { userId },
-    });
-    return prismaDoctor ? this.toDomain(prismaDoctor) : null;
+    const p = await this.prisma.doctor.findUnique({ where: { userId } });
+    return p ? this.toDomain(p) : null;
   }
 
-  async findAll(includeInactive = false): Promise<any[]> {
-    const where: any = {};
-    if (!includeInactive) {
-      where.isActive = true;
-    }
-    const doctors = await this.prisma.doctor.findMany({
+  async findAll(includeInactive = false): Promise<Doctor[]> {
+    const where: Prisma.DoctorWhereInput = includeInactive ? {} : { isActive: true };
+    const doctors: DoctorWithUser[] = await this.prisma.doctor.findMany({
       where,
       include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
+        user: { select: { firstName: true, lastName: true, email: true } },
       },
     });
-    return doctors.map((d) => ({
-      ...this.toDomain(d),
-      user: d.user,
-    }));
+    return doctors.map((d) => this.toDomain(d, d.user));
+  }
+
+  async findManyCursor(
+    cursor?: string,
+    limit = 20,
+    isActive?: boolean,
+  ): Promise<PaginatedDoctors> {
+    const take = Math.min(limit, 100);
+    const where: Prisma.DoctorWhereInput = {
+      ...(cursor ? { id: { lt: cursor } } : {}),
+      ...(isActive !== undefined ? { isActive } : {}),
+    };
+
+    const doctors: DoctorWithUser[] = await this.prisma.doctor.findMany({
+      where,
+      take: take + 1,
+      orderBy: { id: 'desc' },
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+      },
+    });
+
+    const hasNext = doctors.length > take;
+    if (hasNext) {
+      doctors.pop();
+    }
+
+    const nextCursor = hasNext ? doctors[doctors.length - 1]?.id ?? null : null;
+
+    return {
+      doctors: doctors.map((d) => ({
+        id: d.id,
+        userId: d.userId,
+        specialty: d.specialty,
+        licenseNumber: d.licenseNumber,
+        firstName: d.user.firstName,
+        lastName: d.user.lastName,
+        email: d.user.email,
+        consultationPrice: d.consultationPrice,
+        phoneNumber: d.phoneNumber,
+        isActive: d.isActive,
+        createdAt: d.createdAt,
+        updatedAt: d.updatedAt,
+      })),
+      nextCursor,
+      hasNext,
+    };
   }
 
   async update(id: string, data: Doctor): Promise<Doctor> {
@@ -104,16 +154,10 @@ export class PrismaDoctorRepository implements DoctorRepository {
       where: { id },
       data: {
         ...(data.specialty !== undefined && { specialty: data.specialty }),
-        ...(data.licenseNumber !== undefined && {
-          licenseNumber: data.licenseNumber,
-        }),
-        ...(data.consultationPrice !== undefined && {
-          consultationPrice: data.consultationPrice,
-        }),
+        ...(data.licenseNumber !== undefined && { licenseNumber: data.licenseNumber }),
+        ...(data.consultationPrice !== undefined && { consultationPrice: data.consultationPrice }),
         ...(data.biography !== undefined && { biography: data.biography }),
-        ...(data.phoneNumber !== undefined && {
-          phoneNumber: data.phoneNumber,
-        }),
+        ...(data.phoneNumber !== undefined && { phoneNumber: data.phoneNumber }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
         updatedAt: new Date(),
       },
@@ -122,8 +166,6 @@ export class PrismaDoctorRepository implements DoctorRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.doctor.delete({
-      where: { id },
-    });
+    await this.prisma.doctor.delete({ where: { id } });
   }
 }

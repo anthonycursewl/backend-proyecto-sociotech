@@ -1,8 +1,9 @@
 import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { DOCTOR_REPOSITORY } from '@clinical/domain/repositories/doctor-repository.port';
+import type { DoctorRepository, PaginatedDoctors } from '@clinical/domain/repositories/doctor-repository.port';
 import { Doctor } from '@clinical/entities/doctor.entity';
-import {
+import type {
   CreateDoctorDto,
   UpdateDoctorDto,
 } from '@clinical/presentation/controllers/doctor.dto';
@@ -11,10 +12,9 @@ import {
 export class DoctorService {
   private readonly logger = new Logger(DoctorService.name);
 
-  constructor(@Inject(DOCTOR_REPOSITORY) private readonly doctorRepo: any) {}
+  constructor(@Inject(DOCTOR_REPOSITORY) private readonly doctorRepo: DoctorRepository) {}
 
   async create(userId: string, dto: CreateDoctorDto): Promise<Doctor> {
-    // Check if doctor profile already exists for this user
     const existing = await this.doctorRepo.findByUserId(userId);
     if (existing) {
       throw new ForbiddenException(
@@ -56,6 +56,14 @@ export class DoctorService {
       throw new ForbiddenException('Doctor profile not found');
     }
     return doctor;
+  }
+
+  async findManyCursor(
+    cursor?: string,
+    limit = 20,
+    isActive?: boolean,
+  ): Promise<PaginatedDoctors> {
+    return this.doctorRepo.findManyCursor(cursor, limit, isActive);
   }
 
   async update(id: string, dto: UpdateDoctorDto): Promise<Doctor> {
