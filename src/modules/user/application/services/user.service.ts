@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import type { User } from '../../domain/entities/user.entity';
 import type { UserRepository, UserSummary, PaginatedUsers } from '../../domain/repositories/user-repository.port';
@@ -8,6 +8,7 @@ export interface UpdateProfileInput {
   userId: string;
   firstName?: string;
   lastName?: string;
+  email?: string;
 }
 
 export interface UpdateProfileOutput {
@@ -67,6 +68,15 @@ export class UserService {
     const updateData: Record<string, any> = {};
     if (input.firstName) updateData.firstName = input.firstName;
     if (input.lastName) updateData.lastName = input.lastName;
+
+    if (input.email) {
+      const normalizedEmail = input.email.trim().toLowerCase();
+      const existingUser = await this.userRepository.findByEmail(normalizedEmail);
+      if (existingUser && existingUser.id !== input.userId) {
+        throw new BadRequestException('Email already in use');
+      }
+      updateData.email = normalizedEmail;
+    }
 
     const updated = await this.userRepository.update(input.userId, updateData);
     return { user: updated };

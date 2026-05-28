@@ -300,6 +300,12 @@ export class SeederService implements OnModuleInit {
         action: 'create:own',
       },
       {
+        name: 'doctors:update:own',
+        description: 'Doctor actualiza su propio perfil',
+        resource: 'doctors',
+        action: 'update:own',
+      },
+      {
         name: 'doctors:manage',
         description: 'Admin gestiona doctores (CRUD completo)',
         resource: 'doctors',
@@ -309,9 +315,27 @@ export class SeederService implements OnModuleInit {
       // Schedules
       {
         name: 'schedules:create:own',
-        description: 'Doctor gestiona sus propios horarios',
+        description: 'Doctor crea sus propios horarios',
         resource: 'schedules',
         action: 'create:own',
+      },
+      {
+        name: 'schedules:read:own',
+        description: 'Doctor ve sus propios horarios',
+        resource: 'schedules',
+        action: 'read:own',
+      },
+      {
+        name: 'schedules:update:own',
+        description: 'Doctor actualiza sus propios horarios',
+        resource: 'schedules',
+        action: 'update:own',
+      },
+      {
+        name: 'schedules:delete:own',
+        description: 'Doctor elimina sus propios horarios',
+        resource: 'schedules',
+        action: 'delete:own',
       },
       {
         name: 'schedules:manage',
@@ -408,7 +432,11 @@ export class SeederService implements OnModuleInit {
           'reports:read',
           'reports:generate',
           'doctors:create:own',
+          'doctors:update:own',
           'schedules:create:own',
+          'schedules:read:own',
+          'schedules:update:own',
+          'schedules:delete:own',
           'appointments:read:own',
           'medical-records:read:own',
           'patients:read:own',

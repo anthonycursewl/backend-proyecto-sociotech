@@ -18,7 +18,7 @@ import {
 } from '../../application/services/user.service';
 import { User } from '../../domain/entities/user.entity';
 
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsEmail } from 'class-validator';
 import { IsUuidString } from '../../../shared/validators/is-uuid-string.validator';
 
 export class UpdateProfileDto {
@@ -29,6 +29,10 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   lastName?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 }
 
 export class ChangeRoleDto {

@@ -20,6 +20,7 @@ const PERMISSIONS = [
   { name: 'users:update', description: 'Actualizar usuarios', resource: 'users', action: 'update' },
   { name: 'users:delete', description: 'Eliminar usuarios', resource: 'users', action: 'delete' },
   { name: 'users:assign-role', description: 'Asignar rol a usuarios', resource: 'users', action: 'assign-role' },
+  { name: 'users:update:own', description: 'Actualizar propio perfil', resource: 'users', action: 'update:own' },
 
   // Roles
   { name: 'roles:read', description: 'Ver roles', resource: 'roles', action: 'read' },
@@ -68,11 +69,15 @@ const PERMISSIONS = [
   { name: 'doctors:create', description: 'Crear doctores (admin)', resource: 'doctors', action: 'create' },
   { name: 'doctors:create:own', description: 'Doctor crea su propio perfil', resource: 'doctors', action: 'create:own' },
   { name: 'doctors:update', description: 'Actualizar doctores (admin)', resource: 'doctors', action: 'update' },
+  { name: 'doctors:update:own', description: 'Doctor actualiza su propio perfil', resource: 'doctors', action: 'update:own' },
   { name: 'doctors:delete', description: 'Eliminar doctores (admin)', resource: 'doctors', action: 'delete' },
   { name: 'doctors:manage', description: 'Admin gestiona doctores (CRUD completo)', resource: 'doctors', action: 'manage' },
 
   // Schedules
-  { name: 'schedules:create:own', description: 'Doctor gestiona sus propios horarios', resource: 'schedules', action: 'create:own' },
+  { name: 'schedules:create:own', description: 'Doctor crea sus propios horarios', resource: 'schedules', action: 'create:own' },
+  { name: 'schedules:read:own', description: 'Doctor ve sus propios horarios', resource: 'schedules', action: 'read:own' },
+  { name: 'schedules:update:own', description: 'Doctor actualiza sus propios horarios', resource: 'schedules', action: 'update:own' },
+  { name: 'schedules:delete:own', description: 'Doctor elimina sus propios horarios', resource: 'schedules', action: 'delete:own' },
   { name: 'schedules:manage', description: 'Admin gestiona todos los horarios', resource: 'schedules', action: 'manage' },
 
   // Reports
@@ -94,6 +99,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'patients:read:own',
     'patients:update:own',
     'patients:create:own',
+    'users:update:own',
   ],
   ASSISTANT: [
     'patients:read',
@@ -124,13 +130,18 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'appointments:update',
     'appointments:cancel',
     'doctors:read',
+    'doctors:create:own',
+    'doctors:update:own',
     'reports:read',
     'reports:generate',
-    'doctors:create:own',
     'schedules:create:own',
+    'schedules:read:own',
+    'schedules:update:own',
+    'schedules:delete:own',
     'appointments:read:own',
     'medical-records:read:own',
     'patients:read:own',
+    'users:update:own',
   ],
   ADMIN: [
     'users:read',

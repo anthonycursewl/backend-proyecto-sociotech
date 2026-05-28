@@ -276,8 +276,9 @@ export class PrismaUserRepository implements UserRepository {
       throw new NotFoundException('User not found');
     }
 
-    if (user.role.isSystem) {
-      throw new ForbiddenException('Cannot toggle user with a system role');
+    const protectedRoles = ['SUPER_ADMIN', 'ADMIN'];
+    if (protectedRoles.includes(user.role.name)) {
+      throw new ForbiddenException(`Cannot toggle user with role ${user.role.name}`);
     }
 
     const prismaUser = await this.prisma.user.update({
@@ -305,8 +306,9 @@ export class PrismaUserRepository implements UserRepository {
       throw new NotFoundException('User not found');
     }
 
-    if (user.role.isSystem) {
-      throw new ForbiddenException('Cannot change role of a user with a system role');
+    const protectedRoles = ['SUPER_ADMIN', 'ADMIN'];
+    if (protectedRoles.includes(user.role.name)) {
+      throw new ForbiddenException(`Cannot change role of user with role ${user.role.name}`);
     }
 
     if (id === requesterUserId) {
@@ -318,8 +320,8 @@ export class PrismaUserRepository implements UserRepository {
       throw new NotFoundException('Target role not found');
     }
 
-    if (targetRole.isSystem) {
-      throw new ForbiddenException('Cannot assign a system role via this endpoint');
+    if (protectedRoles.includes(targetRole.name)) {
+      throw new ForbiddenException(`Cannot assign ${targetRole.name} role via this endpoint`);
     }
 
     const prismaUser = await this.prisma.user.update({
