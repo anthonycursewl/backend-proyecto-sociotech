@@ -186,6 +186,9 @@ export interface PatientResponse {
   id: string;
   userId: string;
   medicalId: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
   cedula: string | null;
   dateOfBirth: string;
   gender: string | null;
@@ -208,6 +211,9 @@ export function toPatientResponse(patient: Patient): PatientResponse {
     id: patient.id,
     userId: patient.userId,
     medicalId: patient.medicalId,
+    firstName: patient.firstName,
+    lastName: patient.lastName,
+    email: patient.email,
     cedula: patient.cedula ?? null,
     dateOfBirth: patient.dateOfBirth.toISOString(),
     gender: patient.gender ?? null,

@@ -17,6 +17,9 @@ export interface PatientProps {
   chronicDiseases: string[];
   createdAt: Date;
   updatedAt: Date;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
 }
 
 export class Patient {
@@ -74,6 +77,15 @@ export class Patient {
   get chronicDiseases(): string[] {
     return this.props.chronicDiseases;
   }
+  get firstName(): string | undefined {
+    return this.props.firstName;
+  }
+  get lastName(): string | undefined {
+    return this.props.lastName;
+  }
+  get email(): string | undefined {
+    return this.props.email;
+  }
   get createdAt(): Date {
     return this.props.createdAt;
   }
@@ -99,6 +111,35 @@ export class Patient {
       allergies: this.allergies,
       currentMedications: this.currentMedications,
       chronicDiseases: this.chronicDiseases,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      email: this.email,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+    };
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      userId: this.userId,
+      medicalId: this.medicalId,
+      cedula: this.cedula,
+      dateOfBirth: this.dateOfBirth,
+      gender: this.gender,
+      occupation: this.occupation,
+      civilStatus: this.civilStatus,
+      phone: this.phone,
+      address: this.address,
+      emergencyContact: this.emergencyContact,
+      emergencyPhone: this.emergencyPhone,
+      bloodType: this.bloodType,
+      allergies: this.allergies,
+      currentMedications: this.currentMedications,
+      chronicDiseases: this.chronicDiseases,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      email: this.email,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

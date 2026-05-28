@@ -5,18 +5,23 @@ import {
 } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { PATIENT_REPOSITORY } from '../../domain/repositories/patient-repository.port';
-import type { PatientRepository } from '../../domain/repositories/patient-repository.port';
+import type {
+  PatientRepository,
+  PaginatedPatients,
+} from '../../domain/repositories/patient-repository.port';
 import { Patient } from '../../domain/entities/patient.entity';
 import {
   CreatePatientDto,
   UpdatePatientDto,
   RegisterPatientDto,
 } from '../../presentation/controllers/patient.dto';
+import { PatientMetricsService } from './patient-metrics.service';
 
 @Injectable()
 export class PatientService {
   constructor(
     @Inject(PATIENT_REPOSITORY) private readonly patientRepo: PatientRepository,
+    private readonly patientMetricsService: PatientMetricsService,
   ) {}
 
   private generateMedicalId(): string {
@@ -52,7 +57,9 @@ export class PatientService {
       updatedAt: new Date(),
     });
 
-    return this.patientRepo.save(patient);
+    const saved = await this.patientRepo.save(patient);
+    await this.patientMetricsService.refresh();
+    return saved;
   }
 
   async registerPatientForUser(
@@ -87,7 +94,9 @@ export class PatientService {
       updatedAt: new Date(),
     });
 
-    return this.patientRepo.save(patient);
+    const saved = await this.patientRepo.save(patient);
+    await this.patientMetricsService.refresh();
+    return saved;
   }
 
   async findById(id: string): Promise<Patient> {
@@ -128,5 +137,13 @@ export class PatientService {
 
   async search(query: string, limit?: number): Promise<Patient[]> {
     return this.patientRepo.search(query, limit);
+  }
+
+  async findManyCursor(
+    cursor?: string,
+    limit = 20,
+    isActive?: boolean,
+  ): Promise<PaginatedPatients> {
+    return this.patientRepo.findManyCursor(cursor, limit, isActive);
   }
 }

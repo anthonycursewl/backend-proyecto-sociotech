@@ -1,11 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-import { PatientRepository } from '../../domain/repositories/patient-repository.port';
+import {
+  PatientRepository,
+  PatientSummary,
+  PaginatedPatients,
+} from '../../domain/repositories/patient-repository.port';
 import { Patient, PatientProps } from '../../domain/entities/patient.entity';
 import { PatientPrismaService } from '../db/prisma.service';
 
 type PatientModel = Prisma.PatientGetPayload<{}>;
+type PatientWithUser = Prisma.PatientGetPayload<{
+  include: { user: { select: { firstName: true; lastName: true; email: true } } }
+}>;
 
 @Injectable()
 export class PrismaPatientRepository implements PatientRepository {
@@ -13,7 +20,7 @@ export class PrismaPatientRepository implements PatientRepository {
     @Inject(PatientPrismaService) private readonly prisma: PatientPrismaService,
   ) {}
 
-  private toDomain(p: PatientModel): Patient {
+  private toDomain(p: PatientModel, user?: { firstName: string; lastName: string; email: string }): Patient {
     return new Patient({
       id: p.id,
       userId: p.userId,
@@ -31,6 +38,9 @@ export class PrismaPatientRepository implements PatientRepository {
       allergies: p.allergies ?? [],
       currentMedications: p.currentMedications ?? [],
       chronicDiseases: p.chronicDiseases ?? [],
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+      email: user?.email,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
     });
@@ -63,8 +73,14 @@ export class PrismaPatientRepository implements PatientRepository {
   }
 
   async findById(id: string): Promise<Patient | null> {
-    const p = await this.prisma.patient.findUnique({ where: { id } });
-    return p ? this.toDomain(p) : null;
+    const p: PatientWithUser | null = await this.prisma.patient.findUnique({
+      where: { id },
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+      },
+    });
+    if (!p) return null;
+    return this.toDomain(p, p.user);
   }
 
   async findByUserId(userId: string): Promise<Patient | null> {
@@ -109,5 +125,50 @@ export class PrismaPatientRepository implements PatientRepository {
       take: limit,
     });
     return patients.map((p) => this.toDomain(p));
+  }
+
+  async findManyCursor(
+    cursor?: string,
+    limit = 20,
+    isActive?: boolean,
+  ): Promise<PaginatedPatients> {
+    const take = Math.min(limit, 100);
+    const where: Prisma.PatientWhereInput = {
+      ...(cursor ? { id: { lt: cursor } } : {}),
+      ...(isActive !== undefined ? { user: { isActive } } : {}),
+    };
+
+    const patients = await this.prisma.patient.findMany({
+      where,
+      take: take + 1,
+      orderBy: { id: 'desc' },
+      include: { user: { select: { firstName: true, lastName: true, email: true } } },
+    });
+
+    const hasNext = patients.length > take;
+    if (hasNext) {
+      patients.pop();
+    }
+
+    const nextCursor = hasNext ? patients[patients.length - 1]?.id ?? null : null;
+
+    return {
+      patients: patients.map((p) => ({
+        id: p.id,
+        userId: p.userId,
+        medicalId: p.medicalId,
+        firstName: p.user.firstName,
+        lastName: p.user.lastName,
+        email: p.user.email,
+        cedula: p.cedula,
+        dateOfBirth: p.dateOfBirth,
+        gender: p.gender,
+        phone: p.phone,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+      })),
+      nextCursor,
+      hasNext,
+    };
   }
 }
