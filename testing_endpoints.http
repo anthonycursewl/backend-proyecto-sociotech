@@ -1,11 +1,14 @@
 @API_BASE_URL = http://localhost:5002
-@ACCESS_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZTJhYThlNC0zZTNlLTQ1YzUtOGUwMy00MmYwZTQ5OTY0OWMiLCJlbWFpbCI6InplcnBhYW50aG9ueS53eEBicmVhZHJpdXNzLmNvbSIsInJvbGUiOiJwYXRpZW50IiwiaWF0IjoxNzc3NjY5NjU4LCJleHAiOjE3Nzc2NzY4NTh9.yeJBgElcYUf-4Bm--eTDWGdu0RKN2PiZJU3VMJqCIfQ
+@ACCESS_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNGMyNTZkZS1iNzI0LTRhMTAtYTUwYy1jNDU1OGVhN2ZmOTkiLCJlbWFpbCI6InplcnBhYW50aG9ueS53eEBicmVhZHJpdXNzLmNvbSIsInJvbGVJZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwNCIsInJvbGVOYW1lIjoiQURNSU4iLCJwZXJtaXNzaW9ucyI6WyJ1c2VyczpyZWFkIiwidXNlcnM6Y3JlYXRlIiwidXNlcnM6dXBkYXRlIiwidXNlcnM6ZGVsZXRlIiwicm9sZXM6cmVhZCIsInBhdGllbnRzOnJlYWQiLCJwYXRpZW50czpjcmVhdGUiLCJwYXRpZW50czp1cGRhdGUiLCJwYXRpZW50czpkZWxldGUiLCJzZXJ2aWNlczpyZWFkIiwic2VydmljZXM6Y3JlYXRlIiwic2VydmljZXM6dXBkYXRlIiwic2VydmljZXM6ZGVsZXRlIiwibWVkaWNhbC1yZWNvcmRzOnJlYWQiLCJtZWRpY2FsLXJlY29yZHM6Y3JlYXRlIiwibWVkaWNhbC1yZWNvcmRzOnVwZGF0ZSIsIm1lZGljYWwtcmVjb3JkczpkZWxldGUiLCJtZWRpY2FsLXJlY29yZHM6c2lnbiIsImFwcG9pbnRtZW50czpyZWFkIiwiYXBwb2ludG1lbnRzOmNyZWF0ZSIsImFwcG9pbnRtZW50czp1cGRhdGUiLCJhcHBvaW50bWVudHM6Y2FuY2VsIiwiZG9jdG9yczpyZWFkIiwiZG9jdG9yczpjcmVhdGUiLCJkb2N0b3JzOnVwZGF0ZSIsImRvY3RvcnM6ZGVsZXRlIiwicmVwb3J0czpyZWFkIiwicmVwb3J0czpnZW5lcmF0ZSIsInJlcG9ydHM6ZXhwb3J0IiwiYXVkaXQ6cmVhZCJdLCJpYXQiOjE3NzgxOTAxMTEsImV4cCI6MTc3ODE5NzMxMX0.UO821zYgeSrKpeQHosX-9hGc-huLbwCfvwk3Dwcwzfw
+
+### Registrar usuario
+POST {{API_BASE_URL}}/auth/register
 Content-Type: application/json
 
 {
     "firstName": "Yoyo",
     "lastName": "Cursewl",
-    "email": "hello@breadriuss.com",
+    "email": "perro@breadriuss.com",
     "password": "Jose1214#"
 }
 
@@ -15,8 +18,8 @@ POST {{API_BASE_URL}}/auth/login
 Content-Type: application/json
 
 {
-    "email": "zerpaanthony.wx@breadriuss.com",
-    "password": "Jose1214#"
+    "email": "Brig.8816@gmail.com",
+    "password": "brig1234"
 }
 
 ### Verificar token 
