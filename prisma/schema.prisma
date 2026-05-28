@@ -229,3 +229,13 @@ model AuditLog {
   @@index([userId])
   @@map("audit_logs")
 }
+
+model PatientMetrics {
+  id            String   @id @default(uuid())
+  totalActive   Int      @default(0)
+  totalInactive Int      @default(0)
+  totalNew      Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  @@map("patient_metrics")
+}

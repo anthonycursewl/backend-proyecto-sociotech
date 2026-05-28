@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CacheModule } from '@nestjs/cache-manager';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { ClinicalModule } from './modules/clinical/clinical.module';
@@ -21,6 +22,7 @@ import { RedisEventBus } from './modules/auth/infrastructure/events/redis-event-
       envFilePath: '.env',
     }),
     MongooseModule.forRoot(process.env.MONGO_URI!),
+    CacheModule.register({ isGlobal: true, ttl: 60 * 1000 }),
     SharedModule,
     AuthModule,
     UserModule,
