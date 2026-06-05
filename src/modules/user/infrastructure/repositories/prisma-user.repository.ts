@@ -1,7 +1,21 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { User, UserProps } from '../../domain/entities/user.entity';
-import { UserRepository, UserSummary, PaginatedUsers } from '../../domain/repositories/user-repository.port';
+import {
+  UserRepository,
+  UserSummary,
+  PaginatedUsers,
+} from '../../domain/repositories/user-repository.port';
 import { PrismaService } from '../db/prisma.service';
+import {
+  DEFAULT_PAGE_SIZE,
+  MAX_PAGE_SIZE,
+  PROTECTED_ROLES,
+  RoleName,
+} from '@shared/constants';
 
 @Injectable()
 export class PrismaUserRepository implements UserRepository {
@@ -155,7 +169,7 @@ export class PrismaUserRepository implements UserRepository {
     });
   }
 
-  async search(query: string, limit = 20): Promise<User[]> {
+  async search(query: string, limit = DEFAULT_PAGE_SIZE): Promise<User[]> {
     const prismaUsers = await this.prisma.user.findMany({
       where: {
         OR: [
@@ -172,17 +186,17 @@ export class PrismaUserRepository implements UserRepository {
 
   async findDefaultPatientRoleId(): Promise<string | null> {
     const role = await this.prisma.role.findUnique({
-      where: { name: 'PATIENT' },
+      where: { name: RoleName.PATIENT },
     });
     return role?.id || null;
   }
 
   async findManyCursor(
     cursor?: string,
-    limit = 20,
+    limit = DEFAULT_PAGE_SIZE,
     isActive?: boolean,
   ): Promise<PaginatedUsers> {
-    const take = Math.min(limit, 100);
+    const take = Math.min(limit, MAX_PAGE_SIZE);
     const where: any = cursor ? { id: { lt: cursor } } : {};
     if (isActive !== undefined) {
       where.isActive = isActive;
@@ -200,7 +214,7 @@ export class PrismaUserRepository implements UserRepository {
       users.pop();
     }
 
-    const nextCursor = hasNext ? users[users.length - 1]?.id ?? null : null;
+    const nextCursor = hasNext ? (users[users.length - 1]?.id ?? null) : null;
 
     return {
       users: users.map((u) => this.toSummary(u)),
@@ -211,11 +225,11 @@ export class PrismaUserRepository implements UserRepository {
 
   async findPatientsCursor(
     cursor?: string,
-    limit = 20,
+    limit = DEFAULT_PAGE_SIZE,
   ): Promise<PaginatedUsers> {
-    const take = Math.min(limit, 100);
+    const take = Math.min(limit, MAX_PAGE_SIZE);
     const where: any = cursor ? { id: { lt: cursor } } : {};
-    where.role = { name: 'PATIENT' };
+    where.role = { name: RoleName.PATIENT };
 
     const users = await this.prisma.user.findMany({
       where,
@@ -229,7 +243,7 @@ export class PrismaUserRepository implements UserRepository {
       users.pop();
     }
 
-    const nextCursor = hasNext ? users[users.length - 1]?.id ?? null : null;
+    const nextCursor = hasNext ? (users[users.length - 1]?.id ?? null) : null;
 
     return {
       users: users.map((u) => this.toSummary(u)),
@@ -240,11 +254,11 @@ export class PrismaUserRepository implements UserRepository {
 
   async findDoctorsCursor(
     cursor?: string,
-    limit = 20,
+    limit = DEFAULT_PAGE_SIZE,
   ): Promise<PaginatedUsers> {
-    const take = Math.min(limit, 100);
+    const take = Math.min(limit, MAX_PAGE_SIZE);
     const where: any = cursor ? { id: { lt: cursor } } : {};
-    where.role = { name: 'DOCTOR' };
+    where.role = { name: RoleName.DOCTOR };
 
     const users = await this.prisma.user.findMany({
       where,
@@ -258,7 +272,7 @@ export class PrismaUserRepository implements UserRepository {
       users.pop();
     }
 
-    const nextCursor = hasNext ? users[users.length - 1]?.id ?? null : null;
+    const nextCursor = hasNext ? (users[users.length - 1]?.id ?? null) : null;
 
     return {
       users: users.map((u) => this.toSummary(u)),
@@ -276,9 +290,11 @@ export class PrismaUserRepository implements UserRepository {
       throw new NotFoundException('User not found');
     }
 
-    const protectedRoles = ['SUPER_ADMIN', 'ADMIN'];
+    const protectedRoles = PROTECTED_ROLES;
     if (protectedRoles.includes(user.role.name)) {
-      throw new ForbiddenException(`Cannot toggle user with role ${user.role.name}`);
+      throw new ForbiddenException(
+        `Cannot toggle user with role ${user.role.name}`,
+      );
     }
 
     const prismaUser = await this.prisma.user.update({
@@ -297,7 +313,11 @@ export class PrismaUserRepository implements UserRepository {
     return this.toDomain(prismaUser, false);
   }
 
-  async assignRole(id: string, roleId: string, requesterUserId: string): Promise<User> {
+  async assignRole(
+    id: string,
+    roleId: string,
+    requesterUserId: string,
+  ): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: { role: true },
@@ -306,22 +326,28 @@ export class PrismaUserRepository implements UserRepository {
       throw new NotFoundException('User not found');
     }
 
-    const protectedRoles = ['SUPER_ADMIN', 'ADMIN'];
+    const protectedRoles = PROTECTED_ROLES;
     if (protectedRoles.includes(user.role.name)) {
-      throw new ForbiddenException(`Cannot change role of user with role ${user.role.name}`);
+      throw new ForbiddenException(
+        `Cannot change role of user with role ${user.role.name}`,
+      );
     }
 
     if (id === requesterUserId) {
       throw new ForbiddenException('Cannot change your own role');
     }
 
-    const targetRole = await this.prisma.role.findUnique({ where: { id: roleId } });
+    const targetRole = await this.prisma.role.findUnique({
+      where: { id: roleId },
+    });
     if (!targetRole) {
       throw new NotFoundException('Target role not found');
     }
 
     if (protectedRoles.includes(targetRole.name)) {
-      throw new ForbiddenException(`Cannot assign ${targetRole.name} role via this endpoint`);
+      throw new ForbiddenException(
+        `Cannot assign ${targetRole.name} role via this endpoint`,
+      );
     }
 
     const prismaUser = await this.prisma.user.update({

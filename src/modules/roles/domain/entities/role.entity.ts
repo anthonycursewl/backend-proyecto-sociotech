@@ -3,6 +3,7 @@ export interface RoleProps {
   name: string;
   description?: string;
   isSystem: boolean;
+  deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   permissions?: string[];
@@ -26,6 +27,9 @@ export class Role {
   }
   get isSystem(): boolean {
     return this.props.isSystem;
+  }
+  get deletedAt(): Date | null | undefined {
+    return this.props.deletedAt;
   }
   get createdAt(): Date {
     return this.props.createdAt;

@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req, UseInterceptors, ForbiddenException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+  UseInterceptors,
+  ForbiddenException,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { DoctorScheduleService } from '@clinical/application/services/doctor-schedule.service';
 import { DoctorService } from '@clinical/application/services/doctor.service';
@@ -8,8 +20,9 @@ import {
 } from '@clinical/presentation/controllers/doctor-schedule.dto';
 import { PermissionsGuard } from '@shared/guards/permissions.guard';
 import { CheckPermissions } from '@shared/decorators/permissions.decorator';
-import { Audit } from '../../../audit/audit.decorator';
-import { AuditInterceptor } from '../../../audit/audit.interceptor';
+import { Audit } from '@audit/audit.decorator';
+import { AuditInterceptor } from '@audit/audit.interceptor';
+import type { RequestWithUser } from '@audit/audit.interceptor';
 
 @Controller('doctors')
 @UseInterceptors(AuditInterceptor)
@@ -23,16 +36,19 @@ export class DoctorScheduleController {
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('schedules', 'create:own')
   @Audit('schedules:create:own', 'DoctorSchedule')
-  async createMySchedule(@Body() dto: CreateDoctorScheduleDto, @Req() req) {
-    const doctor = await this.doctorService.findByUserId(req.user.userId);
+  async createMySchedule(
+    @Body() dto: CreateDoctorScheduleDto,
+    @Req() req: RequestWithUser,
+  ) {
+    const doctor = await this.doctorService.findByUserId(req.user!.userId);
     return this.scheduleService.createSchedule(doctor.id, dto);
   }
 
   @Get('me/schedules')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('schedules', 'read:own')
-  async getMySchedules(@Req() req) {
-    const doctor = await this.doctorService.findByUserId(req.user.userId);
+  async getMySchedules(@Req() req: RequestWithUser) {
+    const doctor = await this.doctorService.findByUserId(req.user!.userId);
     return this.scheduleService.getSchedulesByDoctor(doctor.id);
   }
 
@@ -43,14 +59,14 @@ export class DoctorScheduleController {
   async updateMySchedule(
     @Param('id') id: string,
     @Body() dto: UpdateDoctorScheduleDto,
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
-    const doctor = await this.doctorService.findByUserId(req.user.userId);
+    const doctor = await this.doctorService.findByUserId(req.user!.userId);
     const oldSchedule = await this.scheduleService.findById(id);
     if (oldSchedule.doctorId !== doctor.id) {
       throw new ForbiddenException("Cannot update another doctor's schedule");
     }
-    (req as any).auditSnapshot = { ...oldSchedule };
+    req.auditSnapshot = { ...oldSchedule };
     return this.scheduleService.updateSchedule(id, dto);
   }
 
@@ -58,8 +74,8 @@ export class DoctorScheduleController {
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('schedules', 'delete:own')
   @Audit('schedules:delete:own', 'DoctorSchedule')
-  async deleteMySchedule(@Param('id') id: string, @Req() req) {
-    const doctor = await this.doctorService.findByUserId(req.user.userId);
+  async deleteMySchedule(@Param('id') id: string, @Req() req: RequestWithUser) {
+    const doctor = await this.doctorService.findByUserId(req.user!.userId);
     const schedule = await this.scheduleService.findById(id);
     if (schedule.doctorId !== doctor.id) {
       throw new ForbiddenException("Cannot delete another doctor's schedule");
@@ -91,9 +107,9 @@ export class DoctorScheduleController {
   async updateSchedule(
     @Param('id') id: string,
     @Body() dto: UpdateDoctorScheduleDto,
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
-    (req as any).auditSnapshot = { ...(await this.scheduleService.findById(id)) };
+    req.auditSnapshot = { ...(await this.scheduleService.findById(id)) };
     return this.scheduleService.updateSchedule(id, dto);
   }
 

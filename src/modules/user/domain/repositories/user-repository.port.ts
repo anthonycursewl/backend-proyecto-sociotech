@@ -46,14 +46,12 @@ export interface UserRepository {
     limit?: number,
     isActive?: boolean,
   ): Promise<PaginatedUsers>;
-  findPatientsCursor(
-    cursor?: string,
-    limit?: number,
-  ): Promise<PaginatedUsers>;
-  findDoctorsCursor(
-    cursor?: string,
-    limit?: number,
-  ): Promise<PaginatedUsers>;
+  findPatientsCursor(cursor?: string, limit?: number): Promise<PaginatedUsers>;
+  findDoctorsCursor(cursor?: string, limit?: number): Promise<PaginatedUsers>;
   toggleActive(id: string): Promise<User>;
-  assignRole(id: string, roleId: string, requesterUserId: string): Promise<User>;
+  assignRole(
+    id: string,
+    roleId: string,
+    requesterUserId: string,
+  ): Promise<User>;
 }

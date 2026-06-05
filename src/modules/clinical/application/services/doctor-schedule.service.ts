@@ -1,7 +1,14 @@
-import { Injectable, ForbiddenException, NotFoundException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+  Logger,
+} from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { DOCTOR_SCHEDULE_REPOSITORY } from '@clinical/domain/repositories/doctor-schedule-repository.port';
+import type { DoctorScheduleRepository } from '@clinical/domain/repositories/doctor-schedule-repository.port';
 import { DOCTOR_REPOSITORY } from '@clinical/domain/repositories/doctor-repository.port';
+import type { DoctorRepository } from '@clinical/domain/repositories/doctor-repository.port';
 import { DoctorSchedule } from '@clinical/domain/entities/doctor-schedule.entity';
 import {
   CreateDoctorScheduleDto,
@@ -13,8 +20,9 @@ export class DoctorScheduleService {
   private readonly logger = new Logger(DoctorScheduleService.name);
 
   constructor(
-    @Inject(DOCTOR_SCHEDULE_REPOSITORY) private readonly scheduleRepo: any,
-    @Inject(DOCTOR_REPOSITORY) private readonly doctorRepo: any,
+    @Inject(DOCTOR_SCHEDULE_REPOSITORY)
+    private readonly scheduleRepo: DoctorScheduleRepository,
+    @Inject(DOCTOR_REPOSITORY) private readonly doctorRepo: DoctorRepository,
   ) {}
 
   async createSchedule(

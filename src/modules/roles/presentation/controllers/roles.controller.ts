@@ -24,8 +24,9 @@ import { RolesGuard } from '@shared/guards/roles.guard';
 import { Roles } from '@shared/decorators/roles.decorator';
 import { CheckPermissions } from '@shared/decorators/permissions.decorator';
 import { PermissionsGuard } from '@shared/guards/permissions.guard';
-import { Audit } from '../../../audit/audit.decorator';
-import { AuditInterceptor } from '../../../audit/audit.interceptor';
+import { Audit } from '@audit/audit.decorator';
+import { AuditInterceptor } from '@audit/audit.interceptor';
+import type { RequestWithUser } from '@audit/audit.interceptor';
 
 @Controller('roles')
 @UseGuards(AuthGuard('jwt'))
@@ -36,7 +37,10 @@ export class RolesController {
   @Get()
   @UseGuards(PermissionsGuard)
   @CheckPermissions('roles', 'read')
-  async findAll(@Query('cursor') cursor?: string, @Query('limit') limit?: string) {
+  async findAll(
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
     const parsedLimit = limit ? parseInt(limit) : undefined;
     return this.roleService.findManyCursor(cursor, parsedLimit);
   }
@@ -77,10 +81,15 @@ export class RolesController {
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateRoleDto,
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
     const old = await this.roleService.findById(id);
-    (req as any).auditSnapshot = { id: old.id, name: old.name, description: old.description, isSystem: old.isSystem };
+    req.auditSnapshot = {
+      id: old.id,
+      name: old.name,
+      description: old.description,
+      isSystem: old.isSystem,
+    };
     return this.roleService.update(id, dto);
   }
 
@@ -90,10 +99,15 @@ export class RolesController {
   @Audit('roles:delete', 'Role', true)
   async softDelete(
     @Param('id', ParseUUIDPipe) id: string,
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
     const old = await this.roleService.findById(id);
-    (req as any).auditSnapshot = { id: old.id, name: old.name, description: old.description, isSystem: old.isSystem };
+    req.auditSnapshot = {
+      id: old.id,
+      name: old.name,
+      description: old.description,
+      isSystem: old.isSystem,
+    };
     return this.roleService.delete(id);
   }
 

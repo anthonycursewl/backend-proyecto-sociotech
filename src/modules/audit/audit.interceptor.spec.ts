@@ -229,7 +229,7 @@ describe('AuditInterceptor', () => {
     });
 
     const context = createMockContext({ body: { name: 'new name' } });
-    const request = context.switchToHttp().getRequest() as any;
+    const request = context.switchToHttp().getRequest();
 
     const next: CallHandler = {
       handle: () => {

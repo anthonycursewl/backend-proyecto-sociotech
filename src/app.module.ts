@@ -13,7 +13,9 @@ import { PatientModule } from './modules/patient/patient.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { FlusherModule } from './modules/flusher/flusher.module';
+import { PublicModule } from './modules/public/public.module';
 import { RedisEventBus } from './modules/auth/infrastructure/events/redis-event-bus';
+import { GLOBAL_CACHE_TTL } from './modules/shared/constants';
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import { RedisEventBus } from './modules/auth/infrastructure/events/redis-event-
       envFilePath: '.env',
     }),
     MongooseModule.forRoot(process.env.MONGO_URI!),
-    CacheModule.register({ isGlobal: true, ttl: 60 * 1000 }),
+    CacheModule.register({ isGlobal: true, ttl: GLOBAL_CACHE_TTL }),
     SharedModule,
     AuthModule,
     UserModule,
@@ -34,6 +36,7 @@ import { RedisEventBus } from './modules/auth/infrastructure/events/redis-event-
     AppointmentsModule,
     AuditModule,
     FlusherModule,
+    PublicModule,
   ],
   providers: [RedisEventBus],
   exports: [RedisEventBus],

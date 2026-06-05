@@ -31,6 +31,10 @@ export interface PatientRepository {
   findAll(): Promise<Patient[]>;
   update(id: string, data: PatientProps): Promise<Patient>;
   delete(id: string): Promise<void>;
-  search(query: string, limit?: number): Promise<Patient[]>;
-  findManyCursor(cursor?: string, limit?: number, isActive?: boolean): Promise<PaginatedPatients>;
+  search(query: string, limit?: number): Promise<PatientSummary[]>;
+  findManyCursor(
+    cursor?: string,
+    limit?: number,
+    isActive?: boolean,
+  ): Promise<PaginatedPatients>;
 }

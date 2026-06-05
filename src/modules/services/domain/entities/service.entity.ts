@@ -6,6 +6,7 @@ export interface ServiceProps {
   price: number | null;
   isActive: boolean;
   createdBy: string;
+  doctorIds: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +46,10 @@ export class Service {
     return this.props.createdBy;
   }
 
+  get doctorIds(): string[] {
+    return this.props.doctorIds;
+  }
+
   get createdAt(): Date {
     return this.props.createdAt;
   }
@@ -61,6 +66,7 @@ export class Service {
       this.props.durationMin = data.durationMin;
     if (data.price !== undefined) this.props.price = data.price;
     if (data.isActive !== undefined) this.props.isActive = data.isActive;
+    if (data.doctorIds !== undefined) this.props.doctorIds = data.doctorIds;
     this.props.updatedAt = new Date();
   }
 

@@ -8,6 +8,7 @@ import { PATIENT_REPOSITORY } from '../../domain/repositories/patient-repository
 import type {
   PatientRepository,
   PaginatedPatients,
+  PatientSummary,
 } from '../../domain/repositories/patient-repository.port';
 import { Patient } from '../../domain/entities/patient.entity';
 import {
@@ -16,6 +17,7 @@ import {
   RegisterPatientDto,
 } from '../../presentation/controllers/patient.dto';
 import { PatientMetricsService } from './patient-metrics.service';
+import { DEFAULT_PAGE_SIZE } from '@shared/constants';
 
 @Injectable()
 export class PatientService {
@@ -128,20 +130,23 @@ export class PatientService {
       emergencyContact: dto.emergencyContact,
       emergencyPhone: dto.emergencyPhone,
       bloodType: dto.bloodType,
-      allergies: dto.allergies,
-      currentMedications: dto.currentMedications,
-      chronicDiseases: dto.chronicDiseases,
     });
-    return this.patientRepo.update(id, patient.toPlain());
+    const updated = patient.toPlain();
+    if (dto.allergies !== undefined) updated.allergies = dto.allergies;
+    if (dto.currentMedications !== undefined)
+      updated.currentMedications = dto.currentMedications;
+    if (dto.chronicDiseases !== undefined)
+      updated.chronicDiseases = dto.chronicDiseases;
+    return this.patientRepo.update(id, updated);
   }
 
-  async search(query: string, limit?: number): Promise<Patient[]> {
+  async search(query: string, limit?: number): Promise<PatientSummary[]> {
     return this.patientRepo.search(query, limit);
   }
 
   async findManyCursor(
     cursor?: string,
-    limit = 20,
+    limit = DEFAULT_PAGE_SIZE,
     isActive?: boolean,
   ): Promise<PaginatedPatients> {
     return this.patientRepo.findManyCursor(cursor, limit, isActive);

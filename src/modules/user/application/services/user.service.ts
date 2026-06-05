@@ -1,8 +1,18 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import type { User } from '../../domain/entities/user.entity';
-import type { UserRepository, UserSummary, PaginatedUsers } from '../../domain/repositories/user-repository.port';
+import type {
+  UserRepository,
+  UserSummary,
+  PaginatedUsers,
+} from '../../domain/repositories/user-repository.port';
 import { USER_REPOSITORY } from '../../domain/repositories/user-repository.port';
+import { DEFAULT_PAGE_SIZE, RoleName } from '@shared/constants';
 
 export interface UpdateProfileInput {
   userId: string;
@@ -71,7 +81,8 @@ export class UserService {
 
     if (input.email) {
       const normalizedEmail = input.email.trim().toLowerCase();
-      const existingUser = await this.userRepository.findByEmail(normalizedEmail);
+      const existingUser =
+        await this.userRepository.findByEmail(normalizedEmail);
       if (existingUser && existingUser.id !== input.userId) {
         throw new BadRequestException('Email already in use');
       }
@@ -84,16 +95,19 @@ export class UserService {
 
   async getPatients(): Promise<User[]> {
     const patients = await this.userRepository.findAll();
-    return patients.filter((u) => u.roleName === 'PATIENT');
+    return patients.filter((u) => u.roleName === RoleName.PATIENT);
   }
 
-  async getPatientsCursor(cursor?: string, limit = 20): Promise<PaginatedUsers> {
+  async getPatientsCursor(
+    cursor?: string,
+    limit = DEFAULT_PAGE_SIZE,
+  ): Promise<PaginatedUsers> {
     return this.userRepository.findPatientsCursor(cursor, limit);
   }
 
   async getPatientById(patientId: string): Promise<User | null> {
     const patient = await this.userRepository.findByIdWithRole(patientId);
-    if (!patient || patient.roleName !== 'PATIENT') {
+    if (!patient || patient.roleName !== RoleName.PATIENT) {
       return null;
     }
     return patient;
@@ -101,22 +115,35 @@ export class UserService {
 
   async getDoctors(): Promise<User[]> {
     const users = await this.userRepository.findAll();
-    return users.filter((u) => u.roleName === 'DOCTOR');
+    return users.filter((u) => u.roleName === RoleName.DOCTOR);
   }
 
-  async getDoctorsCursor(cursor?: string, limit = 20): Promise<PaginatedUsers> {
+  async getDoctorsCursor(
+    cursor?: string,
+    limit = DEFAULT_PAGE_SIZE,
+  ): Promise<PaginatedUsers> {
     return this.userRepository.findDoctorsCursor(cursor, limit);
   }
 
-  async searchUsers(query: string, limit: number = 20): Promise<User[]> {
+  async searchUsers(
+    query: string,
+    limit: number = DEFAULT_PAGE_SIZE,
+  ): Promise<User[]> {
     return this.userRepository.search(query, limit);
   }
 
   async listUsers(input: ListUsersInput): Promise<ListUsersOutput> {
-    return this.userRepository.findManyCursor(input.cursor, input.limit ?? 20, input.isActive);
+    return this.userRepository.findManyCursor(
+      input.cursor,
+      input.limit ?? DEFAULT_PAGE_SIZE,
+      input.isActive,
+    );
   }
 
-  async toggleUserActive(userId: string, requesterUserId: string): Promise<ToggleUserActiveOutput> {
+  async toggleUserActive(
+    userId: string,
+    requesterUserId: string,
+  ): Promise<ToggleUserActiveOutput> {
     if (userId === requesterUserId) {
       throw new ForbiddenException('Cannot toggle your own account');
     }
@@ -124,8 +151,14 @@ export class UserService {
     return { user };
   }
 
-  async changeUserRole(input: ChangeUserRoleInput): Promise<ChangeUserRoleOutput> {
-    const user = await this.userRepository.assignRole(input.userId, input.roleId, input.requesterUserId);
+  async changeUserRole(
+    input: ChangeUserRoleInput,
+  ): Promise<ChangeUserRoleOutput> {
+    const user = await this.userRepository.assignRole(
+      input.userId,
+      input.roleId,
+      input.requesterUserId,
+    );
     return { user };
   }
 }

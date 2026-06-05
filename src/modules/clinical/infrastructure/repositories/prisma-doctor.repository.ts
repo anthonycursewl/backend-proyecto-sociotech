@@ -7,20 +7,31 @@ import {
 } from '@clinical/domain/repositories/doctor-repository.port';
 import { Doctor, DoctorScheduleData } from '@clinical/entities/doctor.entity';
 import { PrismaService } from '@clinical/infrastructure/db/prisma.service';
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '@shared/constants';
 
 type DoctorModel = Prisma.DoctorGetPayload<{}>;
 type DoctorWithUser = Prisma.DoctorGetPayload<{
-  include: { user: { select: { firstName: true; lastName: true; email: true } } }
+  include: {
+    user: { select: { firstName: true; lastName: true; email: true } };
+  };
 }>;
 type DoctorFull = Prisma.DoctorGetPayload<{
   include: {
-    user: { select: { firstName: true; lastName: true; email: true } }
-    schedules: { where: { isActive: true } }
-  }
+    user: { select: { firstName: true; lastName: true; email: true } };
+    schedules: { where: { isActive: true } };
+  };
 }>;
 
-function mapSchedules(schedules: { id: string; dayOfWeek: number; startTime: string; endTime: string; isActive: boolean }[]): DoctorScheduleData[] {
-  return schedules.map(s => ({
+function mapSchedules(
+  schedules: {
+    id: string;
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+    isActive: boolean;
+  }[],
+): DoctorScheduleData[] {
+  return schedules.map((s) => ({
     id: s.id,
     dayOfWeek: s.dayOfWeek,
     startTime: s.startTime,
@@ -92,7 +103,9 @@ export class PrismaDoctorRepository implements DoctorRepository {
   }
 
   async findAll(includeInactive = false): Promise<Doctor[]> {
-    const where: Prisma.DoctorWhereInput = includeInactive ? {} : { isActive: true };
+    const where: Prisma.DoctorWhereInput = includeInactive
+      ? {}
+      : { isActive: true };
     const doctors: DoctorWithUser[] = await this.prisma.doctor.findMany({
       where,
       include: {
@@ -104,10 +117,10 @@ export class PrismaDoctorRepository implements DoctorRepository {
 
   async findManyCursor(
     cursor?: string,
-    limit = 20,
+    limit = DEFAULT_PAGE_SIZE,
     isActive?: boolean,
   ): Promise<PaginatedDoctors> {
-    const take = Math.min(limit, 100);
+    const take = Math.min(limit, MAX_PAGE_SIZE);
     const where: Prisma.DoctorWhereInput = {
       ...(cursor ? { id: { lt: cursor } } : {}),
       ...(isActive !== undefined ? { isActive } : {}),
@@ -127,7 +140,9 @@ export class PrismaDoctorRepository implements DoctorRepository {
       doctors.pop();
     }
 
-    const nextCursor = hasNext ? doctors[doctors.length - 1]?.id ?? null : null;
+    const nextCursor = hasNext
+      ? (doctors[doctors.length - 1]?.id ?? null)
+      : null;
 
     return {
       doctors: doctors.map((d) => ({
@@ -154,10 +169,16 @@ export class PrismaDoctorRepository implements DoctorRepository {
       where: { id },
       data: {
         ...(data.specialty !== undefined && { specialty: data.specialty }),
-        ...(data.licenseNumber !== undefined && { licenseNumber: data.licenseNumber }),
-        ...(data.consultationPrice !== undefined && { consultationPrice: data.consultationPrice }),
+        ...(data.licenseNumber !== undefined && {
+          licenseNumber: data.licenseNumber,
+        }),
+        ...(data.consultationPrice !== undefined && {
+          consultationPrice: data.consultationPrice,
+        }),
         ...(data.biography !== undefined && { biography: data.biography }),
-        ...(data.phoneNumber !== undefined && { phoneNumber: data.phoneNumber }),
+        ...(data.phoneNumber !== undefined && {
+          phoneNumber: data.phoneNumber,
+        }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
         updatedAt: new Date(),
       },

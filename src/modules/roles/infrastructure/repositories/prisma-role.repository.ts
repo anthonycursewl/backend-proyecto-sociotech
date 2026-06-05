@@ -10,6 +10,7 @@ import {
 } from '../../domain/repositories/role-repository.port';
 import { Role } from '../../domain/entities/role.entity';
 import { RolesPrismaService } from '../db/prisma.service';
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '@shared/constants';
 
 @Injectable()
 export class PrismaRoleRepository implements RoleRepository {
@@ -130,7 +131,8 @@ export class PrismaRoleRepository implements RoleRepository {
   async update(id: string, data: Partial<Role>): Promise<Role> {
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
-    if (data.description !== undefined) updateData.description = data.description;
+    if (data.description !== undefined)
+      updateData.description = data.description;
 
     const r = await this.prisma.role.update({
       where: { id },
@@ -168,9 +170,9 @@ export class PrismaRoleRepository implements RoleRepository {
 
   async findManyCursor(
     cursor?: string,
-    limit = 20,
+    limit = DEFAULT_PAGE_SIZE,
   ): Promise<PaginatedRoles> {
-    const take = Math.min(limit, 100);
+    const take = Math.min(limit, MAX_PAGE_SIZE);
     const where: any = cursor ? { id: { lt: cursor } } : {};
     where.deletedAt = null;
 
@@ -185,7 +187,7 @@ export class PrismaRoleRepository implements RoleRepository {
       roles.pop();
     }
 
-    const nextCursor = hasNext ? roles[roles.length - 1]?.id ?? null : null;
+    const nextCursor = hasNext ? (roles[roles.length - 1]?.id ?? null) : null;
 
     return {
       roles: roles.map((r) => this.toSummary(r)),

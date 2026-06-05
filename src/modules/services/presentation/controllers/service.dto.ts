@@ -6,6 +6,8 @@ import {
   Min,
   IsPositive,
   IsBoolean,
+  IsArray,
+  IsUUID,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
@@ -29,6 +31,11 @@ export class CreateServiceDto {
   @Min(0)
   @Type(() => Number)
   price?: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
+  doctorIds?: string[];
 }
 
 export class UpdateServiceDto {
@@ -57,6 +64,11 @@ export class UpdateServiceDto {
   @IsBoolean()
   @Transform(({ value }) => value === 'true' || value === true)
   isActive?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
+  doctorIds?: string[];
 }
 
 export class ServiceListQueryDto {
@@ -85,6 +97,7 @@ export interface ServiceResponse {
   price: number | null;
   isActive: boolean;
   createdBy: string;
+  doctorIds: string[];
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,6 +1,7 @@
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PermissionsPrismaService } from '../../permissions/infrastructure/db/prisma.service';
 import { RolesPrismaService } from '../../roles/infrastructure/db/prisma.service';
+import { RoleName, Permission } from '../constants';
 
 interface PermissionSeed {
   name: string;
@@ -17,17 +18,13 @@ interface RoleSeed {
 }
 
 @Injectable()
-export class SeederService implements OnModuleInit {
+export class SeederService {
   private readonly logger = new Logger(SeederService.name);
 
   constructor(
     private readonly permissionsPrisma: PermissionsPrismaService,
     private readonly rolesPrisma: RolesPrismaService,
   ) {}
-
-  async onModuleInit() {
-    await this.seed();
-  }
 
   async seed() {
     const permissions = this.getPermissions();
@@ -377,22 +374,24 @@ export class SeederService implements OnModuleInit {
   private getRoles(): RoleSeed[] {
     return [
       {
-        name: 'PATIENT',
+        name: RoleName.PATIENT,
         description: 'Paciente del consultorio',
         isSystem: true,
         permissions: [
           'services:read',
+          'doctors:read',
           'appointments:create:own',
           'appointments:read:own',
           'appointments:cancel:own',
           'medical-records:read:own',
           'patients:read:own',
-          'patients:update:own',
           'patients:create:own',
+          'patients:update:own',
+          'users:update:own',
         ],
       },
       {
-        name: 'ASSISTANT',
+        name: RoleName.ASSISTANT,
         description: 'Asistente/Recepcionista',
         isSystem: true,
         permissions: [
@@ -409,41 +408,37 @@ export class SeederService implements OnModuleInit {
         ],
       },
       {
-        name: 'DOCTOR',
+        name: RoleName.DOCTOR,
         description: 'Doctor del consultorio',
         isSystem: true,
         permissions: [
           'patients:read',
-          'patients:create',
-          'patients:update',
-          'services:read',
-          'services:create',
-          'services:update',
-          'services:delete',
+          'doctors:read',
+          'doctors:create:own',
+          'doctors:update:own',
+          'appointments:read',
+          'appointments:read:own',
+          'appointments:update',
+          'appointments:cancel',
           'medical-records:read',
+          'medical-records:read:own',
           'medical-records:create',
           'medical-records:update',
           'medical-records:sign',
-          'appointments:read',
-          'appointments:create',
-          'appointments:update',
-          'appointments:cancel',
-          'doctors:read',
-          'reports:read',
-          'reports:generate',
-          'doctors:create:own',
-          'doctors:update:own',
           'schedules:create:own',
           'schedules:read:own',
           'schedules:update:own',
           'schedules:delete:own',
-          'appointments:read:own',
-          'medical-records:read:own',
-          'patients:read:own',
+          'services:read',
+          'services:create',
+          'services:update',
+          'services:delete',
+          'reports:read',
+          'reports:generate',
         ],
       },
       {
-        name: 'ADMIN',
+        name: RoleName.ADMIN,
         description: 'Administrador del sistema',
         isSystem: true,
         permissions: [
@@ -461,29 +456,25 @@ export class SeederService implements OnModuleInit {
           'services:update',
           'services:delete',
           'medical-records:read',
-          'medical-records:create',
-          'medical-records:update',
-          'medical-records:delete',
-          'medical-records:sign',
-          'appointments:read',
-          'appointments:create',
-          'appointments:update',
-          'appointments:cancel',
           'doctors:read',
           'doctors:create',
           'doctors:update',
           'doctors:delete',
+          'doctors:manage',
+          'schedules:manage',
+          'appointments:read',
+          'appointments:create',
+          'appointments:update',
+          'appointments:cancel',
+          'appointments:manage',
           'reports:read',
           'reports:generate',
           'reports:export',
           'audit:read',
-          'doctors:manage',
-          'schedules:manage',
-          'appointments:manage',
         ],
       },
       {
-        name: 'SUPER_ADMIN',
+        name: RoleName.SUPER_ADMIN,
         description: 'Super Administrador - Acceso total',
         isSystem: true,
         permissions: [
@@ -496,6 +487,8 @@ export class SeederService implements OnModuleInit {
           'roles:create',
           'roles:update',
           'roles:delete',
+          'roles:restore',
+          'roles:delete:permanent',
           'patients:read',
           'patients:create',
           'patients:update',
@@ -514,26 +507,17 @@ export class SeederService implements OnModuleInit {
           'appointments:create',
           'appointments:update',
           'appointments:cancel',
+          'appointments:manage',
           'doctors:read',
           'doctors:create',
           'doctors:update',
           'doctors:delete',
+          'doctors:manage',
+          'schedules:manage',
           'reports:read',
           'reports:generate',
           'reports:export',
           'audit:read',
-          'doctors:manage',
-          'schedules:manage',
-          'appointments:manage',
-          'patients:read:own',
-          'patients:create:own',
-          'patients:update:own',
-          'medical-records:read:own',
-          'appointments:read:own',
-          'appointments:create:own',
-          'appointments:cancel:own',
-          'doctors:create:own',
-          'schedules:create:own',
         ],
       },
     ];

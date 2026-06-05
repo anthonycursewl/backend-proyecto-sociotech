@@ -25,8 +25,10 @@ import {
 } from '@clinical/presentation/controllers/doctor.dto';
 import { PermissionsGuard } from '@shared/guards/permissions.guard';
 import { CheckPermissions } from '@shared/decorators/permissions.decorator';
-import { Audit } from '../../../audit/audit.decorator';
-import { AuditInterceptor } from '../../../audit/audit.interceptor';
+import { Audit } from '@audit/audit.decorator';
+import { AuditInterceptor } from '@audit/audit.interceptor';
+import type { RequestWithUser } from '@audit/audit.interceptor';
+import { DEFAULT_PAGE_SIZE, ENTITY_CACHE_TTL } from '@shared/constants';
 
 @Controller('doctors')
 @UseInterceptors(AuditInterceptor)
@@ -40,31 +42,37 @@ export class DoctorController {
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('doctors', 'create:own')
   @Audit('doctors:create:own', 'Doctor')
-  async createProfile(@Body() dto: CreateDoctorDto, @Req() req) {
-    return this.doctorService.create(req.user.userId, dto);
+  async createProfile(
+    @Body() dto: CreateDoctorDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.doctorService.create(req.user!.userId, dto);
   }
 
   @Post()
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('doctors', 'manage')
   @Audit('doctors:create', 'Doctor')
-  async create(@Body() dto: CreateDoctorDto, @Req() req) {
-    return this.doctorService.create(req.user.userId, dto);
+  async create(@Body() dto: CreateDoctorDto, @Req() req: RequestWithUser) {
+    return this.doctorService.create(req.user!.userId, dto);
   }
 
   @Get('me/profile')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('doctors', 'read')
-  async getMyProfile(@Req() req) {
-    return this.doctorService.findByUserId(req.user.userId);
+  async getMyProfile(@Req() req: RequestWithUser) {
+    return this.doctorService.findByUserId(req.user!.userId);
   }
 
   @Put('me/profile')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('doctors', 'update:own')
   @Audit('doctors:update:own', 'Doctor', true)
-  async updateMyProfile(@Body() dto: UpdateDoctorDto, @Req() req) {
-    const doctor = await this.doctorService.findByUserId(req.user.userId);
+  async updateMyProfile(
+    @Body() dto: UpdateDoctorDto,
+    @Req() req: RequestWithUser,
+  ) {
+    const doctor = await this.doctorService.findByUserId(req.user!.userId);
     return this.doctorService.update(doctor.id, dto);
   }
 
@@ -80,10 +88,15 @@ export class DoctorController {
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('doctors', 'manage')
   @Audit('doctors:update', 'Doctor', true)
-  async toggleActive(@Param('id', ParseUUIDPipe) id: string, @Req() req) {
+  async toggleActive(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: RequestWithUser,
+  ) {
     const doctor = await this.doctorService.findById(id);
-    (req as any).auditSnapshot = { isActive: doctor.isActive };
-    const updated = await this.doctorService.update(id, { isActive: !doctor.isActive } as UpdateDoctorDto);
+    req.auditSnapshot = { isActive: doctor.isActive };
+    const updated = await this.doctorService.update(id, {
+      isActive: !doctor.isActive,
+    });
     await this.cacheManager.del(`doctor:${id}`);
     return updated;
   }
@@ -96,8 +109,13 @@ export class DoctorController {
     @Query('limit') limit?: string,
     @Query('isActive') isActive?: string,
   ): Promise<PaginatedDoctors> {
-    const activeFilter = isActive !== undefined ? isActive === 'true' : undefined;
-    return this.doctorService.findManyCursor(cursor, parseInt(limit || '20'), activeFilter);
+    const activeFilter =
+      isActive !== undefined ? isActive === 'true' : undefined;
+    return this.doctorService.findManyCursor(
+      cursor,
+      parseInt(limit || String(DEFAULT_PAGE_SIZE)),
+      activeFilter,
+    );
   }
 
   @Get('user/:userId')
@@ -117,7 +135,7 @@ export class DoctorController {
       return cached;
     }
     const result = await this.doctorService.findById(id);
-    await this.cacheManager.set(cacheKey, result, 30_000);
+    await this.cacheManager.set(cacheKey, result, ENTITY_CACHE_TTL);
     return result;
   }
 
@@ -125,9 +143,13 @@ export class DoctorController {
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('doctors', 'manage')
   @Audit('doctors:update', 'Doctor', true)
-  async update(@Param('id') id: string, @Body() dto: UpdateDoctorDto, @Req() req) {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateDoctorDto,
+    @Req() req: RequestWithUser,
+  ) {
     const old = await this.doctorService.findById(id);
-    (req as any).auditSnapshot = old.toPlain();
+    req.auditSnapshot = old.toPlain() as unknown as Record<string, unknown>;
     const result = await this.doctorService.update(id, dto);
     await this.cacheManager.del(`doctor:${id}`);
     return result;

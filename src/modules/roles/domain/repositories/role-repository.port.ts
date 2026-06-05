@@ -51,9 +51,6 @@ export interface RoleRepository {
   addPermission(roleId: string, permissionId: string): Promise<void>;
   removePermission(roleId: string, permissionId: string): Promise<void>;
   setPermissions(roleId: string, permissionIds: string[]): Promise<void>;
-  findManyCursor(
-    cursor?: string,
-    limit?: number,
-  ): Promise<PaginatedRoles>;
+  findManyCursor(cursor?: string, limit?: number): Promise<PaginatedRoles>;
   findAllPermissions(): Promise<PermissionSummary[]>;
 }

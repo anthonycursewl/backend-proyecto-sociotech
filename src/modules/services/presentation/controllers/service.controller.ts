@@ -25,9 +25,10 @@ import type {
 } from '@services/presentation/controllers/service.dto';
 import { PermissionsGuard } from '@shared/guards/permissions.guard';
 import { CheckPermissions } from '@shared/decorators/permissions.decorator';
-import type { Request } from 'express';
-import { Audit } from '../../../audit/audit.decorator';
-import { AuditInterceptor } from '../../../audit/audit.interceptor';
+import { Audit } from '@audit/audit.decorator';
+import { AuditInterceptor } from '@audit/audit.interceptor';
+import type { RequestWithUser } from '@audit/audit.interceptor';
+import { DEFAULT_PAGE_SIZE } from '@shared/constants';
 
 @Controller('services')
 @UseGuards(AuthGuard('jwt'))
@@ -41,9 +42,9 @@ export class ServiceController {
   @Audit('services:create', 'Service')
   async create(
     @Body(new ValidationPipe({ transform: true })) dto: CreateServiceDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ): Promise<ServiceResponse> {
-    return this.serviceService.create(dto, (req as any).user.userId);
+    return this.serviceService.create(dto, req.user!.userId);
   }
 
   @Get()
@@ -54,9 +55,18 @@ export class ServiceController {
   ): Promise<PaginatedServiceResponse> {
     return this.serviceService.findAll({
       cursor: query.cursor,
-      limit: query.limit ?? 20,
+      limit: query.limit ?? DEFAULT_PAGE_SIZE,
       includeInactive: query.includeInactive,
     });
+  }
+
+  @Get('doctor/:doctorId')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('services', 'read')
+  async findByDoctor(
+    @Param('doctorId') doctorId: string,
+  ): Promise<ServiceResponse[]> {
+    return this.serviceService.findByDoctor(doctorId);
   }
 
   @Get(':id')
@@ -73,9 +83,11 @@ export class ServiceController {
   async update(
     @Param('id') id: string,
     @Body(new ValidationPipe({ transform: true })) dto: UpdateServiceDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ): Promise<ServiceResponse> {
-    (req as any).auditSnapshot = await this.serviceService.findById(id);
+    req.auditSnapshot = (await this.serviceService.findById(
+      id,
+    )) as unknown as Record<string, unknown>;
     return this.serviceService.update(id, dto);
   }
 

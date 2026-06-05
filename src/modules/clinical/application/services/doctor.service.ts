@@ -1,18 +1,24 @@
 import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { DOCTOR_REPOSITORY } from '@clinical/domain/repositories/doctor-repository.port';
-import type { DoctorRepository, PaginatedDoctors } from '@clinical/domain/repositories/doctor-repository.port';
+import type {
+  DoctorRepository,
+  PaginatedDoctors,
+} from '@clinical/domain/repositories/doctor-repository.port';
 import { Doctor } from '@clinical/entities/doctor.entity';
 import type {
   CreateDoctorDto,
   UpdateDoctorDto,
 } from '@clinical/presentation/controllers/doctor.dto';
+import { DEFAULT_PAGE_SIZE } from '@shared/constants';
 
 @Injectable()
 export class DoctorService {
   private readonly logger = new Logger(DoctorService.name);
 
-  constructor(@Inject(DOCTOR_REPOSITORY) private readonly doctorRepo: DoctorRepository) {}
+  constructor(
+    @Inject(DOCTOR_REPOSITORY) private readonly doctorRepo: DoctorRepository,
+  ) {}
 
   async create(userId: string, dto: CreateDoctorDto): Promise<Doctor> {
     const existing = await this.doctorRepo.findByUserId(userId);
@@ -60,7 +66,7 @@ export class DoctorService {
 
   async findManyCursor(
     cursor?: string,
-    limit = 20,
+    limit = DEFAULT_PAGE_SIZE,
     isActive?: boolean,
   ): Promise<PaginatedDoctors> {
     return this.doctorRepo.findManyCursor(cursor, limit, isActive);

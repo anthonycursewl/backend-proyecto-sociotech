@@ -17,12 +17,11 @@ import { PrismaService } from './infrastructure/db/prisma.service';
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const secret =
-          configService.get<string>('JWT_SECRET') || 'dev_temp_secret_12345';
-        return {
-          secret,
-          signOptions: { expiresIn: '1d' },
-        };
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret) {
+          throw new Error('JWT_SECRET environment variable is not set');
+        }
+        return { secret };
       },
     }),
   ],

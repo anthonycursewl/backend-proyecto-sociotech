@@ -19,7 +19,7 @@ import {
 import { User } from '../../domain/entities/user.entity';
 
 import { IsOptional, IsString, IsEmail } from 'class-validator';
-import { IsUuidString } from '../../../shared/validators/is-uuid-string.validator';
+import { IsUuidString } from '@shared/validators/is-uuid-string.validator';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -40,10 +40,12 @@ export class ChangeRoleDto {
   roleId: string;
 }
 
-import { Audit } from '../../../audit/audit.decorator';
-import { AuditInterceptor } from '../../../audit/audit.interceptor';
-import { PermissionsGuard } from '../../../shared/guards/permissions.guard';
-import { CheckPermissions } from '../../../shared/decorators/permissions.decorator';
+import { Audit } from '@audit/audit.decorator';
+import { AuditInterceptor } from '@audit/audit.interceptor';
+import type { RequestWithUser } from '@audit/audit.interceptor';
+import { PermissionsGuard } from '@shared/guards/permissions.guard';
+import { CheckPermissions } from '@shared/decorators/permissions.decorator';
+import { DEFAULT_PAGE_SIZE } from '@shared/constants';
 
 @Controller('users')
 @UseGuards(AuthGuard('jwt'))
@@ -60,11 +62,11 @@ export class UserController {
   @Audit('users:update', 'User', true)
   async updateMyProfile(
     @Body() dto: UpdateProfileDto,
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
-    const userId = req.user.userId;
+    const userId = req.user!.userId;
     const { user: oldUser } = await this.userService.getProfile(userId);
-    (req as any).auditSnapshot = {
+    req.auditSnapshot = {
       id: oldUser.id,
       email: oldUser.email,
       firstName: oldUser.firstName,
@@ -83,10 +85,10 @@ export class UserController {
   async updateProfile(
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() dto: UpdateProfileDto,
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
     const { user: oldUser } = await this.userService.getProfile(userId);
-    (req as any).auditSnapshot = {
+    req.auditSnapshot = {
       id: oldUser.id,
       email: oldUser.email,
       firstName: oldUser.firstName,
@@ -131,7 +133,7 @@ export class UserController {
   async searchUsers(@Query('q') query: string, @Query('limit') limit?: string) {
     const users = await this.userService.searchUsers(
       query,
-      parseInt(limit || '20'),
+      parseInt(limit || String(DEFAULT_PAGE_SIZE)),
     );
     return { users };
   }
@@ -160,17 +162,17 @@ export class UserController {
   @CheckPermissions('users', 'update')
   async toggleActive(
     @Param('userId', ParseUUIDPipe) userId: string,
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
     const { user: oldUser } = await this.userService.getProfile(userId);
-    (req as any).auditSnapshot = {
+    req.auditSnapshot = {
       id: oldUser.id,
       email: oldUser.email,
       firstName: oldUser.firstName,
       lastName: oldUser.lastName,
       isActive: oldUser.isActive,
     };
-    return this.userService.toggleUserActive(userId, req.user.userId);
+    return this.userService.toggleUserActive(userId, req.user!.userId);
   }
 
   @Put('admin/:userId/role')
@@ -180,10 +182,10 @@ export class UserController {
   async changeRole(
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() dto: ChangeRoleDto,
-    @Req() req,
+    @Req() req: RequestWithUser,
   ) {
     const { user: oldUser } = await this.userService.getProfile(userId);
-    (req as any).auditSnapshot = {
+    req.auditSnapshot = {
       id: oldUser.id,
       email: oldUser.email,
       roleId: oldUser.roleId,
@@ -192,7 +194,7 @@ export class UserController {
     return this.userService.changeUserRole({
       userId,
       roleId: dto.roleId,
-      requesterUserId: req.user.userId,
+      requesterUserId: req.user!.userId,
     });
   }
 }

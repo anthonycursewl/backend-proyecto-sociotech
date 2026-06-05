@@ -30,20 +30,48 @@ export class Doctor {
     this.props = props;
   }
 
-  get id(): string { return this.props.id; }
-  get userId(): string { return this.props.userId; }
-  get specialty(): string { return this.props.specialty; }
-  get licenseNumber(): string { return this.props.licenseNumber; }
-  get consultationPrice(): number | undefined { return this.props.consultationPrice; }
-  get biography(): string | undefined { return this.props.biography; }
-  get phoneNumber(): string | undefined { return this.props.phoneNumber; }
-  get isActive(): boolean { return this.props.isActive; }
-  get firstName(): string | undefined { return this.props.firstName; }
-  get lastName(): string | undefined { return this.props.lastName; }
-  get email(): string | undefined { return this.props.email; }
-  get schedules(): DoctorScheduleData[] | undefined { return this.props.schedules; }
-  get createdAt(): Date { return this.props.createdAt; }
-  get updatedAt(): Date { return this.props.updatedAt; }
+  get id(): string {
+    return this.props.id;
+  }
+  get userId(): string {
+    return this.props.userId;
+  }
+  get specialty(): string {
+    return this.props.specialty;
+  }
+  get licenseNumber(): string {
+    return this.props.licenseNumber;
+  }
+  get consultationPrice(): number | undefined {
+    return this.props.consultationPrice;
+  }
+  get biography(): string | undefined {
+    return this.props.biography;
+  }
+  get phoneNumber(): string | undefined {
+    return this.props.phoneNumber;
+  }
+  get isActive(): boolean {
+    return this.props.isActive;
+  }
+  get firstName(): string | undefined {
+    return this.props.firstName;
+  }
+  get lastName(): string | undefined {
+    return this.props.lastName;
+  }
+  get email(): string | undefined {
+    return this.props.email;
+  }
+  get schedules(): DoctorScheduleData[] | undefined {
+    return this.props.schedules;
+  }
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
+  get updatedAt(): Date {
+    return this.props.updatedAt;
+  }
 
   update(data: Partial<DoctorProps>): void {
     if (data.specialty !== undefined) this.props.specialty = data.specialty;

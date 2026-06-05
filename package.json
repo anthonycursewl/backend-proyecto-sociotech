@@ -23,7 +23,9 @@
     "db:reset": "prisma migrate reset --schema=prisma/schema.prisma",
     "seed:admin": "ts-node -r tsconfig-paths/register scripts/create-admin.ts",
     "seed:system": "ts-node -r tsconfig-paths/register scripts/seed-system.ts",
-    "seed:rbac": "ts-node -r tsconfig-paths/register scripts/seed-rbac.ts"
+    "seed:rbac": "ts-node -r tsconfig-paths/register scripts/seed-rbac.ts",
+    "seed:services": "ts-node -r tsconfig-paths/register scripts/seed-services.ts",
+    "seed:reseed-novel-perez": "ts-node -r tsconfig-paths/register scripts/reseed-services-novel-perez.ts"
   },
   "_moduleAliases": {
     "@auth/application": "dist/modules/auth/application",

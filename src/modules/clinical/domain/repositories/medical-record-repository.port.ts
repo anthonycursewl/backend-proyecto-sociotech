@@ -8,6 +8,7 @@ export interface MedicalRecordRepository {
   findByPatientId(patientId: string): Promise<MedicalRecord[]>;
   findByDoctorId(doctorId: string): Promise<MedicalRecord[]>;
   findUnsignedByDoctorId(doctorId: string): Promise<MedicalRecord[]>;
+  findByAppointmentId(appointmentId: string): Promise<MedicalRecord | null>;
   delete(id: string): Promise<void>;
   update(record: MedicalRecord): Promise<MedicalRecord>;
 }

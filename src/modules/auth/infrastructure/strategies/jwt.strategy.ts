@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { Inject } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { UserRepository } from '../../domain/repositories/user-repository.port';
 import { USER_REPOSITORY } from '../../domain/repositories/user-repository.port';
 
@@ -9,8 +10,12 @@ import { USER_REPOSITORY } from '../../domain/repositories/user-repository.port'
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepo: UserRepository,
+    configService: ConfigService,
   ) {
-    const secret = process.env.JWT_SECRET || 'dev_temp_secret_12345';
+    const secret = configService.get<string>('JWT_SECRET');
+    if (!secret) {
+      throw new Error('JWT_SECRET environment variable is not set');
+    }
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

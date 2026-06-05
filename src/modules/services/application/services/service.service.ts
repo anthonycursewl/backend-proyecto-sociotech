@@ -17,6 +17,7 @@ import type {
   ServiceResponse,
   PaginatedServiceResponse,
 } from '@services/presentation/controllers/service.dto';
+import { DEFAULT_SERVICE_DURATION } from '@shared/constants';
 
 @Injectable()
 export class ServiceService {
@@ -39,10 +40,11 @@ export class ServiceService {
       id: crypto.randomUUID(),
       name: dto.name,
       description: dto.description ?? null,
-      durationMin: dto.durationMin || 30,
+      durationMin: dto.durationMin || DEFAULT_SERVICE_DURATION,
       price: dto.price ?? null,
       isActive: true,
       createdBy: userId,
+      doctorIds: dto.doctorIds ?? [],
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -85,6 +87,7 @@ export class ServiceService {
       durationMin: dto.durationMin,
       price: dto.price ?? null,
       isActive: dto.isActive,
+      doctorIds: dto.doctorIds,
     });
 
     const updated = await this.serviceRepo.update(id, service.toPlain());
@@ -99,5 +102,10 @@ export class ServiceService {
 
     service.update({ isActive: false });
     await this.serviceRepo.update(id, service.toPlain());
+  }
+
+  async findByDoctor(doctorId: string): Promise<ServiceResponse[]> {
+    const services = await this.serviceRepo.findByDoctor(doctorId);
+    return services.map((s) => s.toPlain());
   }
 }

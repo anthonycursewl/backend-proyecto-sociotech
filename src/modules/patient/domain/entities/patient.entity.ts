@@ -145,7 +145,7 @@ export class Patient {
     };
   }
 
-  update(data: Partial<PatientProps>) {
+  update(data: Partial<Omit<PatientProps, 'allergies' | 'currentMedications' | 'chronicDiseases'>>) {
     Object.assign(this.props, data);
     this.props.updatedAt = new Date();
   }

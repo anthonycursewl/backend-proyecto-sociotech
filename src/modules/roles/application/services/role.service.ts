@@ -6,18 +6,30 @@ import {
 } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { ROLE_REPOSITORY } from '../../domain/repositories/role-repository.port';
+import type { RoleRepository } from '../../domain/repositories/role-repository.port';
 import { Role } from '../../domain/entities/role.entity';
-import type { PaginatedRoles, RoleSummary, RoleDetail, PermissionSummary } from '../../domain/repositories/role-repository.port';
+import type {
+  PaginatedRoles,
+  RoleSummary,
+  RoleDetail,
+  PermissionSummary,
+} from '../../domain/repositories/role-repository.port';
+import { DEFAULT_PAGE_SIZE } from '@shared/constants';
 
 @Injectable()
 export class RoleService {
-  constructor(@Inject(ROLE_REPOSITORY) private readonly roleRepo: any) {}
+  constructor(
+    @Inject(ROLE_REPOSITORY) private readonly roleRepo: RoleRepository,
+  ) {}
 
   async findAll(): Promise<Role[]> {
     return this.roleRepo.findAll();
   }
 
-  async findManyCursor(cursor?: string, limit = 20): Promise<PaginatedRoles> {
+  async findManyCursor(
+    cursor?: string,
+    limit = DEFAULT_PAGE_SIZE,
+  ): Promise<PaginatedRoles> {
     return this.roleRepo.findManyCursor(cursor, limit);
   }
 
@@ -60,7 +72,10 @@ export class RoleService {
     return this.roleRepo.save(role);
   }
 
-  async update(id: string, data: { name?: string; description?: string }): Promise<Role> {
+  async update(
+    id: string,
+    data: { name?: string; description?: string },
+  ): Promise<Role> {
     const role = await this.roleRepo.findById(id);
     if (!role) {
       throw new NotFoundException('Role not found');

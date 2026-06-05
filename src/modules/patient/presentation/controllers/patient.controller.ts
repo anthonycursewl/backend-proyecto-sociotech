@@ -16,7 +16,6 @@ import {
 import { CACHE_MANAGER, CacheTTL } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { AuthGuard } from '@nestjs/passport';
-import type { Request } from 'express';
 import { PatientService } from '../../application/services/patient.service';
 import { PatientMetricsService } from '../../application/services/patient-metrics.service';
 import type { PatientMetricsData } from '../../application/services/patient-metrics.service';
@@ -29,20 +28,11 @@ import {
 } from './patient.dto';
 import { PermissionsGuard } from '@shared/guards/permissions.guard';
 import { CheckPermissions } from '@shared/decorators/permissions.decorator';
-import { Audit } from '../../../audit/audit.decorator';
-import { AuditInterceptor } from '../../../audit/audit.interceptor';
+import { Audit } from '@audit/audit.decorator';
+import { AuditInterceptor } from '@audit/audit.interceptor';
+import type { RequestWithUser } from '@audit/audit.interceptor';
 import type { PaginatedPatients } from '../../domain/repositories/patient-repository.port';
-
-interface RequestWithUser extends Request {
-  user: {
-    userId: string;
-    email: string;
-    roleId: string;
-    roleName: string;
-    permissions: string[];
-  };
-  auditSnapshot?: Record<string, unknown> | null;
-}
+import { DEFAULT_PAGE_SIZE, ENTITY_CACHE_TTL } from '@shared/constants';
 
 @Controller('patients')
 @UseGuards(AuthGuard('jwt'))
@@ -71,7 +61,7 @@ export class PatientController {
     @Req() req: RequestWithUser,
   ): Promise<PatientResponse> {
     return toPatientResponse(
-      await this.patientService.registerPatientForUser(req.user.userId, dto),
+      await this.patientService.registerPatientForUser(req.user!.userId, dto),
     );
   }
 
@@ -87,7 +77,7 @@ export class PatientController {
   @UseGuards(PermissionsGuard)
   @CheckPermissions('patients', 'read:own')
   async getMyPatient(@Req() req: RequestWithUser): Promise<PatientResponse> {
-    const patient = await this.patientService.findByUserId(req.user.userId);
+    const patient = await this.patientService.findByUserId(req.user!.userId);
     if (!patient) {
       throw new NotFoundException('Patient profile not found');
     }
@@ -102,12 +92,14 @@ export class PatientController {
     @Req() req: RequestWithUser,
     @Body() dto: UpdatePatientDto,
   ): Promise<PatientResponse> {
-    const patient = await this.patientService.findByUserId(req.user.userId);
+    const patient = await this.patientService.findByUserId(req.user!.userId);
     if (!patient) {
       throw new NotFoundException('Patient profile not found');
     }
     req.auditSnapshot = patient.toPlain() as unknown as Record<string, unknown>;
-    const result = toPatientResponse(await this.patientService.update(patient.id, dto));
+    const result = toPatientResponse(
+      await this.patientService.update(patient.id, dto),
+    );
     await this.cacheManager.del(`patient:${patient.id}`);
     return result;
   }
@@ -118,12 +110,11 @@ export class PatientController {
   async search(
     @Query('q') query: string,
     @Query('limit') limit?: string,
-  ): Promise<PatientResponse[]> {
-    const patients = await this.patientService.search(
+  ): Promise<PaginatedPatients['patients']> {
+    return this.patientService.search(
       query,
-      parseInt(limit || '20'),
+      parseInt(limit || String(DEFAULT_PAGE_SIZE)),
     );
-    return patients.map(toPatientResponse);
   }
 
   @Get('metrics')
@@ -141,8 +132,13 @@ export class PatientController {
     @Query('limit') limit?: string,
     @Query('isActive') isActive?: string,
   ): Promise<PaginatedPatients> {
-    const activeFilter = isActive !== undefined ? isActive === 'true' : undefined;
-    return this.patientService.findManyCursor(cursor, parseInt(limit || '20'), activeFilter);
+    const activeFilter =
+      isActive !== undefined ? isActive === 'true' : undefined;
+    return this.patientService.findManyCursor(
+      cursor,
+      parseInt(limit || '20'),
+      activeFilter,
+    );
   }
 
   @Get(':id')
@@ -157,7 +153,7 @@ export class PatientController {
       return cached;
     }
     const result = toPatientResponse(await this.patientService.findById(id));
-    await this.cacheManager.set(cacheKey, result, 30_000);
+    await this.cacheManager.set(cacheKey, result, ENTITY_CACHE_TTL);
     return result;
   }
 
@@ -174,7 +170,10 @@ export class PatientController {
     if (!oldPatient) {
       throw new NotFoundException('Patient not found');
     }
-    req.auditSnapshot = oldPatient.toPlain() as unknown as Record<string, unknown>;
+    req.auditSnapshot = oldPatient.toPlain() as unknown as Record<
+      string,
+      unknown
+    >;
     const result = toPatientResponse(await this.patientService.update(id, dto));
     await this.cacheManager.del(`patient:${id}`);
     return result;

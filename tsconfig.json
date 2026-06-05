@@ -44,7 +44,8 @@
       "@services/infrastructure/*": ["src/modules/services/infrastructure/*"],
       "@services/presentation/*": ["src/modules/services/presentation/*"],
       "@shared/*": ["src/modules/shared/*"],
-      "@patient/*": ["src/modules/patient/*"]
+      "@patient/*": ["src/modules/patient/*"],
+      "@audit/*": ["src/modules/audit/*"]
     }
   },
   "include": [

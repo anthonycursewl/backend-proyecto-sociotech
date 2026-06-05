@@ -28,7 +28,11 @@ export interface DoctorRepository {
   findById(id: string): Promise<Doctor | null>;
   findByUserId(userId: string): Promise<Doctor | null>;
   findAll(includeInactive?: boolean): Promise<Doctor[]>;
-  findManyCursor(cursor?: string, limit?: number, isActive?: boolean): Promise<PaginatedDoctors>;
+  findManyCursor(
+    cursor?: string,
+    limit?: number,
+    isActive?: boolean,
+  ): Promise<PaginatedDoctors>;
   update(id: string, data: Doctor): Promise<Doctor>;
   delete(id: string): Promise<void>;
 }

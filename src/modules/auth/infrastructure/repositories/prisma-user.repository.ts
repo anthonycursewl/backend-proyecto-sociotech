@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { User } from '@user/domain/entities/user.entity';
 import { UserRepository } from '../../domain/repositories/user-repository.port';
 import { PrismaService } from '../db/prisma.service';
+import { DEFAULT_PAGE_SIZE, RoleName } from '@shared/constants';
 
 @Injectable()
 export class PrismaUserRepository implements UserRepository {
@@ -131,7 +132,7 @@ export class PrismaUserRepository implements UserRepository {
     });
   }
 
-  async search(query: string, limit = 20): Promise<User[]> {
+  async search(query: string, limit = DEFAULT_PAGE_SIZE): Promise<User[]> {
     const prismaUsers = await this.prisma.user.findMany({
       where: {
         OR: [
@@ -148,7 +149,7 @@ export class PrismaUserRepository implements UserRepository {
 
   async findDefaultPatientRoleId(): Promise<string | null> {
     const role = await this.prisma.role.findUnique({
-      where: { name: 'PATIENT' },
+      where: { name: RoleName.PATIENT },
     });
     return role?.id || null;
   }

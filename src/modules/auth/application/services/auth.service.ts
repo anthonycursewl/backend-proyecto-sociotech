@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { UserRepository } from '../../domain/repositories/user-repository.port';
 import { USER_REPOSITORY } from '../../domain/repositories/user-repository.port';
 import { User } from '@user/domain/entities/user.entity';
@@ -10,15 +11,24 @@ import { RedisEventBus, DomainEvent } from '../../infrastructure/events';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private readonly ACCESS_TOKEN_EXPIRES_IN = '2h';
-  private readonly REFRESH_TOKEN_EXPIRES_IN = '30d';
+  private readonly ACCESS_TOKEN_EXPIRES_IN: string;
+  private readonly REFRESH_TOKEN_EXPIRES_IN: string;
+  private readonly REFRESH_TOKEN_DAYS: number;
 
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepo: UserRepository,
     private readonly bcryptAuth: BcryptAuthService,
     private readonly jwtService: JwtService,
     private readonly eventBus: RedisEventBus,
-  ) {}
+    configService: ConfigService,
+  ) {
+    this.ACCESS_TOKEN_EXPIRES_IN =
+      configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '2h';
+    this.REFRESH_TOKEN_EXPIRES_IN =
+      configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '30d';
+    this.REFRESH_TOKEN_DAYS =
+      configService.get<number>('JWT_REFRESH_DAYS') || 30;
+  }
 
   async register(dto: {
     email: string;
@@ -160,16 +170,18 @@ export class AuthService {
     };
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: this.ACCESS_TOKEN_EXPIRES_IN,
+      expiresIn: this.ACCESS_TOKEN_EXPIRES_IN as any,
     });
 
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: this.REFRESH_TOKEN_EXPIRES_IN,
+      expiresIn: this.REFRESH_TOKEN_EXPIRES_IN as any,
     });
 
     const hashedRefreshToken = await this.bcryptAuth.hashPassword(refreshToken);
     const refreshTokenExpires = new Date();
-    refreshTokenExpires.setDate(refreshTokenExpires.getDate() + 30);
+    refreshTokenExpires.setDate(
+      refreshTokenExpires.getDate() + this.REFRESH_TOKEN_DAYS,
+    );
 
     await this.userRepo.updateRefreshToken(
       user.id,
