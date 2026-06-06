@@ -1,5 +1,7 @@
 import PDFDocument from 'pdfkit';
 import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { PNG } from 'pngjs';
 
 export interface ClinicInfo {
   name: string;
@@ -25,6 +27,26 @@ const WHITE = '#ffffff';
 const LOGO_DIR = join(process.cwd(), 'src', 'assets', 'logos');
 const LOGO_HEADER = join(LOGO_DIR, 'LOGO_DOC_2_no_bg.png');
 const LOGO_WATERMARK = join(LOGO_DIR, 'LOGO_DOC_1_no_bg.png');
+
+// Cached black version of the header logo (all non-transparent pixels → pure black)
+let headerLogoBuffer: Buffer | null = null;
+
+function loadHeaderLogoBlack(): Buffer | null {
+  try {
+    const raw = readFileSync(LOGO_HEADER);
+    const png = PNG.sync.read(raw);
+    for (let i = 0; i < png.data.length; i += 4) {
+      if (png.data[i + 3] > 10) {
+        png.data[i] = 0;
+        png.data[i + 1] = 0;
+        png.data[i + 2] = 0;
+      }
+    }
+    return PNG.sync.write(png);
+  } catch {
+    return null;
+  }
+}
 
 export function createPdfDocument(
   title: string,
@@ -92,14 +114,19 @@ export function addHeader(doc: PDFKit.PDFDocument): void {
   doc.text(infoParts.join(' | ') || '', margin, infoY, { width: textW });
   doc.text(`RNC: ${info.rnc}`, margin, infoY + 12, { width: textW });
 
-  // Logo on the right
+  // Logo on the right (processed to pure black for visibility)
   try {
-    doc.image(LOGO_HEADER, margin + textW + 20, startY + 2, {
-      width: logoW,
-      align: 'right',
-    });
+    if (!headerLogoBuffer) {
+      headerLogoBuffer = loadHeaderLogoBlack();
+    }
+    if (headerLogoBuffer) {
+      doc.image(headerLogoBuffer, margin + textW + 20, startY + 2, {
+        width: logoW,
+        align: 'right',
+      });
+    }
   } catch {
-    // Logo file not found; skip silently
+    // Logo unavailable; skip silently
   }
 
   doc.y = Math.max(startY + 48, startY + 2 + 60) + 6;
