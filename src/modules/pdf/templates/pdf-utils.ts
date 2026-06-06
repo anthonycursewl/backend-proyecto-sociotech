@@ -93,10 +93,14 @@ export function addHeader(doc: PDFKit.PDFDocument): void {
   doc.text(`RNC: ${info.rnc}`, margin, infoY + 12, { width: textW });
 
   // Logo on the right
-  doc.image(LOGO_HEADER, margin + textW + 20, startY + 2, {
-    width: logoW,
-    align: 'right',
-  });
+  try {
+    doc.image(LOGO_HEADER, margin + textW + 20, startY + 2, {
+      width: logoW,
+      align: 'right',
+    });
+  } catch {
+    // Logo file not found; skip silently
+  }
 
   doc.y = Math.max(startY + 48, startY + 2 + 60) + 6;
   doc.fillColor(TEXT_DARK);
