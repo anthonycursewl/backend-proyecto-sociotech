@@ -110,18 +110,16 @@ function writeServiceInfo(
     field('Precio', `$${service.price.toFixed(2)}`, doc);
 }
 
-function writeStatusBadge(
-  doc: PDFKit.PDFDocument,
-  status: string,
-): void {
+function writeStatusBadge(doc: PDFKit.PDFDocument, status: string): void {
   const label = statusLabel(status);
   const color = STATUS_COLORS[status] || TEXT_MUTED;
   const y = doc.y;
 
-  doc.rect(50, y, 130, 20)
-    .fillColor(color)
-    .fill();
-  doc.font('Helvetica-Bold').fontSize(9).fillColor('#ffffff')
+  doc.rect(50, y, 130, 20).fillColor(color).fill();
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(9)
+    .fillColor('#ffffff')
     .text(label, 55, y + 4, { width: 120 });
   doc.fillColor(TEXT_DARK);
   doc.y = y + 24;
@@ -137,7 +135,11 @@ function writeAppointmentDetails(
 
   field('Motivo', params.reason, doc);
   if (params.notes) {
-    doc.font('Helvetica-Bold').fontSize(9).fillColor(PRIMARY_LIGHT).text('Notas:');
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(9)
+      .fillColor(PRIMARY_LIGHT)
+      .text('Notas:');
     bodyText(params.notes, doc);
   }
 }
@@ -147,10 +149,11 @@ function writeCancellationInfo(
   cancellation: AppointmentPdfCancellation,
 ): void {
   doc.moveDown(0.3);
-  doc.rect(50, doc.y, 495, 20)
-    .fillColor('#fff5f5')
-    .fill();
-  doc.font('Helvetica-Bold').fontSize(9).fillColor('#c53030')
+  doc.rect(50, doc.y, 495, 20).fillColor('#fff5f5').fill();
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(9)
+    .fillColor('#c53030')
     .text(' Cita Cancelada', 55, doc.y - 16);
   doc.fillColor(TEXT_DARK);
   doc.moveDown(0.3);
@@ -166,7 +169,9 @@ export async function generateAppointmentPdf(
   const doc = createPdfDocument('Detalle de Cita');
   addHeader(doc);
 
-  doc.fontSize(16).font('Helvetica-Bold')
+  doc
+    .fontSize(16)
+    .font('Helvetica-Bold')
     .fillColor(PRIMARY)
     .text('DETALLE DE CITA', { align: 'center' });
   doc.moveDown(0.5);
@@ -197,14 +202,26 @@ export async function generateAppointmentPdf(
   }
 
   doc.moveDown(1);
-  doc.fontSize(7).font('Helvetica').fillColor(TEXT_MUTED)
-    .text(`ID Cita: ${params.id} | Registrada: ${formatDateTime(params.createdAt)}`, 50, doc.y, { align: 'center' })
+  doc
+    .fontSize(7)
+    .font('Helvetica')
+    .fillColor(TEXT_MUTED)
+    .text(
+      `ID Cita: ${params.id} | Registrada: ${formatDateTime(params.createdAt)}`,
+      50,
+      doc.y,
+      { align: 'center' },
+    )
     .fillColor(TEXT_DARK);
 
   if (params.hasMedicalRecord) {
     doc.moveDown(0.3);
-    doc.fontSize(8).fillColor(PRIMARY_LIGHT)
-      .text('Esta cita tiene un historial clínico asociado.', { align: 'center' })
+    doc
+      .fontSize(8)
+      .fillColor(PRIMARY_LIGHT)
+      .text('Esta cita tiene un historial clínico asociado.', {
+        align: 'center',
+      })
       .fillColor(TEXT_DARK);
   }
 

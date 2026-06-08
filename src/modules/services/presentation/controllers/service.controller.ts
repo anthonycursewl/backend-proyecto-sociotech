@@ -57,6 +57,7 @@ export class ServiceController {
       cursor: query.cursor,
       limit: query.limit ?? DEFAULT_PAGE_SIZE,
       includeInactive: query.includeInactive,
+      status: query.status,
     });
   }
 
@@ -95,7 +96,16 @@ export class ServiceController {
   @UseGuards(PermissionsGuard)
   @CheckPermissions('services', 'delete')
   @Audit('services:delete', 'Service')
-  async delete(@Param('id') id: string): Promise<void> {
-    return this.serviceService.delete(id);
+  async delete(@Param('id') id: string): Promise<{ message: string }> {
+    await this.serviceService.delete(id);
+    return { message: 'Service deactivated successfully' };
+  }
+
+  @Post(':id/restore')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('services', 'update')
+  @Audit('services:restore', 'Service')
+  async restore(@Param('id') id: string): Promise<ServiceResponse> {
+    return this.serviceService.restore(id);
   }
 }

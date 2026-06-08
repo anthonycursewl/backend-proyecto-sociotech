@@ -55,7 +55,8 @@ export class PdfController {
   async getAppointmentPdf(
     @Param('appointmentId', ParseUUIDPipe) appointmentId: string,
   ): Promise<StreamableFile> {
-    const buffer = await this.pdfService.generateAppointmentDetail(appointmentId);
+    const buffer =
+      await this.pdfService.generateAppointmentDetail(appointmentId);
     return new StreamableFile(buffer, {
       type: 'application/pdf',
       disposition: `inline; filename="cita-${appointmentId.slice(0, 8)}.pdf"`,

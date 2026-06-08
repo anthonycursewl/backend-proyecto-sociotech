@@ -151,6 +151,19 @@ export class UserService {
     return { user };
   }
 
+  async delete(userId: string, requesterUserId: string): Promise<void> {
+    if (userId === requesterUserId) {
+      throw new ForbiddenException('Cannot delete your own account');
+    }
+
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.userRepository.delete(userId);
+  }
+
   async changeUserRole(
     input: ChangeUserRoleInput,
   ): Promise<ChangeUserRoleOutput> {

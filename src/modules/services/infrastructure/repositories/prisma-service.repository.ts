@@ -99,10 +99,18 @@ export class PrismaServiceRepository implements ServiceRepository {
       cursor,
       limit = DEFAULT_PAGE_SIZE,
       includeInactive = false,
+      status,
     } = params ?? {};
 
     const where: Record<string, unknown> = {};
-    if (!includeInactive) {
+    if (status === 'inactive') {
+      where.isActive = false;
+    } else if (status === 'all') {
+      // no filter
+    } else if (!status && includeInactive) {
+      // backward compat: old includeInactive=true without status → all
+    } else {
+      // status=active OR no params at all → only active
       where.isActive = true;
     }
 
@@ -119,9 +127,7 @@ export class PrismaServiceRepository implements ServiceRepository {
     const nextCursor = hasMore ? items[items.length - 1].id : null;
 
     return {
-      data: items.map((s) =>
-        this.toProps(s as ServiceWithDoctors),
-      ),
+      data: items.map((s) => this.toProps(s as ServiceWithDoctors)),
       nextCursor,
     };
   }

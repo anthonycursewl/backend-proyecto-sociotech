@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -196,5 +197,17 @@ export class UserController {
       roleId: dto.roleId,
       requesterUserId: req.user!.userId,
     });
+  }
+
+  @Delete(':id')
+  @Audit('users:delete', 'User')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('users', 'delete')
+  async delete(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: RequestWithUser,
+  ): Promise<{ message: string }> {
+    await this.userService.delete(id, req.user!.userId);
+    return { message: 'User deleted successfully' };
   }
 }

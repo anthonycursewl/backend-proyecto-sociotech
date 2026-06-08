@@ -8,6 +8,7 @@ import {
   IsBoolean,
   IsArray,
   IsUUID,
+  IsIn,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
@@ -82,6 +83,10 @@ export class ServiceListQueryDto {
   @Min(1)
   @IsPositive()
   limit?: number;
+
+  @IsOptional()
+  @IsIn(['active', 'inactive', 'all'])
+  status?: 'active' | 'inactive' | 'all';
 
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)

@@ -102,15 +102,14 @@ export function addHeader(doc: PDFKit.PDFDocument): void {
   const textW = pageW - margin * 2 - logoW - 20;
 
   // Clinic info on the left
-  doc.fontSize(16)
+  doc
+    .fontSize(16)
     .font('Helvetica-Bold')
     .fillColor(PRIMARY)
     .text(info.name, margin, startY + 4, { width: textW });
-  doc.fontSize(8)
-    .font('Helvetica')
-    .fillColor(TEXT_MUTED);
+  doc.fontSize(8).font('Helvetica').fillColor(TEXT_MUTED);
   const infoParts = [info.address, info.phone].filter(Boolean);
-  let infoY = startY + 26;
+  const infoY = startY + 26;
   doc.text(infoParts.join(' | ') || '', margin, infoY, { width: textW });
   doc.text(`RNC: ${info.rnc}`, margin, infoY + 12, { width: textW });
 
@@ -140,14 +139,13 @@ export function addPageNumbers(doc: PDFKit.PDFDocument): void {
   for (let i = 0; i < range.count; i++) {
     doc.switchToPage(i);
     const footerY = doc.page.height - 45;
-    doc.fontSize(8)
+    doc
+      .fontSize(8)
       .fillColor(TEXT_MUTED)
-      .text(
-        `Página ${i + 1} de ${range.count}`,
-        50,
-        footerY,
-        { align: 'center', width: doc.page.width - 100 },
-      );
+      .text(`Página ${i + 1} de ${range.count}`, 50, footerY, {
+        align: 'center',
+        width: doc.page.width - 100,
+      });
   }
 }
 
@@ -165,11 +163,7 @@ export async function pdfToBuffer(doc: PDFKit.PDFDocument): Promise<Buffer> {
 
 export function addSeparator(doc: PDFKit.PDFDocument): void {
   const y = doc.y + 2;
-  doc.moveTo(50, y)
-    .lineWidth(0.5)
-    .lineTo(545, y)
-    .strokeColor(ACCENT)
-    .stroke();
+  doc.moveTo(50, y).lineWidth(0.5).lineTo(545, y).strokeColor(ACCENT).stroke();
   doc.moveDown(0.6);
 }
 
@@ -188,7 +182,8 @@ export function field(
   value: string | null | undefined | number,
   doc: PDFKit.PDFDocument,
 ): void {
-  doc.fontSize(9)
+  doc
+    .fontSize(9)
     .font('Helvetica-Bold')
     .fillColor(PRIMARY_LIGHT)
     .text(`${label}: `, { continued: true })
@@ -201,12 +196,10 @@ export function field(
 export function sectionTitle(title: string, doc: PDFKit.PDFDocument): void {
   doc.moveDown(0.4);
   const y = doc.y;
-  doc.fontSize(11)
-    .font('Helvetica-Bold')
-    .fillColor(PRIMARY)
-    .text(title);
+  doc.fontSize(11).font('Helvetica-Bold').fillColor(PRIMARY).text(title);
   doc.moveDown(0.15);
-  doc.moveTo(50, doc.y)
+  doc
+    .moveTo(50, doc.y)
     .lineWidth(1.5)
     .lineTo(200, doc.y)
     .strokeColor(PRIMARY_LIGHT)
@@ -240,11 +233,10 @@ export function infoBox(
   doc: PDFKit.PDFDocument,
 ): void {
   const boxY = doc.y;
-  doc.rect(50, boxY, 495, 18)
-    .fillColor('#f7fafc')
-    .fill();
+  doc.rect(50, boxY, 495, 18).fillColor('#f7fafc').fill();
 
-  doc.fontSize(9)
+  doc
+    .fontSize(9)
     .font('Helvetica-Bold')
     .fillColor(PRIMARY_LIGHT)
     .text(` ${label}: `, 55, boxY + 4, { continued: true })

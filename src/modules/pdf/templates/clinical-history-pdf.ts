@@ -87,15 +87,27 @@ function writeMedicalSummary(
 ): void {
   sectionTitle('Resumen Médico', doc);
 
-  doc.font('Helvetica-Bold').fontSize(9).fillColor(PRIMARY_LIGHT).text('Alergias:');
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(9)
+    .fillColor(PRIMARY_LIGHT)
+    .text('Alergias:');
   bulletList(patient.allergies, doc);
   doc.moveDown(0.15);
 
-  doc.font('Helvetica-Bold').fontSize(9).fillColor(PRIMARY_LIGHT).text('Enfermedades Crónicas:');
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(9)
+    .fillColor(PRIMARY_LIGHT)
+    .text('Enfermedades Crónicas:');
   bulletList(patient.chronicDiseases, doc);
   doc.moveDown(0.15);
 
-  doc.font('Helvetica-Bold').fontSize(9).fillColor(PRIMARY_LIGHT).text('Medicamentos Actuales:');
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(9)
+    .fillColor(PRIMARY_LIGHT)
+    .text('Medicamentos Actuales:');
   bulletList(patient.currentMedications, doc);
   doc.fillColor(TEXT_DARK);
 }
@@ -116,8 +128,15 @@ function writeVitalSigns(
     vitals.push(`SpO2: ${record.oxygenSaturation}%`);
 
   if (vitals.length > 0) {
-    doc.font('Helvetica-Bold').fontSize(9).fillColor(PRIMARY_LIGHT).text('Signos Vitales:');
-    doc.font('Helvetica').fontSize(9).fillColor(TEXT_DARK)
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(9)
+      .fillColor(PRIMARY_LIGHT)
+      .text('Signos Vitales:');
+    doc
+      .font('Helvetica')
+      .fontSize(9)
+      .fillColor(TEXT_DARK)
       .text(`  ${vitals.join(' | ')}`);
     doc.moveDown(0.15);
   }
@@ -129,16 +148,25 @@ function writePrescriptions(
 ): void {
   if (prescriptions.length === 0) return;
 
-  doc.font('Helvetica-Bold').fontSize(9).fillColor(PRIMARY_LIGHT).text('Recetario:');
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(9)
+    .fillColor(PRIMARY_LIGHT)
+    .text('Recetario:');
   prescriptions.forEach((p, i) => {
     const parts = [p.medicationName];
     if (p.dosage) parts.push(`${p.dosage}`);
     if (p.frequency) parts.push(`c/${p.frequency}`);
     if (p.duration) parts.push(`x${p.duration}`);
-    doc.font('Helvetica').fontSize(8).fillColor(TEXT_DARK)
+    doc
+      .font('Helvetica')
+      .fontSize(8)
+      .fillColor(TEXT_DARK)
       .text(`  ${i + 1}. ${parts.join(' — ')}`);
     if (p.instructions) {
-      doc.fontSize(7).fillColor(TEXT_MUTED)
+      doc
+        .fontSize(7)
+        .fillColor(TEXT_MUTED)
         .text(`     Indicaciones: ${p.instructions}`);
     }
   });
@@ -153,15 +181,10 @@ function writeRecordCard(
   doc.moveDown(0.3);
 
   // Record card header bar
-  doc.rect(50, doc.y, 495, 22)
-    .fillColor(PRIMARY)
-    .fill();
+  doc.rect(50, doc.y, 495, 22).fillColor(PRIMARY).fill();
   const headerY = doc.y;
   doc.font('Helvetica-Bold').fontSize(9).fillColor('#ffffff');
-  doc.text(
-    `#${index} — ${formatDateTime(record.createdAt)}`,
-    55, headerY + 4,
-  );
+  doc.text(`#${index} — ${formatDateTime(record.createdAt)}`, 55, headerY + 4);
   doc.font('Helvetica').fontSize(8);
   doc.text(`Dr. ${record.doctorName}`, 55, headerY + 13);
   doc.fillColor(TEXT_DARK);
@@ -172,11 +195,19 @@ function writeRecordCard(
   doc.moveDown(0.2);
 
   field('Motivo de Consulta', record.chiefComplaint, doc);
-  field('Diagnóstico', `${record.diagnosis}${record.diagnosisCode ? ` (CIE-10: ${record.diagnosisCode})` : ''}`, doc);
+  field(
+    'Diagnóstico',
+    `${record.diagnosis}${record.diagnosisCode ? ` (CIE-10: ${record.diagnosisCode})` : ''}`,
+    doc,
+  );
   field('Tratamiento', record.treatment, doc);
 
   if (record.symptoms.length > 0) {
-    doc.font('Helvetica-Bold').fontSize(9).fillColor(PRIMARY_LIGHT).text('Síntomas:');
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(9)
+      .fillColor(PRIMARY_LIGHT)
+      .text('Síntomas:');
     bulletList(record.symptoms, doc);
     doc.fillColor(TEXT_DARK);
   }
@@ -184,7 +215,11 @@ function writeRecordCard(
   writeVitalSigns(doc, record);
 
   if (record.notes) {
-    doc.font('Helvetica-Bold').fontSize(9).fillColor(PRIMARY_LIGHT).text('Notas:');
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(9)
+      .fillColor(PRIMARY_LIGHT)
+      .text('Notas:');
     bodyText(record.notes, doc);
   }
 
@@ -197,11 +232,16 @@ export async function generateClinicalHistoryPdf(
   const doc = createPdfDocument('Historial Clínico');
   addHeader(doc);
 
-  doc.fontSize(16).font('Helvetica-Bold')
+  doc
+    .fontSize(16)
+    .font('Helvetica-Bold')
     .fillColor(PRIMARY)
     .text('HISTORIAL CLÍNICO', { align: 'center' });
   doc.moveDown(0.2);
-  doc.fontSize(9).font('Helvetica').fillColor(TEXT_MUTED)
+  doc
+    .fontSize(9)
+    .font('Helvetica')
+    .fillColor(TEXT_MUTED)
     .text(`Generado: ${formatDateTime(new Date())}`, { align: 'center' })
     .fillColor(TEXT_DARK);
   doc.moveDown(0.5);
@@ -228,7 +268,10 @@ export async function generateClinicalHistoryPdf(
   }
 
   doc.moveDown(1);
-  doc.fontSize(9).font('Helvetica').fillColor(TEXT_MUTED)
+  doc
+    .fontSize(9)
+    .font('Helvetica')
+    .fillColor(TEXT_MUTED)
     .text('— Fin del Historial Clínico —', 50, doc.y, { align: 'center' })
     .fillColor(TEXT_DARK);
 

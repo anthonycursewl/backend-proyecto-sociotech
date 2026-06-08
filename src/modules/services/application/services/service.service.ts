@@ -100,8 +100,19 @@ export class ServiceService {
       throw new NotFoundException('Service not found');
     }
 
-    service.update({ isActive: false });
+    service.update({ isActive: false, doctorIds: [] });
     await this.serviceRepo.update(id, service.toPlain());
+  }
+
+  async restore(id: string): Promise<ServiceResponse> {
+    const service = await this.serviceRepo.findById(id);
+    if (!service) {
+      throw new NotFoundException('Service not found');
+    }
+
+    service.update({ isActive: true });
+    const updated = await this.serviceRepo.update(id, service.toPlain());
+    return updated.toPlain();
   }
 
   async findByDoctor(doctorId: string): Promise<ServiceResponse[]> {

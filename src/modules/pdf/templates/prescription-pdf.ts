@@ -71,7 +71,10 @@ function writePrescriptionsTable(
   items: PrescriptionItemInfo[],
 ): void {
   if (items.length === 0) {
-    doc.font('Helvetica').fontSize(9).fillColor(TEXT_MUTED)
+    doc
+      .font('Helvetica')
+      .fontSize(9)
+      .fillColor(TEXT_MUTED)
       .text('No se recetaron medicamentos.')
       .fillColor('#000000');
     return;
@@ -83,9 +86,7 @@ function writePrescriptionsTable(
 
   const drawHeader = (y: number): number => {
     const h = 20;
-    doc.rect(colX[0], y, totalW, h)
-      .fillColor(PRIMARY_LIGHT)
-      .fill();
+    doc.rect(colX[0], y, totalW, h).fillColor(PRIMARY_LIGHT).fill();
     doc.font('Helvetica-Bold').fontSize(8).fillColor('#ffffff');
     doc.text('Medicamento', colX[0] + 3, y + 5, { width: colW[0] - 4 });
     doc.text('Dosis', colX[1] + 3, y + 5, { width: colW[1] - 4 });
@@ -96,7 +97,11 @@ function writePrescriptionsTable(
     return y + h + 2;
   };
 
-  const drawRow = (item: PrescriptionItemInfo, y: number, idx: number): number => {
+  const drawRow = (
+    item: PrescriptionItemInfo,
+    y: number,
+    idx: number,
+  ): number => {
     const values = [
       item.medicationName,
       item.dosage || '—',
@@ -118,7 +123,8 @@ function writePrescriptionsTable(
 
     // Alternating row background
     if (idx % 2 === 1) {
-      doc.rect(colX[0], y, totalW, rowH + 3)
+      doc
+        .rect(colX[0], y, totalW, rowH + 3)
         .fillColor('#f7fafc')
         .fill();
     }
@@ -130,7 +136,8 @@ function writePrescriptionsTable(
     doc.fillColor('#000000');
 
     const sepY = y + rowH + 2;
-    doc.lineWidth(0.3)
+    doc
+      .lineWidth(0.3)
       .moveTo(colX[0], sepY)
       .lineTo(colX[0] + totalW, sepY)
       .strokeColor('#e2e8f0')
@@ -150,19 +157,22 @@ function writePrescriptionsTable(
 function writeSignature(doc: PDFKit.PDFDocument): void {
   doc.moveDown(2.5);
   const lineY = doc.y;
-  doc.moveTo(180, lineY)
+  doc
+    .moveTo(180, lineY)
     .lineTo(420, lineY)
     .lineWidth(1)
     .strokeColor(PRIMARY_LIGHT)
     .stroke();
   doc.moveDown(0.15);
-  doc.font('Helvetica')
+  doc
+    .font('Helvetica')
     .fontSize(9)
     .fillColor(TEXT_MUTED)
     .text('Firma del Médico', 180, doc.y, { align: 'center', width: 240 });
   doc.fillColor('#000000');
   doc.moveDown(0.5);
-  doc.fontSize(7)
+  doc
+    .fontSize(7)
     .fillColor(TEXT_MUTED)
     .text(
       'Documento generado electrónicamente. Válido solo con firma y sello del médico tratante.',
@@ -179,11 +189,14 @@ export async function generatePrescriptionPdf(
   const doc = createPdfDocument('Receta Médica');
   addHeader(doc);
 
-  doc.fontSize(16).font('Helvetica-Bold')
+  doc
+    .fontSize(16)
+    .font('Helvetica-Bold')
     .fillColor('#1e3a5f')
     .text('RECETA MÉDICA', { align: 'center' });
   doc.moveDown(0.2);
-  doc.fontSize(9)
+  doc
+    .fontSize(9)
     .font('Helvetica')
     .fillColor(TEXT_MUTED)
     .text(`Fecha: ${formatDate(params.createdAt ?? new Date())}`, {

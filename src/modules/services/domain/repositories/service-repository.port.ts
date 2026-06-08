@@ -6,6 +6,7 @@ export interface CursorPaginationParams {
   cursor?: string;
   limit: number;
   includeInactive?: boolean;
+  status?: 'active' | 'inactive' | 'all';
 }
 
 export interface PaginatedServices {

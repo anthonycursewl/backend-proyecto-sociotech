@@ -80,8 +80,7 @@ export function fromLocalWallClock(
 ): Date {
   const guess = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
   const p = getLocalParts(guess);
-  const minuteDelta =
-    p.hour * 60 + p.minute - (hour * 60 + minute);
+  const minuteDelta = p.hour * 60 + p.minute - (hour * 60 + minute);
   const dayDelta = p.day - day;
   const totalOffsetMinutes = dayDelta * 24 * 60 + minuteDelta;
   return new Date(guess.getTime() - totalOffsetMinutes * 60 * 1000);
