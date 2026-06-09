@@ -144,6 +144,11 @@ export class PatientService {
     return this.patientRepo.search(query, limit);
   }
 
+  async delete(id: string): Promise<void> {
+    const patient = await this.findById(id);
+    await this.patientRepo.delete(id);
+  }
+
   async findManyCursor(
     cursor?: string,
     limit = DEFAULT_PAGE_SIZE,

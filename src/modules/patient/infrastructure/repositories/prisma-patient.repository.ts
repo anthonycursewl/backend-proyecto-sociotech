@@ -97,8 +97,12 @@ export class PrismaPatientRepository implements PatientRepository {
         createdAt: patient.createdAt,
         updatedAt: patient.updatedAt,
         allergies: { create: patient.allergies.map((name) => ({ name })) },
-        medications: { create: patient.currentMedications.map((name) => ({ name })) },
-        chronicDiseases: { create: patient.chronicDiseases.map((name) => ({ name })) },
+        medications: {
+          create: patient.currentMedications.map((name) => ({ name })),
+        },
+        chronicDiseases: {
+          create: patient.chronicDiseases.map((name) => ({ name })),
+        },
       },
       include: this.getRelations(),
     });
@@ -179,7 +183,10 @@ export class PrismaPatientRepository implements PatientRepository {
     await this.prisma.patient.delete({ where: { id } });
   }
 
-  async search(query: string, limit = DEFAULT_PAGE_SIZE): Promise<PatientSummary[]> {
+  async search(
+    query: string,
+    limit = DEFAULT_PAGE_SIZE,
+  ): Promise<PatientSummary[]> {
     const patients = (await this.prisma.patient.findMany({
       where: {
         OR: [

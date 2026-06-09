@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -177,5 +178,16 @@ export class PatientController {
     const result = toPatientResponse(await this.patientService.update(id, dto));
     await this.cacheManager.del(`patient:${id}`);
     return result;
+  }
+
+  @Delete(':id')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('patients', 'delete')
+  @Audit('patients:delete', 'Patient')
+  async delete(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<{ message: string }> {
+    await this.patientService.delete(id);
+    return { message: 'Patient deleted successfully' };
   }
 }
