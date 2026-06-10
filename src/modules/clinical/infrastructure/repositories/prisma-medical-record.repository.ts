@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { MedicalRecordRepository } from '../../domain/repositories/medical-record-repository.port';
-import { MedicalRecord, MedicalRecordProps, PrescriptionProps } from '../../domain/entities/medical-record.entity';
+import {
+  MedicalRecordRepository,
+  CursorPagination,
+} from '../../domain/repositories/medical-record-repository.port';
+import {
+  MedicalRecord,
+  MedicalRecordProps,
+  PrescriptionProps,
+} from '../../domain/entities/medical-record.entity';
 import { PrismaService } from '../db/prisma.service';
 
 const INCLUDE_PRESCRIPTIONS = { prescriptions: true } as const;
@@ -9,7 +16,9 @@ const INCLUDE_PRESCRIPTIONS = { prescriptions: true } as const;
 export class PrismaMedicalRecordRepository implements MedicalRecordRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private toDomain(raw: MedicalRecordProps & { prescriptions?: PrescriptionProps[] }): MedicalRecord {
+  private toDomain(
+    raw: MedicalRecordProps & { prescriptions?: PrescriptionProps[] },
+  ): MedicalRecord {
     return new MedicalRecord(raw);
   }
 
@@ -53,7 +62,7 @@ export class PrismaMedicalRecordRepository implements MedicalRecordRepository {
       },
       include: INCLUDE_PRESCRIPTIONS,
     });
-    return this.toDomain(created as MedicalRecordProps & { prescriptions: PrescriptionProps[] });
+    return this.toDomain(created);
   }
 
   async findById(id: string): Promise<MedicalRecord | null> {
@@ -61,25 +70,57 @@ export class PrismaMedicalRecordRepository implements MedicalRecordRepository {
       where: { id },
       include: INCLUDE_PRESCRIPTIONS,
     });
-    return record ? this.toDomain(record as MedicalRecordProps & { prescriptions: PrescriptionProps[] }) : null;
+    return record ? this.toDomain(record) : null;
   }
 
-  async findByPatientId(patientId: string): Promise<MedicalRecord[]> {
+  async findByPatientId(
+    patientId: string,
+    pagination?: CursorPagination,
+  ): Promise<MedicalRecord[]> {
+    const take = pagination?.limit ? pagination.limit + 1 : undefined;
     const records = await this.prisma.medicalRecord.findMany({
-      where: { patientId },
+      where: {
+        patientId,
+        ...(pagination?.cursor ? { id: { lt: pagination.cursor } } : {}),
+      },
+      take,
       include: INCLUDE_PRESCRIPTIONS,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { id: 'desc' },
     });
-    return records.map((r) => this.toDomain(r as MedicalRecordProps & { prescriptions: PrescriptionProps[] }));
+    const items =
+      take && records.length > pagination!.limit!
+        ? records.slice(0, pagination!.limit)
+        : records;
+    return items.map((r) =>
+      this.toDomain(
+        r as MedicalRecordProps & { prescriptions: PrescriptionProps[] },
+      ),
+    );
   }
 
-  async findByDoctorId(doctorId: string): Promise<MedicalRecord[]> {
+  async findByDoctorId(
+    doctorId: string,
+    pagination?: CursorPagination,
+  ): Promise<MedicalRecord[]> {
+    const take = pagination?.limit ? pagination.limit + 1 : undefined;
     const records = await this.prisma.medicalRecord.findMany({
-      where: { doctorId },
+      where: {
+        doctorId,
+        ...(pagination?.cursor ? { id: { lt: pagination.cursor } } : {}),
+      },
+      take,
       include: INCLUDE_PRESCRIPTIONS,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { id: 'desc' },
     });
-    return records.map((r) => this.toDomain(r as MedicalRecordProps & { prescriptions: PrescriptionProps[] }));
+    const items =
+      take && records.length > pagination!.limit!
+        ? records.slice(0, pagination!.limit)
+        : records;
+    return items.map((r) =>
+      this.toDomain(
+        r as MedicalRecordProps & { prescriptions: PrescriptionProps[] },
+      ),
+    );
   }
 
   async findUnsignedByDoctorId(doctorId: string): Promise<MedicalRecord[]> {
@@ -88,15 +129,21 @@ export class PrismaMedicalRecordRepository implements MedicalRecordRepository {
       include: INCLUDE_PRESCRIPTIONS,
       orderBy: { createdAt: 'desc' },
     });
-    return records.map((r) => this.toDomain(r as MedicalRecordProps & { prescriptions: PrescriptionProps[] }));
+    return records.map((r) =>
+      this.toDomain(
+        r as MedicalRecordProps & { prescriptions: PrescriptionProps[] },
+      ),
+    );
   }
 
-  async findByAppointmentId(appointmentId: string): Promise<MedicalRecord | null> {
+  async findByAppointmentId(
+    appointmentId: string,
+  ): Promise<MedicalRecord | null> {
     const record = await this.prisma.medicalRecord.findUnique({
       where: { appointmentId },
       include: INCLUDE_PRESCRIPTIONS,
     });
-    return record ? this.toDomain(record as MedicalRecordProps & { prescriptions: PrescriptionProps[] }) : null;
+    return record ? this.toDomain(record) : null;
   }
 
   async delete(id: string): Promise<void> {
@@ -145,6 +192,6 @@ export class PrismaMedicalRecordRepository implements MedicalRecordRepository {
         include: INCLUDE_PRESCRIPTIONS,
       });
     });
-    return this.toDomain(updated as MedicalRecordProps & { prescriptions: PrescriptionProps[] });
+    return this.toDomain(updated);
   }
 }

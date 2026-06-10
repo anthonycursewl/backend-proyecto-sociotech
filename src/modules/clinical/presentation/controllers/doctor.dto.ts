@@ -3,9 +3,11 @@ import {
   IsNotEmpty,
   IsOptional,
   IsNumber,
+  IsBoolean,
   Min,
   IsPositive,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateDoctorDto {
   @IsString()
@@ -55,6 +57,7 @@ export class UpdateDoctorDto {
   phoneNumber?: string;
 
   @IsOptional()
-  @IsString()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
   isActive?: boolean;
 }

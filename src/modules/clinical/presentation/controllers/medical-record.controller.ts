@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   Req,
   ParseUUIDPipe,
@@ -57,15 +58,31 @@ export class MedicalRecordController {
   @Get('patient/:patientId')
   @UseGuards(PermissionsGuard)
   @CheckPermissions('medical-records', 'read')
-  async findByPatient(@Param('patientId', ParseUUIDPipe) patientId: string) {
-    return this.medicalRecordService.findByPatientId(patientId);
+  async findByPatient(
+    @Param('patientId', ParseUUIDPipe) patientId: string,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pagination =
+      cursor || limit
+        ? { cursor, limit: limit ? parseInt(limit) : undefined }
+        : undefined;
+    return this.medicalRecordService.findByPatientId(patientId, pagination);
   }
 
   @Get('doctor/:doctorId')
   @UseGuards(PermissionsGuard)
   @CheckPermissions('medical-records', 'read')
-  async findByDoctor(@Param('doctorId', ParseUUIDPipe) doctorId: string) {
-    return this.medicalRecordService.findByDoctorId(doctorId);
+  async findByDoctor(
+    @Param('doctorId', ParseUUIDPipe) doctorId: string,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pagination =
+      cursor || limit
+        ? { cursor, limit: limit ? parseInt(limit) : undefined }
+        : undefined;
+    return this.medicalRecordService.findByDoctorId(doctorId, pagination);
   }
 
   @Get('appointment/:appointmentId')

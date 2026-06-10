@@ -6,7 +6,10 @@ import { AppointmentService } from '../appointments/application/services/appoint
 import { generatePrescriptionPdf } from './templates/prescription-pdf';
 import type { PrescriptionPdfParams } from './templates/prescription-pdf';
 import { generateClinicalHistoryPdf } from './templates/clinical-history-pdf';
-import type { ClinicalHistoryPdfParams, HistoryRecordInfo } from './templates/clinical-history-pdf';
+import type {
+  ClinicalHistoryPdfParams,
+  HistoryRecordInfo,
+} from './templates/clinical-history-pdf';
 import { generateAppointmentPdf } from './templates/appointment-pdf';
 import type { AppointmentPdfParams } from './templates/appointment-pdf';
 
