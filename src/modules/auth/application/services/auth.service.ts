@@ -1,12 +1,27 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { randomInt } from 'crypto';
 import type { UserRepository } from '../../domain/repositories/user-repository.port';
 import { USER_REPOSITORY } from '../../domain/repositories/user-repository.port';
 import { User } from '@user/domain/entities/user.entity';
 import { BcryptAuthService } from '../../infrastructure/strategies/bcrypt-auth.service';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../../infrastructure/db/prisma.service';
 import { RedisEventBus, DomainEvent } from '../../infrastructure/events';
+import { QUEUE_SERVICE } from '../../../queue/queue.port';
+import type { IQueueService } from '../../../queue/queue.port';
+import {
+  NOTIFICATION_STREAM,
+  NotificationType,
+  OTP_EXPIRES_MINUTES,
+  OTP_CODE_LENGTH,
+} from '../../../notifications/domain/notification.types';
 
 @Injectable()
 export class AuthService {
@@ -14,12 +29,19 @@ export class AuthService {
   private readonly ACCESS_TOKEN_EXPIRES_IN: string;
   private readonly REFRESH_TOKEN_EXPIRES_IN: string;
   private readonly REFRESH_TOKEN_DAYS: number;
+  private readonly resetCodes = new Map<
+    string,
+    { code: string; expiresAt: Date }
+  >();
+  private readonly RESET_CODE_EXPIRES_MINUTES = 15;
 
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepo: UserRepository,
     private readonly bcryptAuth: BcryptAuthService,
     private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
     private readonly eventBus: RedisEventBus,
+    @Inject(QUEUE_SERVICE) private readonly queue: IQueueService,
     configService: ConfigService,
   ) {
     this.ACCESS_TOKEN_EXPIRES_IN =
@@ -43,6 +65,21 @@ export class AuthService {
     const existing = await this.userRepo.findByEmail(normalizedEmail);
     if (existing) {
       throw new UnauthorizedException('Email already exists');
+    }
+
+    const verified = await this.prisma.emailVerification.findFirst({
+      where: {
+        email: normalizedEmail,
+        verified: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!verified) {
+      throw new BadRequestException(
+        'Debes verificar tu correo electrónico antes de registrarte. ' +
+          'Usa el endpoint POST /auth/send-verification-code para recibir un código.',
+      );
     }
 
     const passwordHash = await this.bcryptAuth.hashPassword(dto.password);
@@ -87,6 +124,17 @@ export class AuthService {
     await this.eventBus.publish(event);
     this.logger.log(`[PUBLISH] Event published successfully for ${saved.id}`);
 
+    this.queue
+      .publish(NOTIFICATION_STREAM, {
+        type: NotificationType.USER_REGISTERED,
+        data: JSON.stringify({
+          userId: saved.id,
+        }),
+      })
+      .catch((err: Error) =>
+        this.logger.warn(`Notification publish failed: ${err.message}`),
+      );
+
     return this.generateTokens(userWithRole || saved);
   }
 
@@ -104,6 +152,21 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    this.queue
+      .publish(NOTIFICATION_STREAM, {
+        type: NotificationType.LOGIN_DETECTED,
+        data: JSON.stringify({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
+          time: new Date().toLocaleString('es-DO', {
+            timeZone: 'America/Santo_Domingo',
+          }),
+        }),
+      })
+      .catch((err: Error) =>
+        this.logger.warn(`Login notification publish failed: ${err.message}`),
+      );
 
     return this.generateTokens(user);
   }
@@ -158,6 +221,190 @@ export class AuthService {
         updatedAt: user.updatedAt,
       },
     };
+  }
+
+  async sendVerificationCode(email: string): Promise<{ message: string }> {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existing = await this.userRepo.findByEmail(normalizedEmail);
+    if (existing) {
+      throw new BadRequestException('Este correo ya está registrado');
+    }
+
+    const code = randomInt(0, 10 ** OTP_CODE_LENGTH)
+      .toString()
+      .padStart(OTP_CODE_LENGTH, '0');
+
+    const expiresAt = new Date(Date.now() + OTP_EXPIRES_MINUTES * 60 * 1000);
+
+    await this.prisma.emailVerification.create({
+      data: {
+        email: normalizedEmail,
+        code,
+        expiresAt,
+      },
+    });
+
+    this.queue
+      .publish(NOTIFICATION_STREAM, {
+        type: NotificationType.EMAIL_VERIFICATION,
+        data: JSON.stringify({
+          email: normalizedEmail,
+          name: normalizedEmail.split('@')[0],
+          code,
+          expiresInMinutes: OTP_EXPIRES_MINUTES,
+        }),
+      })
+      .catch((err: Error) =>
+        this.logger.warn(`Verification email publish failed: ${err.message}`),
+      );
+
+    this.logger.log(`Verification code sent to ${normalizedEmail}`);
+    return { message: 'Código de verificación enviado al correo' };
+  }
+
+  async verifyCode(email: string, code: string): Promise<{ message: string }> {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const verification = await this.prisma.emailVerification.findFirst({
+      where: {
+        email: normalizedEmail,
+        code,
+        verified: false,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!verification) {
+      throw new BadRequestException('Código inválido o expirado');
+    }
+
+    await this.prisma.emailVerification.update({
+      where: { id: verification.id },
+      data: { verified: true },
+    });
+
+    this.logger.log(`Email ${normalizedEmail} verified successfully`);
+    return { message: 'Correo verificado exitosamente' };
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await this.userRepo.findByEmail(normalizedEmail);
+    if (!user) {
+      return {
+        message:
+          'Si el correo existe, recibirás un código para restablecer tu contraseña',
+      };
+    }
+
+    const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
+
+    const expiresAt = new Date(
+      Date.now() + this.RESET_CODE_EXPIRES_MINUTES * 60 * 1000,
+    );
+    this.resetCodes.set(normalizedEmail, { code, expiresAt });
+
+    this.queue
+      .publish(NOTIFICATION_STREAM, {
+        type: NotificationType.PASSWORD_RESET,
+        data: JSON.stringify({
+          email: normalizedEmail,
+          name: `${user.firstName} ${user.lastName}`,
+          code,
+          expiresInMinutes: this.RESET_CODE_EXPIRES_MINUTES,
+        }),
+      })
+      .catch((err: Error) =>
+        this.logger.warn(`Password reset email publish failed: ${err.message}`),
+      );
+
+    this.logger.log(`Password reset code sent to ${normalizedEmail}`);
+    return {
+      message:
+        'Si el correo existe, recibirás un código para restablecer tu contraseña',
+    };
+  }
+
+  async resetPassword(
+    email: string,
+    code: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const stored = this.resetCodes.get(normalizedEmail);
+    if (!stored || stored.code !== code || stored.expiresAt < new Date()) {
+      throw new BadRequestException('Código inválido o expirado');
+    }
+
+    const user = await this.userRepo.findByEmail(normalizedEmail);
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    const passwordHash = await this.bcryptAuth.hashPassword(newPassword);
+    await this.userRepo.update(user.id, { passwordHash });
+
+    this.resetCodes.delete(normalizedEmail);
+
+    this.queue
+      .publish(NOTIFICATION_STREAM, {
+        type: NotificationType.PASSWORD_CHANGED,
+        data: JSON.stringify({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
+          time: new Date().toLocaleString('es-DO', {
+            timeZone: 'America/Santo_Domingo',
+          }),
+        }),
+      })
+      .catch((err: Error) =>
+        this.logger.warn(`Password change notification failed: ${err.message}`),
+      );
+
+    this.logger.log(`Password reset successful for ${normalizedEmail}`);
+    return { message: 'Contraseña restablecida exitosamente' };
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    const user = await this.userRepo.findById(userId, true);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const isPasswordValid = await this.bcryptAuth.comparePassword(
+      currentPassword,
+      user.passwordHash,
+    );
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const passwordHash = await this.bcryptAuth.hashPassword(newPassword);
+    await this.userRepo.update(userId, { passwordHash });
+
+    this.queue
+      .publish(NOTIFICATION_STREAM, {
+        type: NotificationType.PASSWORD_CHANGED,
+        data: JSON.stringify({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
+          time: new Date().toLocaleString('es-DO', {
+            timeZone: 'America/Santo_Domingo',
+          }),
+        }),
+      })
+      .catch((err: Error) =>
+        this.logger.warn(`Password change notification failed: ${err.message}`),
+      );
+
+    return { message: 'Password changed successfully' };
   }
 
   private async generateTokens(user: User) {

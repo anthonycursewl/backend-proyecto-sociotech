@@ -17,7 +17,11 @@ import { AppointmentsModule } from '../appointments/appointments.module';
 
 @Module({
   imports: [PatientModule, forwardRef(() => AppointmentsModule)],
-  controllers: [DoctorController, DoctorScheduleController, MedicalRecordController],
+  controllers: [
+    DoctorController,
+    DoctorScheduleController,
+    MedicalRecordController,
+  ],
   providers: [
     PrismaService,
     DoctorService,
@@ -36,6 +40,11 @@ import { AppointmentsModule } from '../appointments/appointments.module';
       useClass: PrismaMedicalRecordRepository,
     },
   ],
-  exports: [PrismaService, DoctorService, DoctorScheduleService, MedicalRecordService],
+  exports: [
+    PrismaService,
+    DoctorService,
+    DoctorScheduleService,
+    MedicalRecordService,
+  ],
 })
 export class ClinicalModule {}

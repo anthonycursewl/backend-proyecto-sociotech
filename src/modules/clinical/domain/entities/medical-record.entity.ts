@@ -171,7 +171,8 @@ export class MedicalRecord {
     this.props.weight = weight ?? this.props.weight;
     this.props.height = height ?? this.props.height;
     this.props.respiratoryRate = respiratoryRate ?? this.props.respiratoryRate;
-    this.props.oxygenSaturation = oxygenSaturation ?? this.props.oxygenSaturation;
+    this.props.oxygenSaturation =
+      oxygenSaturation ?? this.props.oxygenSaturation;
     if (prescriptions !== undefined) {
       this.props.prescriptions = prescriptions;
     }

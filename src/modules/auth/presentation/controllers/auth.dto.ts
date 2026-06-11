@@ -1,4 +1,21 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  Length,
+} from 'class-validator';
+
+export class ChangePasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  currentPassword: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  newPassword: string;
+}
 
 export class RegisterDto {
   @IsEmail()
@@ -17,7 +34,6 @@ export class RegisterDto {
   @IsString()
   @IsNotEmpty()
   lastName: string;
-  // Nota: El rol siempre será PATIENT por defecto, no se puede asignar desde el frontend
 }
 
 export class LoginDto {
@@ -27,6 +43,45 @@ export class LoginDto {
 
   @IsString()
   @IsNotEmpty()
+  password: string;
+}
+
+export class SendVerificationCodeDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
+
+export class VerifyCodeDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Length(6, 6)
+  code: string;
+}
+
+export class ForgotPasswordDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Length(6, 6)
+  code: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
   password: string;
 }
 

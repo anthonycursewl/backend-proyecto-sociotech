@@ -41,6 +41,10 @@ export class RedisEventBus implements IEventBus {
     this.redis.on('error', (err) => {
       this.logger.warn(`Redis error: ${err.message}`);
     });
+
+    this.consumerRedis.on('error', (err) => {
+      this.logger.warn(`Redis consumer error: ${err.message}`);
+    });
   }
 
   async publish(event: DomainEvent): Promise<void> {
@@ -90,7 +94,14 @@ export class RedisEventBus implements IEventBus {
     consumerName: string,
     handler: (event: DomainEvent) => Promise<void>,
   ): Promise<void> {
-    await this.createConsumerGroup(streamName, consumerGroup);
+    try {
+      await this.createConsumerGroup(streamName, consumerGroup);
+    } catch (error) {
+      this.logger.warn(
+        `Cannot subscribe to ${streamName}: ${error.message}. Events will not be consumed.`,
+      );
+      return;
+    }
 
     const processEvents = async () => {
       try {

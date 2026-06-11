@@ -7,7 +7,10 @@ import {
   Logger,
   forwardRef,
 } from '@nestjs/common';
-import { MEDICAL_RECORD_REPOSITORY } from '../../domain/repositories/medical-record-repository.port';
+import {
+  MEDICAL_RECORD_REPOSITORY,
+  CursorPagination,
+} from '../../domain/repositories/medical-record-repository.port';
 import type { MedicalRecordRepository } from '../../domain/repositories/medical-record-repository.port';
 import { DOCTOR_REPOSITORY } from '../../domain/repositories/doctor-repository.port';
 import type { DoctorRepository } from '../../domain/repositories/doctor-repository.port';
@@ -26,7 +29,8 @@ export class MedicalRecordService {
   private readonly logger = new Logger(MedicalRecordService.name);
 
   constructor(
-    @Inject(MEDICAL_RECORD_REPOSITORY) private readonly recordRepo: MedicalRecordRepository,
+    @Inject(MEDICAL_RECORD_REPOSITORY)
+    private readonly recordRepo: MedicalRecordRepository,
     @Inject(DOCTOR_REPOSITORY) private readonly doctorRepo: DoctorRepository,
     private readonly patientService: PatientService,
     @Inject(forwardRef(() => AppointmentService))
@@ -43,23 +47,29 @@ export class MedicalRecordService {
     }
 
     if (dto.appointmentId) {
-      const existing = await this.recordRepo.findByAppointmentId(dto.appointmentId);
+      const existing = await this.recordRepo.findByAppointmentId(
+        dto.appointmentId,
+      );
       if (existing) {
-        throw new BadRequestException('A medical record already exists for this appointment');
+        throw new BadRequestException(
+          'A medical record already exists for this appointment',
+        );
       }
     }
 
     const vs = dto.vitalSigns;
-    const prescriptions: PrescriptionProps[] = (dto.prescriptions ?? []).map((p) => ({
-      id: crypto.randomUUID(),
-      medicalRecordId: '',
-      medicationName: p.medicationName,
-      dosage: p.dosage ?? null,
-      frequency: p.frequency ?? null,
-      duration: p.duration ?? null,
-      instructions: p.instructions ?? null,
-      createdAt: new Date(),
-    }));
+    const prescriptions: PrescriptionProps[] = (dto.prescriptions ?? []).map(
+      (p) => ({
+        id: crypto.randomUUID(),
+        medicalRecordId: '',
+        medicationName: p.medicationName,
+        dosage: p.dosage ?? null,
+        frequency: p.frequency ?? null,
+        duration: p.duration ?? null,
+        instructions: p.instructions ?? null,
+        createdAt: new Date(),
+      }),
+    );
 
     const record = new MedicalRecord({
       id: crypto.randomUUID(),
@@ -109,17 +119,28 @@ export class MedicalRecordService {
     return record.toPlain() as MedicalRecordResponse;
   }
 
-  async findByPatientId(patientId: string): Promise<MedicalRecordResponse[]> {
-    const records = await this.recordRepo.findByPatientId(patientId);
+  async findByPatientId(
+    patientId: string,
+    pagination?: CursorPagination,
+  ): Promise<MedicalRecordResponse[]> {
+    const records = await this.recordRepo.findByPatientId(
+      patientId,
+      pagination,
+    );
     return records.map((r) => r.toPlain() as MedicalRecordResponse);
   }
 
-  async findByDoctorId(doctorId: string): Promise<MedicalRecordResponse[]> {
-    const records = await this.recordRepo.findByDoctorId(doctorId);
+  async findByDoctorId(
+    doctorId: string,
+    pagination?: CursorPagination,
+  ): Promise<MedicalRecordResponse[]> {
+    const records = await this.recordRepo.findByDoctorId(doctorId, pagination);
     return records.map((r) => r.toPlain() as MedicalRecordResponse);
   }
 
-  async findByAppointmentId(appointmentId: string): Promise<MedicalRecordResponse | null> {
+  async findByAppointmentId(
+    appointmentId: string,
+  ): Promise<MedicalRecordResponse | null> {
     const record = await this.recordRepo.findByAppointmentId(appointmentId);
     return record ? (record.toPlain() as MedicalRecordResponse) : null;
   }
@@ -133,7 +154,10 @@ export class MedicalRecordService {
     return records.map((r) => r.toPlain() as MedicalRecordResponse);
   }
 
-  async update(id: string, dto: UpdateMedicalRecordDto): Promise<MedicalRecordResponse> {
+  async update(
+    id: string,
+    dto: UpdateMedicalRecordDto,
+  ): Promise<MedicalRecordResponse> {
     const record = await this.recordRepo.findById(id);
     if (!record) {
       throw new NotFoundException('Medical record not found');
@@ -142,16 +166,17 @@ export class MedicalRecordService {
       throw new BadRequestException('Cannot update a signed medical record');
     }
     const vs = dto.vitalSigns;
-    const prescriptions: PrescriptionProps[] | undefined = dto.prescriptions?.map((p) => ({
-      id: crypto.randomUUID(),
-      medicalRecordId: record.id,
-      medicationName: p.medicationName,
-      dosage: p.dosage ?? null,
-      frequency: p.frequency ?? null,
-      duration: p.duration ?? null,
-      instructions: p.instructions ?? null,
-      createdAt: new Date(),
-    }));
+    const prescriptions: PrescriptionProps[] | undefined =
+      dto.prescriptions?.map((p) => ({
+        id: crypto.randomUUID(),
+        medicalRecordId: record.id,
+        medicationName: p.medicationName,
+        dosage: p.dosage ?? null,
+        frequency: p.frequency ?? null,
+        duration: p.duration ?? null,
+        instructions: p.instructions ?? null,
+        createdAt: new Date(),
+      }));
 
     record.updateContent(
       dto.chiefComplaint ?? record.chiefComplaint,

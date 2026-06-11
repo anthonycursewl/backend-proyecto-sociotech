@@ -1,17 +1,44 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
 import { IEventBus, DomainEvent } from './event-bus.interface';
 
 @Injectable()
 export class RedisEventBus implements IEventBus {
+  private readonly logger = new Logger(RedisEventBus.name);
   private readonly redis: Redis;
   private readonly consumerRedis: Redis;
 
   constructor() {
-    this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-    this.consumerRedis = new Redis(
-      process.env.REDIS_URL || 'redis://localhost:6379',
-    );
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+
+    this.redis = new Redis(redisUrl, {
+      retryStrategy: (times) => {
+        if (times > 3) {
+          this.logger.warn(
+            'Redis connection failed, events will not be published',
+          );
+          return null;
+        }
+        return Math.min(times * 100, 3000);
+      },
+      maxRetriesPerRequest: 3,
+    });
+
+    this.consumerRedis = new Redis(redisUrl, {
+      retryStrategy: (times) => {
+        if (times > 3) return null;
+        return Math.min(times * 100, 3000);
+      },
+      maxRetriesPerRequest: 3,
+    });
+
+    this.redis.on('error', (err) => {
+      this.logger.warn(`Redis error: ${err.message}`);
+    });
+
+    this.consumerRedis.on('error', (err) => {
+      this.logger.warn(`Redis consumer error: ${err.message}`);
+    });
   }
 
   async publish(event: DomainEvent): Promise<void> {
@@ -21,11 +48,15 @@ export class RedisEventBus implements IEventBus {
       timestamp: (event.timestamp || new Date()).toISOString(),
     };
 
-    await this.redis.xadd(
-      event.streamName,
-      '*',
-      ...Object.entries(eventData).flat(),
-    );
+    try {
+      await this.redis.xadd(
+        event.streamName,
+        '*',
+        ...Object.entries(eventData).flat(),
+      );
+    } catch (error) {
+      this.logger.warn(`Event publish failed: ${error.message}`);
+    }
   }
 
   async createConsumerGroup(
@@ -47,7 +78,14 @@ export class RedisEventBus implements IEventBus {
     consumerName: string,
     handler: (event: DomainEvent) => Promise<void>,
   ): Promise<void> {
-    await this.createConsumerGroup(streamName, consumerGroup);
+    try {
+      await this.createConsumerGroup(streamName, consumerGroup);
+    } catch (error) {
+      this.logger.warn(
+        `Cannot subscribe to ${streamName}: ${error.message}. Events will not be consumed.`,
+      );
+      return;
+    }
 
     const processEvents = async () => {
       try {
