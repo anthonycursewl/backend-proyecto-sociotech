@@ -8,9 +8,15 @@ import { APPOINTMENT_REPOSITORY } from './domain/repositories/appointment-reposi
 import { PatientModule } from '../patient/patient.module';
 import { ServicesModule } from '../services/services.module';
 import { ClinicalModule } from '../clinical/clinical.module';
+import { QueueModule } from '../queue/queue.module';
 
 @Module({
-  imports: [PatientModule, ServicesModule, forwardRef(() => ClinicalModule)],
+  imports: [
+    PatientModule,
+    ServicesModule,
+    forwardRef(() => ClinicalModule),
+    QueueModule,
+  ],
   controllers: [AppointmentController],
   providers: [
     AppointmentsPrismaService,
@@ -21,6 +27,10 @@ import { ClinicalModule } from '../clinical/clinical.module';
       useClass: PrismaAppointmentRepository,
     },
   ],
-  exports: [AppointmentService, DoctorAvailabilityService, APPOINTMENT_REPOSITORY],
+  exports: [
+    AppointmentService,
+    DoctorAvailabilityService,
+    APPOINTMENT_REPOSITORY,
+  ],
 })
 export class AppointmentsModule {}

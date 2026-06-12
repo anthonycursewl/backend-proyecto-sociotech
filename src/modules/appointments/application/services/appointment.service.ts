@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import { APPOINTMENT_REPOSITORY } from '../../domain/repositories/appointment-repository.port';
 import type {
@@ -23,15 +24,24 @@ import {
 import { PatientService } from '../../../patient/application/services/patient.service';
 import { DoctorService } from '../../../clinical/application/services/doctor.service';
 import { DoctorAvailabilityService } from './doctor-availability.service';
+import { QUEUE_SERVICE } from '../../../queue/queue.port';
+import type { IQueueService } from '../../../queue/queue.port';
+import {
+  NOTIFICATION_STREAM,
+  NotificationType,
+} from '../../../notifications/domain/notification.types';
 
 @Injectable()
 export class AppointmentService {
+  private readonly logger = new Logger(AppointmentService.name);
+
   constructor(
     @Inject(APPOINTMENT_REPOSITORY)
     private readonly appointmentRepo: AppointmentRepository,
     private readonly patientService: PatientService,
     private readonly doctorService: DoctorService,
     private readonly availabilityService: DoctorAvailabilityService,
+    @Inject(QUEUE_SERVICE) private readonly queue: IQueueService,
   ) {}
 
   async create(
@@ -89,7 +99,24 @@ export class AppointmentService {
       updatedAt: new Date(),
     });
 
-    return await this.appointmentRepo.save(appointment);
+    const saved = await this.appointmentRepo.save(appointment);
+
+    this.queue
+      .publish(NOTIFICATION_STREAM, {
+        type: NotificationType.APPOINTMENT_SCHEDULED,
+        data: JSON.stringify({
+          patientId: patient.id,
+          doctorId: dto.doctorId,
+          serviceId: dto.serviceId,
+          scheduledAt: scheduledDate.toISOString(),
+          appointmentId: saved.id,
+        }),
+      })
+      .catch((err: Error) =>
+        this.logger.warn(`Notification publish failed: ${err.message}`),
+      );
+
+    return saved;
   }
 
   async findById(id: string): Promise<Appointment> {
@@ -117,7 +144,9 @@ export class AppointmentService {
     return await this.appointmentRepo.findByPatientId(patient.id, repoFilter);
   }
 
-  private buildFilter(filter?: MyAppointmentsFilter): AppointmentFilter | undefined {
+  private buildFilter(
+    filter?: MyAppointmentsFilter,
+  ): AppointmentFilter | undefined {
     if (!filter) return undefined;
 
     const now = new Date();
@@ -198,7 +227,28 @@ export class AppointmentService {
     }
 
     appointment.cancel(cancelledBy, dto.reason);
-    return await this.appointmentRepo.update(appointmentId, appointment);
+    const cancelled = await this.appointmentRepo.update(
+      appointmentId,
+      appointment,
+    );
+
+    this.queue
+      .publish(NOTIFICATION_STREAM, {
+        type: NotificationType.APPOINTMENT_CANCELLED,
+        data: JSON.stringify({
+          patientId: appointment.patientId,
+          doctorId: appointment.doctorId,
+          scheduledAt: appointment.scheduledAt.toISOString(),
+          reason: dto.reason,
+          appointmentId,
+          cancelledByDoctor: true,
+        }),
+      })
+      .catch((err: Error) =>
+        this.logger.warn(`Notification publish failed: ${err.message}`),
+      );
+
+    return cancelled;
   }
 
   async confirmAppointment(
@@ -223,7 +273,27 @@ export class AppointmentService {
     }
 
     appointment.confirm();
-    return await this.appointmentRepo.update(appointmentId, appointment);
+    const confirmed = await this.appointmentRepo.update(
+      appointmentId,
+      appointment,
+    );
+
+    this.queue
+      .publish(NOTIFICATION_STREAM, {
+        type: NotificationType.APPOINTMENT_CONFIRMED,
+        data: JSON.stringify({
+          patientId: appointment.patientId,
+          doctorId: appointment.doctorId,
+          serviceId: appointment.serviceId,
+          scheduledAt: appointment.scheduledAt.toISOString(),
+          appointmentId,
+        }),
+      })
+      .catch((err: Error) =>
+        this.logger.warn(`Notification publish failed: ${err.message}`),
+      );
+
+    return confirmed;
   }
 
   async doctorCancel(
@@ -251,7 +321,27 @@ export class AppointmentService {
     }
 
     appointment.cancel(userId, dto.reason);
-    return await this.appointmentRepo.update(appointmentId, appointment);
+    const cancelled = await this.appointmentRepo.update(
+      appointmentId,
+      appointment,
+    );
+
+    this.queue
+      .publish(NOTIFICATION_STREAM, {
+        type: NotificationType.APPOINTMENT_CANCELLED,
+        data: JSON.stringify({
+          patientId: appointment.patientId,
+          doctorId: appointment.doctorId,
+          scheduledAt: appointment.scheduledAt.toISOString(),
+          reason: dto.reason,
+          appointmentId,
+        }),
+      })
+      .catch((err: Error) =>
+        this.logger.warn(`Notification publish failed: ${err.message}`),
+      );
+
+    return cancelled;
   }
 
   async complete(appointmentId: string, userId: string): Promise<Appointment> {
@@ -279,7 +369,27 @@ export class AppointmentService {
     }
 
     appointment.complete();
-    return await this.appointmentRepo.update(appointmentId, appointment);
+    const completed = await this.appointmentRepo.update(
+      appointmentId,
+      appointment,
+    );
+
+    this.queue
+      .publish(NOTIFICATION_STREAM, {
+        type: NotificationType.APPOINTMENT_COMPLETED,
+        data: JSON.stringify({
+          patientId: appointment.patientId,
+          doctorId: appointment.doctorId,
+          serviceId: appointment.serviceId,
+          scheduledAt: appointment.scheduledAt.toISOString(),
+          appointmentId,
+        }),
+      })
+      .catch((err: Error) =>
+        this.logger.warn(`Notification publish failed: ${err.message}`),
+      );
+
+    return completed;
   }
 
   async markNoShow(
@@ -298,7 +408,9 @@ export class AppointmentService {
     }
 
     if (appointment.status === AppointmentStatus.CANCELLED) {
-      throw new BadRequestException('Cannot mark a cancelled appointment as no-show');
+      throw new BadRequestException(
+        'Cannot mark a cancelled appointment as no-show',
+      );
     }
     if (appointment.status === AppointmentStatus.COMPLETED) {
       throw new BadRequestException(
@@ -332,10 +444,14 @@ export class AppointmentService {
     }
 
     if (appointment.status === AppointmentStatus.CANCELLED) {
-      throw new BadRequestException('Cannot reschedule a cancelled appointment');
+      throw new BadRequestException(
+        'Cannot reschedule a cancelled appointment',
+      );
     }
     if (appointment.status === AppointmentStatus.COMPLETED) {
-      throw new BadRequestException('Cannot reschedule a completed appointment');
+      throw new BadRequestException(
+        'Cannot reschedule a completed appointment',
+      );
     }
     if (appointment.status === AppointmentStatus.NO_SHOW) {
       throw new BadRequestException('Cannot reschedule a no-show appointment');
@@ -380,12 +496,42 @@ export class AppointmentService {
       throw new BadRequestException('This time slot is already booked');
     }
 
+    const oldDate = appointment.scheduledAt;
     appointment.reschedule(newScheduledAt, duration);
-    return await this.appointmentRepo.update(appointmentId, appointment);
+    const rescheduled = await this.appointmentRepo.update(
+      appointmentId,
+      appointment,
+    );
+
+    this.queue
+      .publish(NOTIFICATION_STREAM, {
+        type: NotificationType.APPOINTMENT_RESCHEDULED,
+        data: JSON.stringify({
+          patientId: appointment.patientId,
+          doctorId: appointment.doctorId,
+          scheduledAt: newScheduledAt.toISOString(),
+          oldDate: oldDate.toISOString(),
+          appointmentId,
+        }),
+      })
+      .catch((err: Error) =>
+        this.logger.warn(`Notification publish failed: ${err.message}`),
+      );
+
+    return rescheduled;
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.findById(id);
+    await this.appointmentRepo.delete(id);
   }
 
   getAvailableSlots(doctorId: string, serviceId: string, date: string) {
-    return this.availabilityService.getAvailableSlots(doctorId, serviceId, date);
+    return this.availabilityService.getAvailableSlots(
+      doctorId,
+      serviceId,
+      date,
+    );
   }
 
   getMonthAvailability(

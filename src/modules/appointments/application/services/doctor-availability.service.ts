@@ -69,11 +69,7 @@ export class DoctorAvailabilityService {
     const local = getLocalParts(utcScheduledAt);
     const localDate = `${local.year}-${String(local.month).padStart(2, '0')}-${String(local.day).padStart(2, '0')}`;
 
-    const { schedule } = await this.loadContext(
-      doctorId,
-      serviceId,
-      localDate,
-    );
+    const { schedule } = await this.loadContext(doctorId, serviceId, localDate);
 
     if (!schedule) {
       throw new BadRequestException('Doctor is not available on this day');
@@ -125,12 +121,13 @@ export class DoctorAvailabilityService {
     for (let day = 1; day <= daysInMonth; day++) {
       const localNoon = fromLocalWallClock(year, month, day, 12, 0);
       const dow = getLocalParts(localNoon).dayOfWeek;
-      const schedule = schedules.find(
-        (s) => s.dayOfWeek === dow && s.isActive,
-      );
+      const schedule = schedules.find((s) => s.dayOfWeek === dow && s.isActive);
 
       if (!schedule) {
-        result.push({ date: this.formatLocalDate(year, month, day), availableSlots: 0 });
+        result.push({
+          date: this.formatLocalDate(year, month, day),
+          availableSlots: 0,
+        });
         continue;
       }
 
@@ -139,7 +136,11 @@ export class DoctorAvailabilityService {
       const dayAppointments = allAppointments.filter(
         (a) => a.scheduledAt >= start && a.scheduledAt < end,
       );
-      const occupied = this.computeOccupiedSlots(dayAppointments, slots, duration);
+      const occupied = this.computeOccupiedSlots(
+        dayAppointments,
+        slots,
+        duration,
+      );
       result.push({
         date: this.formatLocalDate(year, month, day),
         availableSlots: slots.length - occupied.size,
@@ -149,7 +150,11 @@ export class DoctorAvailabilityService {
     return result;
   }
 
-  private async loadContext(doctorId: string, serviceId: string, localDate: string) {
+  private async loadContext(
+    doctorId: string,
+    serviceId: string,
+    localDate: string,
+  ) {
     await this.loadDoctorAndService(doctorId, serviceId);
     const [year, month, day] = localDate.split('-').map(Number);
     const localNoon = fromLocalWallClock(year, month, day, 12, 0);

@@ -228,8 +228,12 @@ export class AppointmentResponseDto {
       ? CancellationResponseDto.fromEntity(apt.cancellation)
       : null;
     dto.doctor = apt.doctor ? DoctorSummaryDto.fromEntity(apt.doctor) : null;
-    dto.service = apt.service ? ServiceSummaryDto.fromEntity(apt.service) : null;
-    dto.patient = apt.patient ? PatientSummaryDto.fromEntity(apt.patient) : null;
+    dto.service = apt.service
+      ? ServiceSummaryDto.fromEntity(apt.service)
+      : null;
+    dto.patient = apt.patient
+      ? PatientSummaryDto.fromEntity(apt.patient)
+      : null;
     dto.createdAt = apt.createdAt.toISOString();
     dto.updatedAt = apt.updatedAt.toISOString();
     return dto;

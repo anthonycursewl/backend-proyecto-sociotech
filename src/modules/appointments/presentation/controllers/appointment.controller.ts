@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -108,7 +109,8 @@ export class AppointmentController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<AppointmentResponseDto> {
     const cacheKey = `appointment:${id}`;
-    const cached = await this.cacheManager.get<AppointmentResponseDto>(cacheKey);
+    const cached =
+      await this.cacheManager.get<AppointmentResponseDto>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -191,6 +193,17 @@ export class AppointmentController {
     return AppointmentResponseDto.fromEntity(apt);
   }
 
+  @Delete(':id')
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('appointments', 'manage')
+  @Audit('appointments:delete', 'Appointment')
+  async delete(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<{ message: string }> {
+    await this.appointmentService.delete(id);
+    return { message: 'Appointment deleted successfully' };
+  }
+
   @Put(':id/doctor-cancel')
   @UseGuards(PermissionsGuard)
   @CheckPermissions('appointments', 'cancel')
@@ -207,5 +220,4 @@ export class AppointmentController {
     );
     return AppointmentResponseDto.fromEntity(apt);
   }
-
 }

@@ -109,7 +109,8 @@ export class PrismaAppointmentRepository implements AppointmentRepository {
             userId: p.patient.userId,
             firstName: p.patient.user.firstName,
             lastName: p.patient.user.lastName,
-            fullName: `${p.patient.user.firstName} ${p.patient.user.lastName}`.trim(),
+            fullName:
+              `${p.patient.user.firstName} ${p.patient.user.lastName}`.trim(),
             email: p.patient.user.email,
             phone: p.patient.phone,
             medicalId: p.patient.medicalId,
@@ -213,7 +214,7 @@ export class PrismaAppointmentRepository implements AppointmentRepository {
       },
       include: this.defaultInclude(),
     });
-    return this.toDomain(p as AppointmentWithRelations);
+    return this.toDomain(p);
   }
 
   async findById(id: string): Promise<Appointment | null> {
@@ -221,7 +222,7 @@ export class PrismaAppointmentRepository implements AppointmentRepository {
       where: { id },
       include: this.defaultInclude(),
     });
-    return p ? this.toDomain(p as AppointmentWithRelations) : null;
+    return p ? this.toDomain(p) : null;
   }
 
   async findAll(filter?: AppointmentFilter): Promise<Appointment[]> {
@@ -337,7 +338,9 @@ export class PrismaAppointmentRepository implements AppointmentRepository {
       include: this.internalInclude(),
     });
 
-    return appointments.length > 0 ? this.toDomainMinimal(appointments[0]) : null;
+    return appointments.length > 0
+      ? this.toDomainMinimal(appointments[0])
+      : null;
   }
 
   async update(id: string, data: Partial<Appointment>): Promise<Appointment> {
@@ -355,7 +358,8 @@ export class PrismaAppointmentRepository implements AppointmentRepository {
     const updateData: Record<string, unknown> = {};
     if (data.status !== undefined) updateData.status = data.status;
     if (data.notes !== undefined) updateData.notes = data.notes;
-    if (data.scheduledAt !== undefined) updateData.scheduledAt = data.scheduledAt;
+    if (data.scheduledAt !== undefined)
+      updateData.scheduledAt = data.scheduledAt;
     updateData.updatedAt = new Date();
 
     if (wantsCancel && !wasCancelled && data.cancellation) {
@@ -378,7 +382,7 @@ export class PrismaAppointmentRepository implements AppointmentRepository {
       data: updateData,
       include: this.defaultInclude(),
     });
-    return this.toDomain(p as AppointmentWithRelations);
+    return this.toDomain(p);
   }
 
   async delete(id: string): Promise<void> {

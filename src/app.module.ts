@@ -15,6 +15,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { FlusherModule } from './modules/flusher/flusher.module';
 import { PublicModule } from './modules/public/public.module';
 import { PdfModule } from './modules/pdf/pdf.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { RedisEventBus } from './modules/auth/infrastructure/events/redis-event-bus';
 import { GLOBAL_CACHE_TTL } from './modules/shared/constants';
 
@@ -39,6 +40,7 @@ import { GLOBAL_CACHE_TTL } from './modules/shared/constants';
     FlusherModule,
     PublicModule,
     PdfModule,
+    NotificationsModule,
   ],
   providers: [RedisEventBus],
   exports: [RedisEventBus],

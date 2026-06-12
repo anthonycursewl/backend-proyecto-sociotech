@@ -10,6 +10,7 @@ import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { USER_REPOSITORY } from './domain/repositories/user-repository.port';
 import { RedisEventBus } from './infrastructure/events/redis-event-bus';
 import { PrismaService } from './infrastructure/db/prisma.service';
+import { QueueModule } from '../queue/queue.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { PrismaService } from './infrastructure/db/prisma.service';
         return { secret };
       },
     }),
+    QueueModule,
   ],
   controllers: [AuthController],
   providers: [
