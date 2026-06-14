@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db:migrate": "prisma migrate dev --schema=prisma/schema.prisma",
     "db:generate": "prisma generate --schema=prisma/schema.prisma",
+    "erd:generate": "node scripts/generate-erd.js",
     "db:reset": "prisma migrate reset --schema=prisma/schema.prisma",
     "seed:admin": "ts-node -r tsconfig-paths/register scripts/create-admin.ts",
     "seed:system": "ts-node -r tsconfig-paths/register scripts/seed-system.ts",
