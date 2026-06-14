@@ -353,7 +353,7 @@ model PatientMetrics {
   @@map("patient_metrics")
 }
 
-generator erd {
-  provider = "prisma-erd-generator"
-  output   = "ERD.svg"
-}
+// generator erd {
+  //provider = "prisma-erd-generator"
+  //output   = "ERD.svg"
+//}
