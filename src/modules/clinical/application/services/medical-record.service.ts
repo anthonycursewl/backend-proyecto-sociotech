@@ -43,7 +43,7 @@ export class MedicalRecordService {
   ): Promise<MedicalRecordResponse> {
     const doctor = await this.doctorRepo.findById(dto.doctorId);
     if (!doctor) {
-      throw new NotFoundException('Doctor not found');
+      throw new NotFoundException('Doctor no encontrado');
     }
 
     if (dto.appointmentId) {
@@ -52,7 +52,7 @@ export class MedicalRecordService {
       );
       if (existing) {
         throw new BadRequestException(
-          'A medical record already exists for this appointment',
+          'Ya existe un historial clínico para esta cita',
         );
       }
     }
@@ -114,7 +114,7 @@ export class MedicalRecordService {
   async findById(id: string): Promise<MedicalRecordResponse> {
     const record = await this.recordRepo.findById(id);
     if (!record) {
-      throw new NotFoundException('Medical record not found');
+      throw new NotFoundException('Historial clínico no encontrado');
     }
     return record.toPlain() as MedicalRecordResponse;
   }
@@ -148,7 +148,7 @@ export class MedicalRecordService {
   async findMyRecords(userId: string): Promise<MedicalRecordResponse[]> {
     const patient = await this.patientService.findByUserId(userId);
     if (!patient) {
-      throw new NotFoundException('Patient profile not found');
+      throw new NotFoundException('Perfil de paciente no encontrado');
     }
     const records = await this.recordRepo.findByPatientId(patient.id);
     return records.map((r) => r.toPlain() as MedicalRecordResponse);
@@ -160,10 +160,10 @@ export class MedicalRecordService {
   ): Promise<MedicalRecordResponse> {
     const record = await this.recordRepo.findById(id);
     if (!record) {
-      throw new NotFoundException('Medical record not found');
+      throw new NotFoundException('Historial clínico no encontrado');
     }
     if (record.isSigned) {
-      throw new BadRequestException('Cannot update a signed medical record');
+      throw new BadRequestException('No se puede actualizar un historial clínico firmado');
     }
     const vs = dto.vitalSigns;
     const prescriptions: PrescriptionProps[] | undefined =
@@ -201,7 +201,7 @@ export class MedicalRecordService {
   async sign(id: string): Promise<MedicalRecordResponse> {
     const record = await this.recordRepo.findById(id);
     if (!record) {
-      throw new NotFoundException('Medical record not found');
+      throw new NotFoundException('Historial clínico no encontrado');
     }
     record.sign();
     const updated = await this.recordRepo.update(record);
@@ -211,7 +211,7 @@ export class MedicalRecordService {
   async delete(id: string): Promise<void> {
     const record = await this.recordRepo.findById(id);
     if (!record) {
-      throw new NotFoundException('Medical record not found');
+      throw new NotFoundException('Historial clínico no encontrado');
     }
     await this.recordRepo.delete(id);
   }

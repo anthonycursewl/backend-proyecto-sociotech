@@ -13,6 +13,7 @@ export interface DoctorSummary {
   consultationPrice: number | null;
   phoneNumber: string | null;
   isActive: boolean;
+  isVisible: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,11 +28,15 @@ export interface DoctorRepository {
   save(doctor: Doctor): Promise<Doctor>;
   findById(id: string): Promise<Doctor | null>;
   findByUserId(userId: string): Promise<Doctor | null>;
-  findAll(includeInactive?: boolean): Promise<Doctor[]>;
+  findAll(
+    includeInactive?: boolean,
+    includeInvisible?: boolean,
+  ): Promise<Doctor[]>;
   findManyCursor(
     cursor?: string,
     limit?: number,
     isActive?: boolean,
+    isVisible?: boolean,
   ): Promise<PaginatedDoctors>;
   update(id: string, data: Doctor): Promise<Doctor>;
   delete(id: string): Promise<void>;

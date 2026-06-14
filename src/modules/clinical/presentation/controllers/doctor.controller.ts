@@ -79,9 +79,13 @@ export class DoctorController {
   @Get()
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('doctors', 'read')
-  async findAll(@Query('includeInactive') includeInactive: string) {
-    const include = includeInactive === 'true';
-    return this.doctorService.findAll(include);
+  async findAll(
+    @Query('includeInactive') includeInactive: string,
+    @Query('includeInvisible') includeInvisible: string,
+  ) {
+    const includeInact = includeInactive === 'true';
+    const includeInvis = includeInvisible === 'true';
+    return this.doctorService.findAll(includeInact, includeInvis);
   }
 
   @Put('admin/:id/toggle-active')
@@ -101,6 +105,14 @@ export class DoctorController {
     return updated;
   }
 
+  @Put('me/visibility')
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
+  @CheckPermissions('doctors', 'update:own')
+  @Audit('doctors:update:own', 'Doctor', true)
+  async toggleMyVisibility(@Req() req: RequestWithUser) {
+    return this.doctorService.toggleVisibility(req.user!.userId);
+  }
+
   @Get('list')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('doctors', 'read')
@@ -108,13 +120,17 @@ export class DoctorController {
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
     @Query('isActive') isActive?: string,
+    @Query('isVisible') isVisible?: string,
   ): Promise<PaginatedDoctors> {
     const activeFilter =
       isActive !== undefined ? isActive === 'true' : undefined;
+    const visibleFilter =
+      isVisible !== undefined ? isVisible === 'true' : undefined;
     return this.doctorService.findManyCursor(
       cursor,
       parseInt(limit || String(DEFAULT_PAGE_SIZE)),
       activeFilter,
+      visibleFilter,
     );
   }
 

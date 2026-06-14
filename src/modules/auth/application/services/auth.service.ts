@@ -64,7 +64,7 @@ export class AuthService {
 
     const existing = await this.userRepo.findByEmail(normalizedEmail);
     if (existing) {
-      throw new UnauthorizedException('Email already exists');
+      throw new UnauthorizedException('El correo ya existe');
     }
 
     const verified = await this.prisma.emailVerification.findFirst({
@@ -86,7 +86,7 @@ export class AuthService {
 
     const defaultRole = await this.userRepo.findDefaultPatientRoleId();
     if (!defaultRole) {
-      throw new Error('PATIENT role not found. Please run seeder.');
+      throw new Error('Rol de PACIENTE no encontrado. Ejecute el seeder.');
     }
 
     const user = new User({
@@ -142,7 +142,7 @@ export class AuthService {
     const normalizedEmail = dto.email.trim().toLowerCase();
     const user = await this.userRepo.findByEmail(normalizedEmail);
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Credenciales inválidas');
     }
 
     const isPasswordValid = await this.bcryptAuth.comparePassword(
@@ -150,7 +150,7 @@ export class AuthService {
       user.passwordHash,
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Credenciales inválidas');
     }
 
     this.queue
@@ -177,11 +177,11 @@ export class AuthService {
 
       const user = await this.userRepo.findByIdWithRole(payload.userId);
       if (!user || !user.isActive) {
-        throw new UnauthorizedException('Invalid refresh token');
+        throw new UnauthorizedException('Refresh token inválido');
       }
 
       if (!user.refreshToken) {
-        throw new UnauthorizedException('Invalid refresh token');
+        throw new UnauthorizedException('Refresh token inválido');
       }
 
       const isRefreshTokenValid = await this.bcryptAuth.comparePassword(
@@ -189,23 +189,23 @@ export class AuthService {
         user.refreshToken,
       );
       if (!isRefreshTokenValid) {
-        throw new UnauthorizedException('Invalid refresh token');
+        throw new UnauthorizedException('Refresh token inválido');
       }
 
       if (user.refreshTokenExpires && new Date() > user.refreshTokenExpires) {
-        throw new UnauthorizedException('Refresh token expired');
+        throw new UnauthorizedException('Refresh token expirado');
       }
 
       return this.generateTokens(user);
     } catch (error) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException('Refresh token inválido');
     }
   }
 
   async getProfile(userId: string) {
     const user = await this.userRepo.findByIdWithRole(userId);
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException('Usuario no encontrado');
     }
     return {
       user: {
@@ -375,7 +375,7 @@ export class AuthService {
   ): Promise<{ message: string }> {
     const user = await this.userRepo.findById(userId, true);
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException('Usuario no encontrado');
     }
 
     const isPasswordValid = await this.bcryptAuth.comparePassword(
@@ -383,7 +383,7 @@ export class AuthService {
       user.passwordHash,
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Current password is incorrect');
+      throw new UnauthorizedException('La contraseña actual es incorrecta');
     }
 
     const passwordHash = await this.bcryptAuth.hashPassword(newPassword);
@@ -404,7 +404,7 @@ export class AuthService {
         this.logger.warn(`Password change notification failed: ${err.message}`),
       );
 
-    return { message: 'Password changed successfully' };
+    return { message: 'Contraseña cambiada exitosamente' };
   }
 
   private async generateTokens(user: User) {

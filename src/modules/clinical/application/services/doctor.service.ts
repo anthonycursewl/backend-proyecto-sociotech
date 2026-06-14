@@ -24,7 +24,7 @@ export class DoctorService {
     const existing = await this.doctorRepo.findByUserId(userId);
     if (existing) {
       throw new ForbiddenException(
-        'Doctor profile already exists for this user',
+        'El perfil de doctor ya existe para este usuario',
       );
     }
 
@@ -37,6 +37,7 @@ export class DoctorService {
       biography: dto.biography,
       phoneNumber: dto.phoneNumber,
       isActive: true,
+      isVisible: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -44,14 +45,17 @@ export class DoctorService {
     return await this.doctorRepo.save(doctor);
   }
 
-  async findAll(includeInactive = false): Promise<Doctor[]> {
-    return await this.doctorRepo.findAll(includeInactive);
+  async findAll(
+    includeInactive = false,
+    includeInvisible = false,
+  ): Promise<Doctor[]> {
+    return await this.doctorRepo.findAll(includeInactive, includeInvisible);
   }
 
   async findById(id: string): Promise<Doctor> {
     const doctor = await this.doctorRepo.findById(id);
     if (!doctor) {
-      throw new ForbiddenException('Doctor not found');
+      throw new ForbiddenException('Doctor no encontrado');
     }
     return doctor;
   }
@@ -59,7 +63,7 @@ export class DoctorService {
   async findByUserId(userId: string): Promise<Doctor> {
     const doctor = await this.doctorRepo.findByUserId(userId);
     if (!doctor) {
-      throw new ForbiddenException('Doctor profile not found');
+      throw new ForbiddenException('Perfil de doctor no encontrado');
     }
     return doctor;
   }
@@ -68,8 +72,9 @@ export class DoctorService {
     cursor?: string,
     limit = DEFAULT_PAGE_SIZE,
     isActive?: boolean,
+    isVisible?: boolean,
   ): Promise<PaginatedDoctors> {
-    return this.doctorRepo.findManyCursor(cursor, limit, isActive);
+    return this.doctorRepo.findManyCursor(cursor, limit, isActive, isVisible);
   }
 
   async update(id: string, dto: UpdateDoctorDto): Promise<Doctor> {
@@ -81,8 +86,15 @@ export class DoctorService {
       biography: dto.biography,
       phoneNumber: dto.phoneNumber,
       isActive: dto.isActive,
+      isVisible: dto.isVisible,
     });
     return await this.doctorRepo.update(id, doctor);
+  }
+
+  async toggleVisibility(userId: string): Promise<Doctor> {
+    const doctor = await this.findByUserId(userId);
+    doctor.update({ isVisible: !doctor.isVisible });
+    return await this.doctorRepo.update(doctor.id, doctor);
   }
 
   async delete(id: string): Promise<void> {

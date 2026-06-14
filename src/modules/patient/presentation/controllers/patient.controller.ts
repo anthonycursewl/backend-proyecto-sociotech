@@ -80,7 +80,7 @@ export class PatientController {
   async getMyPatient(@Req() req: RequestWithUser): Promise<PatientResponse> {
     const patient = await this.patientService.findByUserId(req.user!.userId);
     if (!patient) {
-      throw new NotFoundException('Patient profile not found');
+      throw new NotFoundException('Perfil de paciente no encontrado');
     }
     return toPatientResponse(patient);
   }
@@ -95,7 +95,7 @@ export class PatientController {
   ): Promise<PatientResponse> {
     const patient = await this.patientService.findByUserId(req.user!.userId);
     if (!patient) {
-      throw new NotFoundException('Patient profile not found');
+      throw new NotFoundException('Perfil de paciente no encontrado');
     }
     req.auditSnapshot = patient.toPlain() as unknown as Record<string, unknown>;
     const result = toPatientResponse(
@@ -169,7 +169,7 @@ export class PatientController {
   ): Promise<PatientResponse> {
     const oldPatient = await this.patientService.findById(id);
     if (!oldPatient) {
-      throw new NotFoundException('Patient not found');
+      throw new NotFoundException('Paciente no encontrado');
     }
     req.auditSnapshot = oldPatient.toPlain() as unknown as Record<
       string,

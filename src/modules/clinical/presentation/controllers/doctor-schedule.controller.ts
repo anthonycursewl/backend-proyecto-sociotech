@@ -64,7 +64,7 @@ export class DoctorScheduleController {
     const doctor = await this.doctorService.findByUserId(req.user!.userId);
     const oldSchedule = await this.scheduleService.findById(id);
     if (oldSchedule.doctorId !== doctor.id) {
-      throw new ForbiddenException("Cannot update another doctor's schedule");
+      throw new ForbiddenException("No se puede actualizar el horario de otro doctor");
     }
     req.auditSnapshot = { ...oldSchedule };
     return this.scheduleService.updateSchedule(id, dto);
@@ -78,7 +78,7 @@ export class DoctorScheduleController {
     const doctor = await this.doctorService.findByUserId(req.user!.userId);
     const schedule = await this.scheduleService.findById(id);
     if (schedule.doctorId !== doctor.id) {
-      throw new ForbiddenException("Cannot delete another doctor's schedule");
+      throw new ForbiddenException("No se puede eliminar el horario de otro doctor");
     }
     await this.scheduleService.deleteSchedule(id);
     return { success: true };

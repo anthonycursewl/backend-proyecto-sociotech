@@ -72,7 +72,7 @@ export class DoctorAvailabilityService {
     const { schedule } = await this.loadContext(doctorId, serviceId, localDate);
 
     if (!schedule) {
-      throw new BadRequestException('Doctor is not available on this day');
+      throw new BadRequestException('El doctor no está disponible en este día');
     }
 
     const [sh, sm] = schedule.startTime.split(':').map(Number);
@@ -83,14 +83,14 @@ export class DoctorAvailabilityService {
 
     if (slotMin < scheduleStartMin || slotMin >= scheduleEndMin) {
       throw new BadRequestException(
-        "Selected time slot is outside doctor's working hours",
+        'El horario seleccionado está fuera del horario laboral del doctor',
       );
     }
 
     const duration = await this.getServiceDuration(serviceId);
     if (slotMin + duration > scheduleEndMin) {
       throw new BadRequestException(
-        'Appointment duration exceeds available time before end of shift',
+        'La duración de la cita excede el tiempo disponible antes del cierre del turno',
       );
     }
   }
@@ -169,16 +169,16 @@ export class DoctorAvailabilityService {
   private async loadDoctorAndService(doctorId: string, serviceId: string) {
     const doctor = await this.doctorService.findById(doctorId);
     if (!doctor.isActive) {
-      throw new BadRequestException('This doctor is not currently available');
+      throw new BadRequestException('Este doctor no está disponible actualmente');
     }
     const service = await this.serviceService.findById(serviceId);
     if (!service) {
-      throw new BadRequestException('Service not found');
+      throw new BadRequestException('Servicio no encontrado');
     }
     const doctorServices = await this.serviceService.findByDoctor(doctorId);
     if (!doctorServices.some((s) => s.id === serviceId)) {
       throw new BadRequestException(
-        'This doctor does not offer the requested service',
+        'Este doctor no ofrece el servicio solicitado',
       );
     }
   }

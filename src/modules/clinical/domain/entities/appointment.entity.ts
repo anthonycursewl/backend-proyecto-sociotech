@@ -91,7 +91,7 @@ export class Appointment {
   confirm(): void {
     if (this.props.status !== AppointmentStatus.SCHEDULED) {
       throw new Error(
-        'Cannot confirm appointment that is not in SCHEDULED status',
+        'No se puede confirmar una cita que no está en estado AGENDADA',
       );
     }
     this.props.status = AppointmentStatus.CONFIRMED;
@@ -100,7 +100,7 @@ export class Appointment {
 
   start(): void {
     if (this.props.status !== AppointmentStatus.CONFIRMED) {
-      throw new Error('Cannot start appointment that is not CONFIRMED');
+      throw new Error('No se puede iniciar una cita que no está CONFIRMADA');
     }
     this.props.status = AppointmentStatus.IN_PROGRESS;
     this.props.updatedAt = new Date();
@@ -108,7 +108,7 @@ export class Appointment {
 
   complete(): void {
     if (this.props.status !== AppointmentStatus.IN_PROGRESS) {
-      throw new Error('Cannot complete appointment that is not IN_PROGRESS');
+      throw new Error('No se puede completar una cita que no está EN_PROGRESO');
     }
     this.props.status = AppointmentStatus.COMPLETED;
     this.props.updatedAt = new Date();
@@ -120,7 +120,7 @@ export class Appointment {
       this.props.status === AppointmentStatus.CANCELLED
     ) {
       throw new Error(
-        'Cannot cancel appointment that is already completed or cancelled',
+        'No se puede cancelar una cita que ya está completada o cancelada',
       );
     }
     this.props.status = AppointmentStatus.CANCELLED;
@@ -136,7 +136,7 @@ export class Appointment {
       this.props.status === AppointmentStatus.CANCELLED
     ) {
       throw new Error(
-        'Cannot reschedule appointment that is already completed or cancelled',
+        'No se puede reprogramar una cita que ya está completada o cancelada',
       );
     }
     this.props.scheduledAt = newScheduledAt;
@@ -149,7 +149,7 @@ export class Appointment {
       this.props.status === AppointmentStatus.CANCELLED
     ) {
       throw new Error(
-        'Cannot mark as no-show an appointment that is already completed or cancelled',
+        'No se puede marcar como inasistencia una cita que ya está completada o cancelada',
       );
     }
     this.props.status = AppointmentStatus.NO_SHOW;

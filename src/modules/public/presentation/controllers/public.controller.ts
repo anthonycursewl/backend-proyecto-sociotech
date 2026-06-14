@@ -38,8 +38,8 @@ export class PublicController {
   @Get('doctors/:id')
   async getDoctor(@Param('id') id: string) {
     const doctor = await this.doctorService.findById(id);
-    if (!doctor || !doctor.isActive) {
-      throw new NotFoundException('Doctor not found');
+    if (!doctor || !doctor.isActive || !doctor.isVisible) {
+      throw new NotFoundException('Doctor no encontrado');
     }
     return doctor;
   }
@@ -47,8 +47,8 @@ export class PublicController {
   @Get('doctors/:doctorId/schedules')
   async getDoctorSchedules(@Param('doctorId') doctorId: string) {
     const doctor = await this.doctorService.findById(doctorId);
-    if (!doctor || !doctor.isActive) {
-      throw new NotFoundException('Doctor not found');
+    if (!doctor || !doctor.isActive || !doctor.isVisible) {
+      throw new NotFoundException('Doctor no encontrado');
     }
     return this.scheduleService.getSchedulesByDoctor(doctorId);
   }

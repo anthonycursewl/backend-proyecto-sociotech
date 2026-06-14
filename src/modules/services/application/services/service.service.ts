@@ -33,7 +33,7 @@ export class ServiceService {
   ): Promise<ServiceResponse> {
     const existing = await this.serviceRepo.findByName(dto.name);
     if (existing) {
-      throw new ConflictException('Service with this name already exists');
+      throw new ConflictException('Ya existe un servicio con este nombre');
     }
 
     const service = new Service({
@@ -63,7 +63,7 @@ export class ServiceService {
   async findById(id: string): Promise<ServiceResponse> {
     const service = await this.serviceRepo.findById(id);
     if (!service) {
-      throw new NotFoundException('Service not found');
+      throw new NotFoundException('Servicio no encontrado');
     }
     return service.toPlain();
   }
@@ -71,13 +71,13 @@ export class ServiceService {
   async update(id: string, dto: UpdateServiceDto): Promise<ServiceResponse> {
     const service = await this.serviceRepo.findById(id);
     if (!service) {
-      throw new NotFoundException('Service not found');
+      throw new NotFoundException('Servicio no encontrado');
     }
 
     if (dto.name && dto.name !== service.name) {
       const existing = await this.serviceRepo.findByName(dto.name);
       if (existing) {
-        throw new ConflictException('Service with this name already exists');
+        throw new ConflictException('Ya existe un servicio con este nombre');
       }
     }
 
@@ -97,7 +97,7 @@ export class ServiceService {
   async delete(id: string): Promise<void> {
     const service = await this.serviceRepo.findById(id);
     if (!service) {
-      throw new NotFoundException('Service not found');
+      throw new NotFoundException('Servicio no encontrado');
     }
 
     service.update({ isActive: false, doctorIds: [] });
@@ -107,7 +107,7 @@ export class ServiceService {
   async restore(id: string): Promise<ServiceResponse> {
     const service = await this.serviceRepo.findById(id);
     if (!service) {
-      throw new NotFoundException('Service not found');
+      throw new NotFoundException('Servicio no encontrado');
     }
 
     service.update({ isActive: true });

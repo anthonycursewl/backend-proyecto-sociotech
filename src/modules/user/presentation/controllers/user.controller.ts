@@ -116,7 +116,7 @@ export class UserController {
   async getPatient(@Param('patientId', ParseUUIDPipe) patientId: string) {
     const patient = await this.userService.getPatientById(patientId);
     if (!patient) {
-      throw new NotFoundException('Patient not found');
+      throw new NotFoundException('Paciente no encontrado');
     }
     return { patient };
   }

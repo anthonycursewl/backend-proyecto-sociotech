@@ -35,7 +35,7 @@ export class PatientService {
   async create(dto: CreatePatientDto): Promise<Patient> {
     const existing = await this.patientRepo.findByUserId(dto.userId);
     if (existing) {
-      throw new BadRequestException('This user already has a patient record');
+      throw new BadRequestException('Este usuario ya tiene un registro de paciente');
     }
 
     const patient = new Patient({
@@ -71,7 +71,7 @@ export class PatientService {
     const existing = await this.patientRepo.findByUserId(userId);
     if (existing) {
       throw new BadRequestException(
-        'You already have a patient record. You can only register once.',
+        'Ya tienes un registro de paciente. Solo puedes registrarte una vez.',
       );
     }
 
@@ -104,7 +104,7 @@ export class PatientService {
   async findById(id: string): Promise<Patient> {
     const patient = await this.patientRepo.findById(id);
     if (!patient) {
-      throw new NotFoundException('Patient not found');
+      throw new NotFoundException('Paciente no encontrado');
     }
     return patient;
   }

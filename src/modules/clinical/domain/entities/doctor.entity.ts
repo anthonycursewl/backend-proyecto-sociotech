@@ -15,6 +15,7 @@ export interface DoctorProps {
   biography?: string;
   phoneNumber?: string;
   isActive: boolean;
+  isVisible?: boolean;
   firstName?: string;
   lastName?: string;
   email?: string;
@@ -54,6 +55,9 @@ export class Doctor {
   get isActive(): boolean {
     return this.props.isActive;
   }
+  get isVisible(): boolean | undefined {
+    return this.props.isVisible;
+  }
   get firstName(): string | undefined {
     return this.props.firstName;
   }
@@ -83,6 +87,7 @@ export class Doctor {
     if (data.phoneNumber !== undefined)
       this.props.phoneNumber = data.phoneNumber;
     if (data.isActive !== undefined) this.props.isActive = data.isActive;
+    if (data.isVisible !== undefined) this.props.isVisible = data.isVisible;
     this.props.updatedAt = new Date();
   }
 
@@ -96,6 +101,7 @@ export class Doctor {
       biography: this.biography,
       phoneNumber: this.phoneNumber,
       isActive: this.isActive,
+      isVisible: this.isVisible,
       firstName: this.firstName,
       lastName: this.lastName,
       email: this.email,
@@ -115,6 +121,7 @@ export class Doctor {
       biography: this.biography,
       phoneNumber: this.phoneNumber,
       isActive: this.isActive,
+      isVisible: this.isVisible,
       firstName: this.firstName,
       lastName: this.lastName,
       email: this.email,

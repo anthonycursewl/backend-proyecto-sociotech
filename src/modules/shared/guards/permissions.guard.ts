@@ -32,11 +32,11 @@ export class PermissionsGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest();
     if (!user) {
-      throw new ForbiddenException('User not authenticated');
+      throw new ForbiddenException('Usuario no autenticado');
     }
 
     if (!user.permissions || !Array.isArray(user.permissions)) {
-      throw new ForbiddenException('No permissions found for user');
+      throw new ForbiddenException('No se encontraron permisos para el usuario');
     }
 
     const { resource, action } = requiredPermissions;
@@ -59,7 +59,7 @@ export class PermissionsGuard implements CanActivate {
 
     if (!hasPermission) {
       throw new ForbiddenException(
-        `Access denied. Required permission: ${resource}:${action}`,
+        `Acceso denegado. Permiso requerido: ${resource}:${action}`,
       );
     }
 

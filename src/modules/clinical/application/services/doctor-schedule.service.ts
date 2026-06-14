@@ -31,7 +31,7 @@ export class DoctorScheduleService {
   ): Promise<DoctorSchedule> {
     const doctor = await this.doctorRepo.findById(doctorId);
     if (!doctor) {
-      throw new ForbiddenException('Doctor not found');
+      throw new ForbiddenException('Doctor no encontrado');
     }
 
     const existing = await this.scheduleRepo.findByDoctorIdAndDay(
@@ -40,7 +40,7 @@ export class DoctorScheduleService {
     );
     if (existing) {
       throw new ForbiddenException(
-        `Schedule already exists for day ${dto.dayOfWeek}`,
+        `El horario ya existe para el día ${dto.dayOfWeek}`,
       );
     }
 
@@ -61,7 +61,7 @@ export class DoctorScheduleService {
   async findById(scheduleId: string): Promise<DoctorSchedule> {
     const schedule = await this.scheduleRepo.findById(scheduleId);
     if (!schedule) {
-      throw new NotFoundException('Schedule not found');
+      throw new NotFoundException('Horario no encontrado');
     }
     return schedule;
   }
@@ -69,7 +69,7 @@ export class DoctorScheduleService {
   async getSchedulesByDoctor(doctorId: string): Promise<DoctorSchedule[]> {
     const doctor = await this.doctorRepo.findById(doctorId);
     if (!doctor) {
-      throw new ForbiddenException('Doctor not found');
+      throw new ForbiddenException('Doctor no encontrado');
     }
 
     return await this.scheduleRepo.findByDoctorId(doctorId);
@@ -81,7 +81,7 @@ export class DoctorScheduleService {
   ): Promise<DoctorSchedule> {
     const schedule = await this.scheduleRepo.findById(scheduleId);
     if (!schedule) {
-      throw new ForbiddenException('Schedule not found');
+      throw new ForbiddenException('Horario no encontrado');
     }
 
     schedule.update({
@@ -96,7 +96,7 @@ export class DoctorScheduleService {
   async deleteSchedule(scheduleId: string): Promise<void> {
     const schedule = await this.scheduleRepo.findById(scheduleId);
     if (!schedule) {
-      throw new ForbiddenException('Schedule not found');
+      throw new ForbiddenException('Horario no encontrado');
     }
 
     await this.scheduleRepo.delete(scheduleId);

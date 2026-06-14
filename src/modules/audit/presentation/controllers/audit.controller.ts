@@ -98,7 +98,7 @@ export class AuditController {
   async findById(@Param('id') id: string) {
     const doc = await this.auditLogModel.findById(id).lean();
     if (!doc) {
-      throw new NotFoundException('Audit log not found');
+      throw new NotFoundException('Registro de auditoría no encontrado');
     }
     return { data: normalizeDoc(doc as unknown as Record<string, unknown>) };
   }

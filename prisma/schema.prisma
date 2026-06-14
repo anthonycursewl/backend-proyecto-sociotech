@@ -98,6 +98,7 @@ model Doctor {
   biography         String?
   phoneNumber       String?
   isActive          Boolean  @default(true)
+  isVisible         Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -290,7 +291,7 @@ model AppointmentCancellation {
 }
 
 model AuditLog {
-  id         String   @id @default(uuid())
+  id         String
   userId     String?
   action     String
   entityType String
@@ -301,8 +302,10 @@ model AuditLog {
   userAgent  String?
   timestamp  DateTime @default(now())
 
+  @@id([id, timestamp])
   @@index([entityType, entityId])
   @@index([userId])
+  @@index([timestamp])
   @@map("audit_logs")
 }
 
@@ -348,4 +351,9 @@ model PatientMetrics {
   updatedAt     DateTime @updatedAt
 
   @@map("patient_metrics")
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "ERD.svg"
 }

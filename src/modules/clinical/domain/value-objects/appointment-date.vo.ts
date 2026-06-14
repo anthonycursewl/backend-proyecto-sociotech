@@ -3,10 +3,10 @@ export class AppointmentDate {
 
   constructor(date: Date) {
     if (!(date instanceof Date)) {
-      throw new Error('Invalid date');
+      throw new Error('Fecha inválida');
     }
     if (isNaN(date.getTime())) {
-      throw new Error('Invalid date value');
+      throw new Error('Valor de fecha inválido');
     }
     this._value = date;
   }

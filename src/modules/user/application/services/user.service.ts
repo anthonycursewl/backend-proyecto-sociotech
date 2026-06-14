@@ -84,7 +84,7 @@ export class UserService {
       const existingUser =
         await this.userRepository.findByEmail(normalizedEmail);
       if (existingUser && existingUser.id !== input.userId) {
-        throw new BadRequestException('Email already in use');
+        throw new BadRequestException('El correo ya está en uso');
       }
       updateData.email = normalizedEmail;
     }
@@ -145,7 +145,7 @@ export class UserService {
     requesterUserId: string,
   ): Promise<ToggleUserActiveOutput> {
     if (userId === requesterUserId) {
-      throw new ForbiddenException('Cannot toggle your own account');
+      throw new ForbiddenException('No puedes desactivar tu propia cuenta');
     }
     const user = await this.userRepository.toggleActive(userId);
     return { user };
@@ -153,7 +153,7 @@ export class UserService {
 
   async delete(userId: string, requesterUserId: string): Promise<void> {
     if (userId === requesterUserId) {
-      throw new ForbiddenException('Cannot delete your own account');
+      throw new ForbiddenException('No puedes eliminar tu propia cuenta');
     }
 
     const user = await this.userRepository.findById(userId);

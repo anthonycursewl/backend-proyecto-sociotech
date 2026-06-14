@@ -91,13 +91,13 @@ describe('AuthService — forgotPassword / resetPassword', () => {
     };
 
     service = new AuthService(
-      userRepo as any,
-      bcryptAuth as any,
-      jwtService as any,
-      prisma as any,
-      eventBus as any,
-      queue as any,
-      configService as any,
+      userRepo,
+      bcryptAuth,
+      jwtService,
+      prisma,
+      eventBus,
+      queue,
+      configService,
     );
   });
 

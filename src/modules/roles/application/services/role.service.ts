@@ -36,7 +36,7 @@ export class RoleService {
   async findById(id: string): Promise<Role> {
     const role = await this.roleRepo.findByIdWithPermissions(id);
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Rol no encontrado');
     }
     return role;
   }
@@ -44,7 +44,7 @@ export class RoleService {
   async findDetail(id: string): Promise<RoleDetail> {
     const detail = await this.roleRepo.findDetailById(id);
     if (!detail) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Rol no encontrado');
     }
     return detail;
   }
@@ -56,7 +56,7 @@ export class RoleService {
   async create(data: { name: string; description?: string }): Promise<Role> {
     const existing = await this.roleRepo.findByName(data.name);
     if (existing) {
-      throw new BadRequestException('Role with this name already exists');
+      throw new BadRequestException('Ya existe un rol con este nombre');
     }
 
     const role = new Role({
@@ -78,16 +78,16 @@ export class RoleService {
   ): Promise<Role> {
     const role = await this.roleRepo.findById(id);
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Rol no encontrado');
     }
     if (role.isSystem) {
-      throw new ForbiddenException('Cannot modify system role');
+      throw new ForbiddenException('No se puede modificar un rol del sistema');
     }
 
     if (data.name) {
       const existing = await this.roleRepo.findByName(data.name);
       if (existing && existing.id !== id) {
-        throw new BadRequestException('Role with this name already exists');
+        throw new BadRequestException('Ya existe un rol con este nombre');
       }
     }
 
@@ -98,10 +98,10 @@ export class RoleService {
   async delete(id: string): Promise<void> {
     const role = await this.roleRepo.findById(id);
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Rol no encontrado');
     }
     if (role.isSystem) {
-      throw new ForbiddenException('Cannot delete system role');
+      throw new ForbiddenException('No se puede eliminar un rol del sistema');
     }
 
     await this.roleRepo.softDelete(id);
@@ -114,15 +114,15 @@ export class RoleService {
   async restore(id: string): Promise<Role> {
     const role = await this.roleRepo.findById(id);
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Rol no encontrado');
     }
     if (!role.deletedAt) {
-      throw new BadRequestException('Role is not in trash');
+      throw new BadRequestException('El rol no está en la papelera');
     }
 
     const restored = await this.roleRepo.restore(id);
     if (!restored) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Rol no encontrado');
     }
     return restored;
   }
@@ -130,10 +130,10 @@ export class RoleService {
   async permanentDelete(id: string): Promise<void> {
     const role = await this.roleRepo.findById(id);
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Rol no encontrado');
     }
     if (!role.deletedAt) {
-      throw new BadRequestException('Role is not in trash');
+      throw new BadRequestException('El rol no está en la papelera');
     }
 
     await this.roleRepo.permanentDelete(id);
@@ -142,10 +142,10 @@ export class RoleService {
   async addPermission(roleId: string, permissionId: string): Promise<Role> {
     const role = await this.roleRepo.findById(roleId);
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Rol no encontrado');
     }
     if (role.isSystem) {
-      throw new ForbiddenException('Cannot modify system role permissions');
+      throw new ForbiddenException('No se pueden modificar los permisos de un rol del sistema');
     }
 
     await this.roleRepo.addPermission(roleId, permissionId);
@@ -155,10 +155,10 @@ export class RoleService {
   async removePermission(roleId: string, permissionId: string): Promise<Role> {
     const role = await this.roleRepo.findById(roleId);
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Rol no encontrado');
     }
     if (role.isSystem) {
-      throw new ForbiddenException('Cannot modify system role permissions');
+      throw new ForbiddenException('No se pueden modificar los permisos de un rol del sistema');
     }
 
     await this.roleRepo.removePermission(roleId, permissionId);
@@ -168,10 +168,10 @@ export class RoleService {
   async setPermissions(roleId: string, permissionIds: string[]): Promise<Role> {
     const role = await this.roleRepo.findById(roleId);
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Rol no encontrado');
     }
     if (role.isSystem) {
-      throw new ForbiddenException('Cannot modify system role permissions');
+      throw new ForbiddenException('No se pueden modificar los permisos de un rol del sistema');
     }
 
     await this.roleRepo.setPermissions(roleId, permissionIds);

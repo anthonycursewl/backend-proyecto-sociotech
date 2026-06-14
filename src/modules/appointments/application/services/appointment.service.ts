@@ -51,7 +51,7 @@ export class AppointmentService {
     const patient = await this.patientService.findByUserId(userId);
     if (!patient) {
       throw new ForbiddenException(
-        'Patient profile not found. Please register as a patient first.',
+        'Perfil de paciente no encontrado. Regístrese como paciente primero.',
       );
     }
 
@@ -62,7 +62,7 @@ export class AppointmentService {
 
     if (scheduledDate < tomorrow) {
       throw new BadRequestException(
-        'Appointments can only be scheduled starting from tomorrow',
+        'Las citas solo pueden agendarse a partir de mañana',
       );
     }
 
@@ -78,7 +78,7 @@ export class AppointmentService {
       await this.availabilityService.getDurationFor(dto.serviceId),
     );
     if (conflicting) {
-      throw new BadRequestException('This time slot is already booked');
+      throw new BadRequestException('Este horario ya está reservado');
     }
 
     const duration = await this.availabilityService.getDurationFor(
@@ -122,7 +122,7 @@ export class AppointmentService {
   async findById(id: string): Promise<Appointment> {
     const appointment = await this.appointmentRepo.findById(id);
     if (!appointment) {
-      throw new NotFoundException('Appointment not found');
+      throw new NotFoundException('Cita no encontrada');
     }
     return appointment;
   }
@@ -219,11 +219,11 @@ export class AppointmentService {
     const appointment = await this.findById(appointmentId);
 
     if (appointment.status === AppointmentStatus.CANCELLED) {
-      throw new BadRequestException('Appointment is already cancelled');
+      throw new BadRequestException('La cita ya está cancelada');
     }
 
     if (appointment.status === AppointmentStatus.COMPLETED) {
-      throw new BadRequestException('Cannot cancel a completed appointment');
+      throw new BadRequestException('No se puede cancelar una cita completada');
     }
 
     appointment.cancel(cancelledBy, dto.reason);
@@ -257,18 +257,18 @@ export class AppointmentService {
   ): Promise<Appointment> {
     const doctor = await this.doctorService.findByUserId(userId);
     if (!doctor) {
-      throw new ForbiddenException('Only doctors can confirm appointments');
+      throw new ForbiddenException('Solo los doctores pueden confirmar citas');
     }
 
     const appointment = await this.findById(appointmentId);
 
     if (appointment.doctorId !== doctor.id) {
-      throw new ForbiddenException('This appointment does not belong to you');
+      throw new ForbiddenException('Esta cita no le pertenece');
     }
 
     if (appointment.status !== AppointmentStatus.SCHEDULED) {
       throw new BadRequestException(
-        'Only scheduled appointments can be confirmed',
+        'Solo las citas agendadas pueden confirmarse',
       );
     }
 
@@ -303,21 +303,21 @@ export class AppointmentService {
   ): Promise<Appointment> {
     const doctor = await this.doctorService.findByUserId(userId);
     if (!doctor) {
-      throw new ForbiddenException('Only doctors can use this endpoint');
+      throw new ForbiddenException('Solo los doctores pueden usar este endpoint');
     }
 
     const appointment = await this.findById(appointmentId);
 
     if (appointment.doctorId !== doctor.id) {
-      throw new ForbiddenException('This appointment does not belong to you');
+      throw new ForbiddenException('Esta cita no le pertenece');
     }
 
     if (appointment.status === AppointmentStatus.CANCELLED) {
-      throw new BadRequestException('Appointment is already cancelled');
+      throw new BadRequestException('La cita ya está cancelada');
     }
 
     if (appointment.status === AppointmentStatus.COMPLETED) {
-      throw new BadRequestException('Cannot cancel a completed appointment');
+      throw new BadRequestException('No se puede cancelar una cita completada');
     }
 
     appointment.cancel(userId, dto.reason);
@@ -353,18 +353,18 @@ export class AppointmentService {
     const appointment = await this.findById(appointmentId);
 
     if (appointment.doctorId !== doctor.id) {
-      throw new ForbiddenException('This appointment does not belong to you');
+      throw new ForbiddenException('Esta cita no le pertenece');
     }
 
     if (appointment.status === AppointmentStatus.CANCELLED) {
-      throw new BadRequestException('Cannot complete a cancelled appointment');
+      throw new BadRequestException('No se puede completar una cita cancelada');
     }
     if (appointment.status === AppointmentStatus.COMPLETED) {
-      throw new BadRequestException('Appointment is already completed');
+      throw new BadRequestException('La cita ya está completada');
     }
     if (appointment.status === AppointmentStatus.NO_SHOW) {
       throw new BadRequestException(
-        'Cannot complete a no-show appointment. Mark as completed from a SCHEDULED or CONFIRMED status.',
+        'No se puede completar una cita de inasistencia. Marque como completada desde un estado AGENDADA o CONFIRMADA.',
       );
     }
 
@@ -398,27 +398,27 @@ export class AppointmentService {
   ): Promise<Appointment> {
     const doctor = await this.doctorService.findByUserId(userId);
     if (!doctor) {
-      throw new ForbiddenException('Only doctors can mark no-show');
+      throw new ForbiddenException('Solo los doctores pueden marcar inasistencia');
     }
 
     const appointment = await this.findById(appointmentId);
 
     if (appointment.doctorId !== doctor.id) {
-      throw new ForbiddenException('This appointment does not belong to you');
+      throw new ForbiddenException('Esta cita no le pertenece');
     }
 
     if (appointment.status === AppointmentStatus.CANCELLED) {
       throw new BadRequestException(
-        'Cannot mark a cancelled appointment as no-show',
+        'No se puede marcar como inasistencia una cita cancelada',
       );
     }
     if (appointment.status === AppointmentStatus.COMPLETED) {
       throw new BadRequestException(
-        'Cannot mark a completed appointment as no-show',
+        'No se puede marcar como inasistencia una cita completada',
       );
     }
     if (appointment.status === AppointmentStatus.NO_SHOW) {
-      throw new BadRequestException('Appointment is already marked as no-show');
+      throw new BadRequestException('La cita ya está marcada como inasistencia');
     }
 
     appointment.markNoShow();
@@ -433,33 +433,33 @@ export class AppointmentService {
     const patient = await this.patientService.findByUserId(userId);
     if (!patient) {
       throw new ForbiddenException(
-        'Patient profile not found. Please register as a patient first.',
+        'Perfil de paciente no encontrado. Regístrese como paciente primero.',
       );
     }
 
     const appointment = await this.findById(appointmentId);
 
     if (appointment.patientId !== patient.id) {
-      throw new ForbiddenException('This appointment does not belong to you');
+      throw new ForbiddenException('Esta cita no le pertenece');
     }
 
     if (appointment.status === AppointmentStatus.CANCELLED) {
       throw new BadRequestException(
-        'Cannot reschedule a cancelled appointment',
+        'No se puede reprogramar una cita cancelada',
       );
     }
     if (appointment.status === AppointmentStatus.COMPLETED) {
       throw new BadRequestException(
-        'Cannot reschedule a completed appointment',
+        'No se puede reprogramar una cita completada',
       );
     }
     if (appointment.status === AppointmentStatus.NO_SHOW) {
-      throw new BadRequestException('Cannot reschedule a no-show appointment');
+      throw new BadRequestException('No se puede reprogramar una cita de inasistencia');
     }
 
     const newScheduledAt = new Date(dto.scheduledAt);
     if (isNaN(newScheduledAt.getTime())) {
-      throw new BadRequestException('Invalid scheduledAt date');
+      throw new BadRequestException('Fecha de agendamiento inválida');
     }
 
     const tomorrow = new Date();
@@ -467,13 +467,13 @@ export class AppointmentService {
     tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
     if (newScheduledAt < tomorrow) {
       throw new BadRequestException(
-        'Appointments can only be rescheduled starting from tomorrow',
+        'Las citas solo pueden reprogramarse a partir de mañana',
       );
     }
 
     if (newScheduledAt.getTime() === appointment.scheduledAt.getTime()) {
       throw new BadRequestException(
-        'New scheduledAt is the same as the current one',
+        'La nueva fecha es igual a la actual',
       );
     }
 
@@ -493,7 +493,7 @@ export class AppointmentService {
       duration,
     );
     if (conflicting && conflicting.id !== appointmentId) {
-      throw new BadRequestException('This time slot is already booked');
+      throw new BadRequestException('Este horario ya está reservado');
     }
 
     const oldDate = appointment.scheduledAt;

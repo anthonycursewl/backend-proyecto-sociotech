@@ -58,6 +58,7 @@ export class PrismaDoctorRepository implements DoctorRepository {
       biography: p.biography ?? undefined,
       phoneNumber: p.phoneNumber ?? undefined,
       isActive: p.isActive,
+      isVisible: p.isVisible,
       firstName: user?.firstName,
       lastName: user?.lastName,
       email: user?.email,
@@ -78,6 +79,7 @@ export class PrismaDoctorRepository implements DoctorRepository {
         biography: data.biography,
         phoneNumber: data.phoneNumber,
         isActive: data.isActive,
+        isVisible: data.isVisible ?? true,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       },
@@ -102,10 +104,17 @@ export class PrismaDoctorRepository implements DoctorRepository {
     return p ? this.toDomain(p) : null;
   }
 
-  async findAll(includeInactive = false): Promise<Doctor[]> {
-    const where: Prisma.DoctorWhereInput = includeInactive
-      ? {}
-      : { isActive: true };
+  async findAll(
+    includeInactive = false,
+    includeInvisible = false,
+  ): Promise<Doctor[]> {
+    const where: Prisma.DoctorWhereInput = {};
+    if (!includeInactive) {
+      where.isActive = true;
+    }
+    if (!includeInvisible) {
+      where.isVisible = true;
+    }
     const doctors: DoctorWithUser[] = await this.prisma.doctor.findMany({
       where,
       include: {
@@ -119,11 +128,13 @@ export class PrismaDoctorRepository implements DoctorRepository {
     cursor?: string,
     limit = DEFAULT_PAGE_SIZE,
     isActive?: boolean,
+    isVisible?: boolean,
   ): Promise<PaginatedDoctors> {
     const take = Math.min(limit, MAX_PAGE_SIZE);
     const where: Prisma.DoctorWhereInput = {
       ...(cursor ? { id: { lt: cursor } } : {}),
       ...(isActive !== undefined ? { isActive } : {}),
+      ...(isVisible !== undefined ? { isVisible } : { isVisible: true }),
     };
 
     const doctors: DoctorWithUser[] = await this.prisma.doctor.findMany({
@@ -156,6 +167,7 @@ export class PrismaDoctorRepository implements DoctorRepository {
         consultationPrice: d.consultationPrice,
         phoneNumber: d.phoneNumber,
         isActive: d.isActive,
+        isVisible: d.isVisible,
         createdAt: d.createdAt,
         updatedAt: d.updatedAt,
       })),
@@ -180,6 +192,7 @@ export class PrismaDoctorRepository implements DoctorRepository {
           phoneNumber: data.phoneNumber,
         }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
+        ...(data.isVisible !== undefined && { isVisible: data.isVisible }),
         updatedAt: new Date(),
       },
     });

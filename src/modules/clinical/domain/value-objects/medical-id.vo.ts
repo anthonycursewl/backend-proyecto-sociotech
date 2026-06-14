@@ -5,7 +5,7 @@ export class MedicalID {
     const normalized = medicalId.toUpperCase().trim();
     if (!MedicalID.isValid(normalized)) {
       throw new Error(
-        'Invalid Medical ID format. Expected format: MED-XXXXXXXX',
+        'Formato de ID Médico inválido. Formato esperado: MED-XXXXXXXX',
       );
     }
     this._value = normalized;

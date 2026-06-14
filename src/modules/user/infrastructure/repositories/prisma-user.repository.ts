@@ -287,13 +287,13 @@ export class PrismaUserRepository implements UserRepository {
       include: { role: true },
     });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuario no encontrado');
     }
 
     const protectedRoles = PROTECTED_ROLES;
     if (protectedRoles.includes(user.role.name)) {
       throw new ForbiddenException(
-        `Cannot toggle user with role ${user.role.name}`,
+        `No se puede desactivar usuario con rol ${user.role.name}`,
       );
     }
 
@@ -323,30 +323,30 @@ export class PrismaUserRepository implements UserRepository {
       include: { role: true },
     });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuario no encontrado');
     }
 
     const protectedRoles = PROTECTED_ROLES;
     if (protectedRoles.includes(user.role.name)) {
       throw new ForbiddenException(
-        `Cannot change role of user with role ${user.role.name}`,
+        `No se puede cambiar el rol del usuario con rol ${user.role.name}`,
       );
     }
 
     if (id === requesterUserId) {
-      throw new ForbiddenException('Cannot change your own role');
+      throw new ForbiddenException('No puedes cambiar tu propio rol');
     }
 
     const targetRole = await this.prisma.role.findUnique({
       where: { id: roleId },
     });
     if (!targetRole) {
-      throw new NotFoundException('Target role not found');
+      throw new NotFoundException('Rol destino no encontrado');
     }
 
     if (protectedRoles.includes(targetRole.name)) {
       throw new ForbiddenException(
-        `Cannot assign ${targetRole.name} role via this endpoint`,
+        `No se puede asignar el rol ${targetRole.name} a través de este endpoint`,
       );
     }
 

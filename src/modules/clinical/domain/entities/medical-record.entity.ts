@@ -131,7 +131,7 @@ export class MedicalRecord {
 
   sign(): void {
     if (this.props.isSigned) {
-      throw new Error('Medical record is already signed');
+      throw new Error('El historial clínico ya está firmado');
     }
     this.props.isSigned = true;
     this.props.signedAt = new Date();
@@ -156,7 +156,7 @@ export class MedicalRecord {
   ): void {
     if (this.props.isSigned) {
       throw new Error(
-        'Cannot update a signed medical record. Create an attachment instead.',
+        'No se puede actualizar un historial clínico firmado. Cree un anexo en su lugar.',
       );
     }
     this.props.chiefComplaint = chiefComplaint;

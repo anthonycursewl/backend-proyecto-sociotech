@@ -4,7 +4,7 @@ export class Email {
   constructor(email: string) {
     const normalizedEmail = email.toLowerCase().trim();
     if (!Email.isValid(normalizedEmail)) {
-      throw new Error('Invalid email format');
+      throw new Error('Formato de correo inválido');
     }
     this._value = normalizedEmail;
   }
