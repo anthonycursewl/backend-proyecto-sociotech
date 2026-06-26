@@ -24,6 +24,14 @@ export interface PaginatedDoctors {
   hasNext: boolean;
 }
 
+export interface DoctorMetrics {
+  total: number;
+  active: number;
+  inactive: number;
+  visible: number;
+  notVisible: number;
+}
+
 export interface DoctorRepository {
   save(doctor: Doctor): Promise<Doctor>;
   findById(id: string): Promise<Doctor | null>;
@@ -38,6 +46,7 @@ export interface DoctorRepository {
     isActive?: boolean,
     isVisible?: boolean,
   ): Promise<PaginatedDoctors>;
+  getMetrics(): Promise<DoctorMetrics>;
   update(id: string, data: Doctor): Promise<Doctor>;
   delete(id: string): Promise<void>;
 }

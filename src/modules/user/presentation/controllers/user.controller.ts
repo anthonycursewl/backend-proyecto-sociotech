@@ -78,6 +78,7 @@ export class UserController {
       userId,
       firstName: dto.firstName,
       lastName: dto.lastName,
+      email: dto.email,
     });
   }
 
@@ -100,6 +101,7 @@ export class UserController {
       userId,
       firstName: dto.firstName,
       lastName: dto.lastName,
+      email: dto.email,
     });
   }
 

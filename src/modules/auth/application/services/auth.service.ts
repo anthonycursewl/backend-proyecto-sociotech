@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
+  NotFoundException,
   Logger,
 } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
@@ -84,9 +85,11 @@ export class AuthService {
 
     const passwordHash = await this.bcryptAuth.hashPassword(dto.password);
 
-    const defaultRole = await this.userRepo.findDefaultPatientRoleId();
+    const defaultRole = await this.userRepo.findDefaultRoleId();
     if (!defaultRole) {
-      throw new Error('Rol de PACIENTE no encontrado. Ejecute el seeder.');
+      throw new Error(
+        'No se encontró un rol por defecto. Asegúrate de que exista un rol con isDefault=true en la base de datos.',
+      );
     }
 
     const user = new User({
@@ -131,8 +134,21 @@ export class AuthService {
           userId: saved.id,
         }),
       })
+      .then((msgId) => {
+        if (msgId) {
+          this.logger.log(
+            `[QUEUE] ${NotificationType.USER_REGISTERED} published as ${msgId} for user ${saved.id}`,
+          );
+        } else {
+          this.logger.warn(
+            `[QUEUE] ${NotificationType.USER_REGISTERED} returned no message ID for user ${saved.id} — email may not be sent`,
+          );
+        }
+      })
       .catch((err: Error) =>
-        this.logger.warn(`Notification publish failed: ${err.message}`),
+        this.logger.error(
+          `[QUEUE] ${NotificationType.USER_REGISTERED} publish failed for user ${saved.id}: ${err.message}`,
+        ),
       );
 
     return this.generateTokens(userWithRole || saved);
@@ -164,8 +180,17 @@ export class AuthService {
           }),
         }),
       })
+      .then((msgId) => {
+        if (!msgId) {
+          this.logger.warn(
+            `[QUEUE] ${NotificationType.LOGIN_DETECTED} not queued for ${user.email} — queue unavailable`,
+          );
+        }
+      })
       .catch((err: Error) =>
-        this.logger.warn(`Login notification publish failed: ${err.message}`),
+        this.logger.error(
+          `[QUEUE] ${NotificationType.LOGIN_DETECTED} publish failed for ${user.email}: ${err.message}`,
+        ),
       );
 
     return this.generateTokens(user);
@@ -224,6 +249,13 @@ export class AuthService {
   }
 
   async sendVerificationCode(email: string): Promise<{ message: string }> {
+    if (!email || typeof email !== 'string') {
+      this.logger.warn(
+        `sendVerificationCode called with invalid email: ${JSON.stringify(email)}`,
+      );
+      throw new BadRequestException('El correo electrónico es requerido');
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
 
     const existing = await this.userRepo.findByEmail(normalizedEmail);
@@ -255,11 +287,24 @@ export class AuthService {
           expiresInMinutes: OTP_EXPIRES_MINUTES,
         }),
       })
+      .then((msgId) => {
+        if (msgId) {
+          this.logger.log(
+            `[QUEUE] ${NotificationType.EMAIL_VERIFICATION} queued for ${normalizedEmail}`,
+          );
+        } else {
+          this.logger.warn(
+            `[QUEUE] ${NotificationType.EMAIL_VERIFICATION} not queued for ${normalizedEmail} — queue unavailable`,
+          );
+        }
+      })
       .catch((err: Error) =>
-        this.logger.warn(`Verification email publish failed: ${err.message}`),
+        this.logger.error(
+          `[QUEUE] ${NotificationType.EMAIL_VERIFICATION} publish failed for ${normalizedEmail}: ${err.message}`,
+        ),
       );
 
-    this.logger.log(`Verification code sent to ${normalizedEmail}`);
+    this.logger.log(`Verification code generated for ${normalizedEmail}`);
     return { message: 'Código de verificación enviado al correo' };
   }
 
@@ -290,9 +335,20 @@ export class AuthService {
   }
 
   async forgotPassword(email: string): Promise<{ message: string }> {
+    if (!email || typeof email !== 'string') {
+      this.logger.warn(
+        `forgotPassword called with invalid email: ${JSON.stringify(email)}`,
+      );
+      throw new BadRequestException('El correo electrónico es requerido');
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
     const user = await this.userRepo.findByEmail(normalizedEmail);
     if (!user) {
+      this.logger.warn(
+        `[forgotPassword] No user found for email "${normalizedEmail}" — no code will be sent. ` +
+          `This may indicate the account was deleted or the email is incorrect.`,
+      );
       return {
         message:
           'Si el correo existe, recibirás un código para restablecer tu contraseña',
@@ -316,11 +372,24 @@ export class AuthService {
           expiresInMinutes: this.RESET_CODE_EXPIRES_MINUTES,
         }),
       })
+      .then((msgId) => {
+        if (msgId) {
+          this.logger.log(
+            `[QUEUE] ${NotificationType.PASSWORD_RESET} queued for ${normalizedEmail}`,
+          );
+        } else {
+          this.logger.warn(
+            `[QUEUE] ${NotificationType.PASSWORD_RESET} not queued for ${normalizedEmail} — queue unavailable`,
+          );
+        }
+      })
       .catch((err: Error) =>
-        this.logger.warn(`Password reset email publish failed: ${err.message}`),
+        this.logger.error(
+          `[QUEUE] ${NotificationType.PASSWORD_RESET} publish failed for ${normalizedEmail}: ${err.message}`,
+        ),
       );
 
-    this.logger.log(`Password reset code sent to ${normalizedEmail}`);
+    this.logger.log(`Password reset code generated for ${normalizedEmail}`);
     return {
       message:
         'Si el correo existe, recibirás un código para restablecer tu contraseña',
@@ -360,8 +429,17 @@ export class AuthService {
           }),
         }),
       })
+      .then((msgId) => {
+        if (!msgId) {
+          this.logger.warn(
+            `[QUEUE] ${NotificationType.PASSWORD_CHANGED} not queued for ${user.email} — queue unavailable`,
+          );
+        }
+      })
       .catch((err: Error) =>
-        this.logger.warn(`Password change notification failed: ${err.message}`),
+        this.logger.error(
+          `[QUEUE] ${NotificationType.PASSWORD_CHANGED} publish failed for ${user.email}: ${err.message}`,
+        ),
       );
 
     this.logger.log(`Password reset successful for ${normalizedEmail}`);
@@ -400,11 +478,75 @@ export class AuthService {
           }),
         }),
       })
+      .then((msgId) => {
+        if (!msgId) {
+          this.logger.warn(
+            `[QUEUE] ${NotificationType.PASSWORD_CHANGED} not queued for ${user.email} — queue unavailable`,
+          );
+        }
+      })
       .catch((err: Error) =>
-        this.logger.warn(`Password change notification failed: ${err.message}`),
+        this.logger.error(
+          `[QUEUE] ${NotificationType.PASSWORD_CHANGED} publish failed for ${user.email}: ${err.message}`,
+        ),
       );
 
     return { message: 'Contraseña cambiada exitosamente' };
+  }
+
+  async updateMyProfile(
+    userId: string,
+    data: { firstName?: string; lastName?: string; email?: string },
+  ): Promise<{
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      roleId: string;
+      roleName: string;
+      permissions: string[];
+    };
+  }> {
+    const user = await this.userRepo.findByIdWithRole(userId);
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    const updateData: Record<string, any> = {};
+    if (data.firstName) updateData.firstName = data.firstName;
+    if (data.lastName) updateData.lastName = data.lastName;
+
+    if (data.email) {
+      const normalizedEmail = data.email.trim().toLowerCase();
+      const existing = await this.userRepo.findByEmail(normalizedEmail);
+      if (existing && existing.id !== userId) {
+        throw new BadRequestException('El correo ya está en uso');
+      }
+      updateData.email = normalizedEmail;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      throw new BadRequestException('No hay campos para actualizar');
+    }
+
+    this.logger.log(
+      `[UPDATE PROFILE] Updating user ${userId}: ${JSON.stringify(updateData)}`,
+    );
+
+    const updated = await this.userRepo.update(userId, updateData);
+
+    return {
+      user: {
+        id: updated.id,
+        email: updated.email,
+        firstName: updated.firstName,
+        lastName: updated.lastName,
+        roleId: updated.roleId,
+        roleName: updated.roleName,
+        permissions: updated.permissions,
+      },
+    };
   }
 
   private async generateTokens(user: User) {

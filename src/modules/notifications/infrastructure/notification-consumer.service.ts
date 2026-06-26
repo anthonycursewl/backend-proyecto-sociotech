@@ -90,7 +90,9 @@ export class NotificationConsumerService implements OnModuleInit {
 
       if (messages.length === 0) return;
 
-      this.logger.debug(`Processing batch of ${messages.length} messages`);
+      this.logger.log(
+        `[CONSUMER] Processing batch of ${messages.length} messages`,
+      );
 
       const results = await Promise.allSettled(
         messages.map((msg) => this.processMessage(msg.id, msg.data)),
@@ -130,6 +132,10 @@ export class NotificationConsumerService implements OnModuleInit {
     const retryCount = (data._retryCount as number) || 0;
     const maxRetries = (data._maxRetries as number) ?? 3;
 
+    this.logger.log(
+      `[CONSUMER] Processing message ${messageId} (type: ${type}, attempt: ${retryCount + 1}/${maxRetries})`,
+    );
+
     const result = await this.buildAndSend(type, eventData);
 
     const notification = await this.prisma.notification.create({
@@ -150,8 +156,8 @@ export class NotificationConsumerService implements OnModuleInit {
 
     if (result.success) {
       await this.queue.ack(NOTIFICATION_STREAM, NOTIFICATION_GROUP, messageId);
-      this.logger.debug(
-        `Notification ${notification.id} (${type}) sent to ${result.email}`,
+      this.logger.log(
+        `[EMAIL] ${notification.id} (${type}) sent to ${result.email} — "${result.subject}"`,
       );
       return;
     }
@@ -161,8 +167,7 @@ export class NotificationConsumerService implements OnModuleInit {
     if (attempt < maxRetries) {
       const backoffMs = calculateBackoffMs(retryCount);
       this.logger.warn(
-        `Notification ${notification.id} (${type}) failed (attempt ${attempt}/${maxRetries}), ` +
-          `retrying in ${backoffMs}ms`,
+        `[CONSUMER] ${notification.id} (${type}) failed for ${result.email} (attempt ${attempt}/${maxRetries}): ${result.error}. Retrying in ${backoffMs}ms`,
       );
       await this.queue.ack(NOTIFICATION_STREAM, NOTIFICATION_GROUP, messageId);
       setTimeout(() => {
@@ -172,9 +177,20 @@ export class NotificationConsumerService implements OnModuleInit {
             _retryCount: attempt,
             _maxRetries: maxRetries,
           })
+          .then((newMsgId) => {
+            if (newMsgId) {
+              this.logger.log(
+                `[CONSUMER] ${notification.id} (${type}) re-queued as ${newMsgId} for retry ${attempt + 1}/${maxRetries}`,
+              );
+            } else {
+              this.logger.error(
+                `[CONSUMER] ${notification.id} (${type}) could not be re-queued — queue unavailable`,
+              );
+            }
+          })
           .catch((err: Error) =>
             this.logger.error(
-              `Failed to re-publish after backoff: ${err.message}`,
+              `[CONSUMER] ${notification.id} (${type}) failed to re-publish for retry: ${err.message}`,
             ),
           );
       }, backoffMs);
@@ -189,16 +205,28 @@ export class NotificationConsumerService implements OnModuleInit {
           _dlqReason: result.error || 'Max retries exceeded',
           _dlqMovedAt: new Date().toISOString(),
         })
+        .then((dlqMsgId) => {
+          if (dlqMsgId) {
+            this.logger.warn(
+              `[CONSUMER] ${notification.id} (${type}) moved to DLQ as ${dlqMsgId} after ${maxRetries} attempts. Last error: ${result.error}`,
+            );
+          } else {
+            this.logger.error(
+              `[CONSUMER] ${notification.id} (${type}) could not be moved to DLQ — queue unavailable`,
+            );
+          }
+        })
         .catch((err: Error) =>
-          this.logger.error(`Failed to publish to DLQ: ${err.message}`),
+          this.logger.error(
+            `[CONSUMER] ${notification.id} (${type}) failed to publish to DLQ: ${err.message}`,
+          ),
         );
       await this.prisma.notification.update({
         where: { id: notification.id },
         data: { status: 'DLQ' },
       });
       this.logger.error(
-        `Notification ${notification.id} (${type}) moved to DLQ after ${maxRetries} attempts. ` +
-          `Last error: ${result.error}`,
+        `[CONSUMER] ${notification.id} (${type}) to ${result.email} moved to DLQ after ${maxRetries} attempts. Last error: ${result.error}`,
       );
     }
   }

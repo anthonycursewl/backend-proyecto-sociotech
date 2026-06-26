@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
+import { ClinicalModule } from '../clinical/clinical.module';
 import { ServiceService } from '@services/application/services/service.service';
 import { ServiceController } from '@services/presentation/controllers/service.controller';
 import { PrismaServiceRepository } from '@services/infrastructure/repositories/prisma-service.repository';
@@ -7,7 +8,7 @@ import { SERVICE_REPOSITORY } from '@services/domain/repositories/service-reposi
 import { PrismaService } from '@services/infrastructure/db/prisma.service';
 
 @Module({
-  imports: [PassportModule],
+  imports: [PassportModule, forwardRef(() => ClinicalModule)],
   controllers: [ServiceController],
   providers: [
     ServiceService,

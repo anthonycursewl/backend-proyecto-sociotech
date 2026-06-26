@@ -54,7 +54,7 @@ describe('AuthService — forgotPassword / resetPassword', () => {
       updateRoleId: jest.fn(),
       updateRefreshToken: jest.fn(),
       search: jest.fn(),
-      findDefaultPatientRoleId: jest.fn(),
+      findDefaultRoleId: jest.fn(),
     };
 
     bcryptAuth = {

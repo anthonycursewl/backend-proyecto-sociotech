@@ -184,9 +184,9 @@ export class PrismaUserRepository implements UserRepository {
     return prismaUsers.map((u) => this.toDomain(u, true));
   }
 
-  async findDefaultPatientRoleId(): Promise<string | null> {
-    const role = await this.prisma.role.findUnique({
-      where: { name: RoleName.PATIENT },
+  async findDefaultRoleId(): Promise<string | null> {
+    const role = await this.prisma.role.findFirst({
+      where: { isDefault: true },
     });
     return role?.id || null;
   }

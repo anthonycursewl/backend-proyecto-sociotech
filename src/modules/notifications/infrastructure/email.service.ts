@@ -51,6 +51,8 @@ export class EmailService {
     const startMs = Date.now();
 
     try {
+      this.logger.log(`Sending email to ${to}: ${subject}`);
+
       const { error } = await this.resend.emails.send({
         from: this.from,
         to,
@@ -59,17 +61,23 @@ export class EmailService {
       });
 
       const elapsed = Date.now() - startMs;
-      this.logger.debug(`Email sent to ${to} in ${elapsed}ms: ${subject}`);
 
       if (error) {
-        this.logger.warn(`Resend error for ${to}: ${error.message}`);
+        this.logger.warn(
+          `Resend API error for ${to} (${elapsed}ms): ${error.message} — subject: "${subject}"`,
+        );
         return { success: false, error: error.message };
       }
 
+      this.logger.log(
+        `Email sent successfully to ${to} (${elapsed}ms): ${subject}`,
+      );
       return { success: true };
     } catch (err) {
       const message = (err as Error).message;
-      this.logger.warn(`Email send failed for ${to}: ${message}`);
+      this.logger.warn(
+        `Email send exception for ${to}: ${message} — subject: "${subject}"`,
+      );
       return { success: false, error: message };
     }
   }

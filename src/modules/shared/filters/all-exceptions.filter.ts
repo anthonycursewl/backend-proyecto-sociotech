@@ -42,6 +42,17 @@ export class AllExceptionsFilter implements ExceptionFilter {
         message = (exObj.message as string | string[]) ?? exception.message;
         error = (exObj.error as string) ?? exception.name;
       }
+
+      if (statusCode >= 500) {
+        this.logger.error(
+          `[${statusCode}] ${request.method} ${request.url}: ${JSON.stringify(message)}`,
+          exception.stack,
+        );
+      } else {
+        this.logger.warn(
+          `[${statusCode}] ${request.method} ${request.url}: ${JSON.stringify(message)}`,
+        );
+      }
     } else if (exception instanceof Error) {
       this.logger.error(
         `Unhandled exception: ${exception.message}`,

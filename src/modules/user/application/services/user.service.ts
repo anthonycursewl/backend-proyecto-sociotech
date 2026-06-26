@@ -89,6 +89,10 @@ export class UserService {
       updateData.email = normalizedEmail;
     }
 
+    if (Object.keys(updateData).length === 0) {
+      throw new BadRequestException('No hay campos para actualizar');
+    }
+
     const updated = await this.userRepository.update(input.userId, updateData);
     return { user: updated };
   }

@@ -141,6 +141,13 @@ export class DoctorController {
     return this.doctorService.findByUserId(userId);
   }
 
+  @Get('metrics')
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
+  @CheckPermissions('doctors', 'read')
+  async metrics() {
+    return this.doctorService.getMetrics();
+  }
+
   @Get(':id')
   @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @CheckPermissions('doctors', 'read')

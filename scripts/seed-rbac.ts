@@ -234,11 +234,11 @@ async function seedPermissions() {
 async function seedRoles() {
   console.log('\n=== Seeding Roles ===');
   const roles = [
-    { name: 'PATIENT', description: 'Paciente del consultorio', isSystem: true },
-    { name: 'ASSISTANT', description: 'Asistente/Recepcionista', isSystem: true },
-    { name: 'DOCTOR', description: 'Doctor del consultorio', isSystem: true },
-    { name: 'ADMIN', description: 'Administrador del sistema', isSystem: true },
-    { name: 'SUPER_ADMIN', description: 'Super Administrador - Acceso total', isSystem: true },
+    { name: 'PATIENT', description: 'Paciente del consultorio', isSystem: true, isDefault: true },
+    { name: 'ASSISTANT', description: 'Asistente/Recepcionista', isSystem: true, isDefault: false },
+    { name: 'DOCTOR', description: 'Doctor del consultorio', isSystem: true, isDefault: false },
+    { name: 'ADMIN', description: 'Administrador del sistema', isSystem: true, isDefault: false },
+    { name: 'SUPER_ADMIN', description: 'Super Administrador - Acceso total', isSystem: true, isDefault: false },
   ];
 
   for (const role of roles) {

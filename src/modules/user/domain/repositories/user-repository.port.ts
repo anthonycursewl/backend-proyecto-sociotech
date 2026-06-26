@@ -40,7 +40,7 @@ export interface UserRepository {
     expires?: Date,
   ): Promise<void>;
   search(query: string, limit?: number): Promise<User[]>;
-  findDefaultPatientRoleId(): Promise<string | null>;
+  findDefaultRoleId(): Promise<string | null>;
   findManyCursor(
     cursor?: string,
     limit?: number,

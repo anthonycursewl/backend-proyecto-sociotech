@@ -1,12 +1,15 @@
 import 'module-alias/register';
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
 import { ResponseInterceptor } from './modules/shared/interceptors/response.interceptor';
 import { AllExceptionsFilter } from './modules/shared/filters/all-exceptions.filter';
 import * as dotenv from 'dotenv';
+import * as bodyParser from 'body-parser';
+
+const logger = new Logger('Bootstrap');
 
 // Load environment variables from .env in project root
 dotenv.config({ path: __dirname + '/../.env' });
@@ -21,12 +24,30 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Explicit body parser — ensures bodies are always parsed.
+  // Without this, some Express/NestJS versions may leave req.body as undefined
+  // on empty or malformed bodies, causing silent failures in DTO validation.
+  app.use(bodyParser.json());
+  app.use(
+    bodyParser.urlencoded({
+      extended: true,
+      verify: (_req: any, _res: any, buf: Buffer) => {
+        if (buf.length === 0) {
+          logger.warn('Empty request body received — ensure client sends valid JSON');
+        }
+      },
+    }),
+  );
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: {
+        exposeDefaultValues: true,
+      },
     }),
   );
 

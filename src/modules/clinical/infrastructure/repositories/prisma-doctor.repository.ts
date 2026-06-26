@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import {
   DOCTOR_REPOSITORY,
   DoctorRepository,
+  DoctorMetrics,
   PaginatedDoctors,
 } from '@clinical/domain/repositories/doctor-repository.port';
 import { Doctor, DoctorScheduleData } from '@clinical/entities/doctor.entity';
@@ -174,6 +175,19 @@ export class PrismaDoctorRepository implements DoctorRepository {
       nextCursor,
       hasNext,
     };
+  }
+
+  async getMetrics(): Promise<DoctorMetrics> {
+    const [total, active, inactive, visible, notVisible] =
+      await Promise.all([
+        this.prisma.doctor.count(),
+        this.prisma.doctor.count({ where: { isActive: true } }),
+        this.prisma.doctor.count({ where: { isActive: false } }),
+        this.prisma.doctor.count({ where: { isVisible: true } }),
+        this.prisma.doctor.count({ where: { isVisible: false } }),
+      ]);
+
+    return { total, active, inactive, visible, notVisible };
   }
 
   async update(id: string, data: Doctor): Promise<Doctor> {

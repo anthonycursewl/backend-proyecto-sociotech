@@ -3,6 +3,7 @@ import { Inject } from '@nestjs/common';
 import { DOCTOR_REPOSITORY } from '@clinical/domain/repositories/doctor-repository.port';
 import type {
   DoctorRepository,
+  DoctorMetrics,
   PaginatedDoctors,
 } from '@clinical/domain/repositories/doctor-repository.port';
 import { Doctor } from '@clinical/entities/doctor.entity';
@@ -75,6 +76,10 @@ export class DoctorService {
     isVisible?: boolean,
   ): Promise<PaginatedDoctors> {
     return this.doctorRepo.findManyCursor(cursor, limit, isActive, isVisible);
+  }
+
+  async getMetrics(): Promise<DoctorMetrics> {
+    return this.doctorRepo.getMetrics();
   }
 
   async update(id: string, dto: UpdateDoctorDto): Promise<Doctor> {

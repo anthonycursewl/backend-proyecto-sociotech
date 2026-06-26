@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { User } from '@user/domain/entities/user.entity';
 import { UserRepository } from '../../domain/repositories/user-repository.port';
 import { PrismaService } from '../db/prisma.service';
-import { DEFAULT_PAGE_SIZE, RoleName } from '@shared/constants';
+import { DEFAULT_PAGE_SIZE } from '@shared/constants';
 
 @Injectable()
 export class PrismaUserRepository implements UserRepository {
@@ -147,9 +147,9 @@ export class PrismaUserRepository implements UserRepository {
     return prismaUsers.map((u) => this.toDomain(u, true));
   }
 
-  async findDefaultPatientRoleId(): Promise<string | null> {
-    const role = await this.prisma.role.findUnique({
-      where: { name: RoleName.PATIENT },
+  async findDefaultRoleId(): Promise<string | null> {
+    const role = await this.prisma.role.findFirst({
+      where: { isDefault: true },
     });
     return role?.id || null;
   }

@@ -170,6 +170,7 @@ export class PrismaServiceRepository implements ServiceRepository {
   async findByDoctor(doctorId: string): Promise<Service[]> {
     const services = await this.prisma.service.findMany({
       where: {
+        isActive: true,
         doctors: {
           some: { id: doctorId },
         },

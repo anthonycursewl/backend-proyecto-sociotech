@@ -28,13 +28,17 @@ import { CheckPermissions } from '@shared/decorators/permissions.decorator';
 import { Audit } from '@audit/audit.decorator';
 import { AuditInterceptor } from '@audit/audit.interceptor';
 import type { RequestWithUser } from '@audit/audit.interceptor';
+import { DoctorService } from '@clinical/application/services/doctor.service';
 import { DEFAULT_PAGE_SIZE } from '@shared/constants';
 
 @Controller('services')
 @UseGuards(AuthGuard('jwt'))
 @UseInterceptors(AuditInterceptor)
 export class ServiceController {
-  constructor(private readonly serviceService: ServiceService) {}
+  constructor(
+    private readonly serviceService: ServiceService,
+    private readonly doctorService: DoctorService,
+  ) {}
 
   @Post()
   @UseGuards(PermissionsGuard)
@@ -44,6 +48,12 @@ export class ServiceController {
     @Body(new ValidationPipe({ transform: true })) dto: CreateServiceDto,
     @Req() req: RequestWithUser,
   ): Promise<ServiceResponse> {
+    if (!dto.doctorIds || dto.doctorIds.length === 0) {
+      const doctor = await this.doctorService.findByUserId(req.user!.userId);
+      if (doctor) {
+        dto.doctorIds = [doctor.id];
+      }
+    }
     return this.serviceService.create(dto, req.user!.userId);
   }
 

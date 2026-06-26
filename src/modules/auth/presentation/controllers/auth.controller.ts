@@ -74,4 +74,14 @@ export class AuthController {
       dto.newPassword,
     );
   }
+
+  @Put('user')
+  @UseGuards(AuthGuard('jwt'))
+  async updateProfile(@Body() body: Record<string, any>, @Req() req) {
+    return this.authService.updateMyProfile(req.user.userId, {
+      firstName: body.firstName,
+      lastName: body.lastName,
+      email: body.email,
+    });
+  }
 }

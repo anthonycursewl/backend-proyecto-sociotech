@@ -51,7 +51,9 @@ export class RedisQueueService implements IQueueService {
     data: Record<string, unknown>,
   ): Promise<string | null> {
     if (!this.isConnected) {
-      this.logger.debug('Redis not connected, skipping publish');
+      this.logger.warn(
+        `Redis not connected — skipping publish to stream "${stream}" (type: ${(data as any).type || 'unknown'})`,
+      );
       return null;
     }
 
@@ -79,7 +81,12 @@ export class RedisQueueService implements IQueueService {
     consumer: string,
     batchSize: number,
   ): Promise<QueueMessage[]> {
-    if (!this.isConnected) return [];
+    if (!this.isConnected) {
+      this.logger.warn(
+        `Redis not connected — skipping consume from stream "${stream}"`,
+      );
+      return [];
+    }
 
     try {
       const results = await this.redis.xreadgroup(
