@@ -142,7 +142,17 @@ export class PrismaPatientRepository implements PatientRepository {
   }
 
   async update(id: string, data: PatientProps): Promise<Patient> {
-    const { allergies, currentMedications, chronicDiseases, ...rest } = data;
+    const {
+      allergies,
+      currentMedications,
+      chronicDiseases,
+      firstName,
+      lastName,
+      email,
+      id: _id,
+      createdAt: _createdAt,
+      ...rest
+    } = data;
 
     const p = (await this.prisma.$transaction(async (tx) => {
       if (allergies !== undefined) {
