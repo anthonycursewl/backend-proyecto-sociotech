@@ -60,7 +60,6 @@ export class PdfService {
     const patient = await this.patientService.findById(patientId);
     const records = await this.medicalRecordService.findByPatientId(patientId);
 
-    // Resolve doctor names for all unique doctor IDs
     const doctorIds = [...new Set(records.map((r) => r.doctorId))];
     const doctorMap = new Map<string, { name: string; specialty: string }>();
     for (const docId of doctorIds) {
@@ -168,7 +167,7 @@ export class PdfService {
             cancellationReason: cancellation.cancellationReason,
           }
         : null,
-      hasMedicalRecord: false, // Will be enhanced later
+      hasMedicalRecord: false,
     };
 
     return generateAppointmentPdf(params);

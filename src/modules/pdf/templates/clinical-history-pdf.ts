@@ -197,7 +197,7 @@ function writeRecordCard(
   field('Motivo de Consulta', record.chiefComplaint, doc);
   field(
     'Diagnóstico',
-    `${record.diagnosis}${record.diagnosisCode ? ` (CIE-10: ${record.diagnosisCode})` : ''}`,
+    `${record.diagnosis}${record.diagnosisCode ? ` (${record.diagnosisCode})` : ''}`,
     doc,
   );
   field('Tratamiento', record.treatment, doc);

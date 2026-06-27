@@ -12,7 +12,7 @@ export interface ClinicInfo {
 
 export const DEFAULT_CLINIC: ClinicInfo = {
   name: 'Sociotech Clinic',
-  rnc: 'XXX-XXXXXXX-X',
+  rnc: 'RIF: V-19778462-6',
   address: '',
   phone: '',
 };
@@ -66,8 +66,6 @@ export function createPdfDocument(
     drawWatermark(doc);
   });
 
-  // pageAdded doesn't fire for page 0 (created in constructor before listener),
-  // so draw watermark explicitly here
   drawWatermark(doc);
 
   return doc;
@@ -86,7 +84,6 @@ function drawWatermark(doc: PDFKit.PDFDocument): void {
     doc.image(LOGO_WATERMARK, -wmSize / 2, -wmSize / 2, { width: wmSize });
     doc.restore();
   } catch {
-    // Watermark is non-critical; silently ignore failures
   }
 }
 
@@ -101,7 +98,6 @@ export function addHeader(doc: PDFKit.PDFDocument): void {
   const logoW = 130;
   const textW = pageW - margin * 2 - logoW - 20;
 
-  // Clinic info on the left
   doc
     .fontSize(16)
     .font('Helvetica-Bold')
@@ -111,9 +107,8 @@ export function addHeader(doc: PDFKit.PDFDocument): void {
   const infoParts = [info.address, info.phone].filter(Boolean);
   const infoY = startY + 26;
   doc.text(infoParts.join(' | ') || '', margin, infoY, { width: textW });
-  doc.text(`RNC: ${info.rnc}`, margin, infoY + 12, { width: textW });
+  doc.text(`${info.rnc}`, margin, infoY + 12, { width: textW });
 
-  // Logo on the right (processed to pure black for visibility)
   try {
     if (!headerLogoBuffer) {
       headerLogoBuffer = loadHeaderLogoBlack();
@@ -125,7 +120,6 @@ export function addHeader(doc: PDFKit.PDFDocument): void {
       });
     }
   } catch {
-    // Logo unavailable; skip silently
   }
 
   doc.y = Math.max(startY + 48, startY + 2 + 60) + 6;
