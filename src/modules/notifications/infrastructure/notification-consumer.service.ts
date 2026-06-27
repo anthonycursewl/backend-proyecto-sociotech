@@ -39,7 +39,23 @@ export class NotificationConsumerService implements OnModuleInit {
     this.prisma = new PrismaClient({ adapter });
   }
 
+  private validateEmailConfig(): void {
+    const missing: string[] = [];
+    if (!process.env.RESEND_API_KEY) missing.push('RESEND_API_KEY');
+    if (!process.env.EMAIL_FROM) missing.push('EMAIL_FROM');
+
+    if (missing.length > 0) {
+      this.logger.warn('══════════════════════════════════════════');
+      this.logger.warn(`  EMAIL CONFIG MISSING: ${missing.join(', ')}`);
+      this.logger.warn('  Notifications will be logged but NOT sent.');
+      this.logger.warn('  Add these to your .env or deployment env.');
+      this.logger.warn('══════════════════════════════════════════');
+    }
+  }
+
   async onModuleInit(): Promise<void> {
+    this.validateEmailConfig();
+
     try {
       await this.prisma.$connect();
     } catch (err) {

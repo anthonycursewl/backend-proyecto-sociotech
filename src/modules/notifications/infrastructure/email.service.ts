@@ -18,6 +18,11 @@ export class EmailService {
     }
     this.resend = new Resend(apiKey || 're_placeholder');
     this.from = process.env.EMAIL_FROM || 'noreply@sociotech.dev';
+    if (!process.env.EMAIL_FROM) {
+      this.logger.warn(
+        'EMAIL_FROM not set — using default: noreply@sociotech.dev',
+      );
+    }
   }
 
   private checkRateLimit(): boolean {
@@ -44,7 +49,7 @@ export class EmailService {
     }
 
     if (!process.env.RESEND_API_KEY) {
-      this.logger.log(`[EMAIL MOCK] To: ${to} | Subject: ${subject}`);
+      this.logger.warn(`[EMAIL MOCK] To: ${to} | Subject: ${subject} — email NOT sent`);
       return { success: true };
     }
 
