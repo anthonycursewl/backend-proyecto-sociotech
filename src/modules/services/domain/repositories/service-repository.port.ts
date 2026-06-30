@@ -21,7 +21,10 @@ export interface ServiceRepository {
   findAll(params?: CursorPaginationParams): Promise<PaginatedServices>;
   update(id: string, data: Partial<ServiceProps>): Promise<Service>;
   delete(id: string): Promise<void>;
-  findByDoctor(doctorId: string): Promise<Service[]>;
+  findByDoctor(
+    doctorId: string,
+    params?: { cursor?: string; limit?: number },
+  ): Promise<PaginatedServices>;
 }
 
 export interface CreateServiceParams {

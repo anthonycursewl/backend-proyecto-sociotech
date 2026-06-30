@@ -175,8 +175,8 @@ export class DoctorAvailabilityService {
     if (!service) {
       throw new BadRequestException('Servicio no encontrado');
     }
-    const doctorServices = await this.serviceService.findByDoctor(doctorId);
-    if (!doctorServices.some((s) => s.id === serviceId)) {
+    const doctorServices = await this.serviceService.findByDoctor(doctorId, undefined, 1000);
+    if (!doctorServices.data.some((s) => s.id === serviceId)) {
       throw new BadRequestException(
         'Este doctor no ofrece el servicio solicitado',
       );

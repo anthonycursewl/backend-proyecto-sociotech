@@ -76,8 +76,14 @@ export class ServiceController {
   @CheckPermissions('services', 'read')
   async findByDoctor(
     @Param('doctorId') doctorId: string,
-  ): Promise<ServiceResponse[]> {
-    return this.serviceService.findByDoctor(doctorId);
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ): Promise<PaginatedServiceResponse> {
+    return this.serviceService.findByDoctor(
+      doctorId,
+      cursor,
+      parseInt(limit || String(DEFAULT_PAGE_SIZE)),
+    );
   }
 
   @Get(':id')

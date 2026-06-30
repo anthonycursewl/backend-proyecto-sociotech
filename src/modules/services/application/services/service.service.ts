@@ -115,8 +115,11 @@ export class ServiceService {
     return updated.toPlain();
   }
 
-  async findByDoctor(doctorId: string): Promise<ServiceResponse[]> {
-    const services = await this.serviceRepo.findByDoctor(doctorId);
-    return services.map((s) => s.toPlain());
+  async findByDoctor(
+    doctorId: string,
+    cursor?: string,
+    limit?: number,
+  ): Promise<PaginatedServiceResponse> {
+    return this.serviceRepo.findByDoctor(doctorId, { cursor, limit });
   }
 }

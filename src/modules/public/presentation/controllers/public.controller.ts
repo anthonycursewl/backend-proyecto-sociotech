@@ -54,7 +54,15 @@ export class PublicController {
   }
 
   @Get('services')
-  async listServices(@Query('doctorId') doctorId: string) {
-    return this.serviceService.findByDoctor(doctorId);
+  async listServices(
+    @Query('doctorId') doctorId: string,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.serviceService.findByDoctor(
+      doctorId,
+      cursor,
+      parseInt(limit || String(DEFAULT_PAGE_SIZE)),
+    );
   }
 }

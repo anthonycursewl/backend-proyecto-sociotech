@@ -167,7 +167,12 @@ export class PrismaServiceRepository implements ServiceRepository {
     });
   }
 
-  async findByDoctor(doctorId: string): Promise<Service[]> {
+  async findByDoctor(
+    doctorId: string,
+    params?: { cursor?: string; limit?: number },
+  ): Promise<PaginatedServices> {
+    const { cursor, limit = DEFAULT_PAGE_SIZE } = params ?? {};
+
     const services = await this.prisma.service.findMany({
       where: {
         isActive: true,
@@ -175,10 +180,19 @@ export class PrismaServiceRepository implements ServiceRepository {
           some: { id: doctorId },
         },
       },
+      take: limit + 1,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      orderBy: { name: 'asc' },
       include: { doctors: { select: { id: true } } },
     });
-    return services.map((s) =>
-      this.toDomain(this.toProps(s as ServiceWithDoctors)),
-    );
+
+    const hasMore = services.length > limit;
+    const items = hasMore ? services.slice(0, limit) : services;
+    const nextCursor = hasMore ? items[items.length - 1].id : null;
+
+    return {
+      data: items.map((s) => this.toProps(s as ServiceWithDoctors)),
+      nextCursor,
+    };
   }
 }
