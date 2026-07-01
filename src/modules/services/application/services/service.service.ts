@@ -100,7 +100,7 @@ export class ServiceService {
       throw new NotFoundException('Servicio no encontrado');
     }
 
-    service.update({ isActive: false, doctorIds: [] });
+    service.update({ isActive: false });
     await this.serviceRepo.update(id, service.toPlain());
   }
 

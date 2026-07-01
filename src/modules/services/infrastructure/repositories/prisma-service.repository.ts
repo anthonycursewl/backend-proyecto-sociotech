@@ -145,7 +145,7 @@ export class PrismaServiceRepository implements ServiceRepository {
         }),
         ...(data.price !== undefined && { price: data.price }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
-        ...(data.doctorIds !== undefined && {
+        ...(data.doctorIds !== undefined && data.doctorIds.length > 0 && {
           doctors: {
             set: data.doctorIds.map((did) => ({ id: did })),
           },
