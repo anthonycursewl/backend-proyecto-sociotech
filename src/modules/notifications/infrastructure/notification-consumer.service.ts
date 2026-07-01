@@ -145,8 +145,8 @@ export class NotificationConsumerService implements OnModuleInit {
     const eventData = data.data
       ? (JSON.parse(data.data as string) as Record<string, unknown>)
       : {};
-    const retryCount = (data._retryCount as number) || 0;
-    const maxRetries = (data._maxRetries as number) ?? 3;
+    const retryCount = Number(data._retryCount) || 0;
+    const maxRetries = Number(data._maxRetries) || 3;
 
     this.logger.log(
       `[CONSUMER] Processing message ${messageId} (type: ${type}, attempt: ${retryCount + 1}/${maxRetries})`,
