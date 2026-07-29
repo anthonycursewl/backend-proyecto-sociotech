@@ -18,7 +18,7 @@ NestJS-based Node.js backend application with PostgreSQL, Prisma ORM, JWT authen
 - `npm run db:migrate` - Run Prisma migrations
 - `npm run db:generate` - Generate Prisma client
 - `npm run seed:admin` - Create super admin user (run after migrations)
-- `npm run seed:system` - Seed system data (run after migrations)
+- `npm run seed:rbac` - Seed roles and permissions (run after migrations)
 
 ## Database & ORM
 - **Prisma** as ORM with PostgreSQL (`prisma/schema.prisma`)
