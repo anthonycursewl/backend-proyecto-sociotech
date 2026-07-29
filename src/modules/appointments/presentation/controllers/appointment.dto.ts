@@ -346,6 +346,18 @@ export class GetMyAppointmentsQueryDto {
   @IsOptional()
   @IsEnum(MyAppointmentsFilter)
   filter?: MyAppointmentsFilter;
+
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @IsOptional()
+  @IsDateString()
+  scheduledTo?: string;
+
+  @IsOptional()
+  @IsDateString()
+  scheduledFrom?: string;
 }
 
 export enum AllAppointmentsFilter {
@@ -363,4 +375,16 @@ export class GetAllAppointmentsQueryDto {
   @IsOptional()
   @IsUUID()
   doctorId?: string;
+
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @IsOptional()
+  @IsDateString()
+  scheduledTo?: string;
+
+  @IsOptional()
+  @IsDateString()
+  scheduledFrom?: string;
 }

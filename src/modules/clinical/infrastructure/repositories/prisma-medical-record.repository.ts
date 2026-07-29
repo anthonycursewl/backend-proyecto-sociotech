@@ -65,6 +65,25 @@ export class PrismaMedicalRecordRepository implements MedicalRecordRepository {
     return this.toDomain(created);
   }
 
+  async findAll(pagination?: CursorPagination): Promise<MedicalRecord[]> {
+    const take = pagination?.limit ? pagination.limit + 1 : undefined;
+    const records = await this.prisma.medicalRecord.findMany({
+      where: pagination?.cursor ? { id: { lt: pagination.cursor } } : undefined,
+      take,
+      include: INCLUDE_PRESCRIPTIONS,
+      orderBy: { id: 'desc' },
+    });
+    const items =
+      take && records.length > pagination!.limit!
+        ? records.slice(0, pagination!.limit)
+        : records;
+    return items.map((r) =>
+      this.toDomain(
+        r as MedicalRecordProps & { prescriptions: PrescriptionProps[] },
+      ),
+    );
+  }
+
   async findById(id: string): Promise<MedicalRecord | null> {
     const record = await this.prisma.medicalRecord.findUnique({
       where: { id },

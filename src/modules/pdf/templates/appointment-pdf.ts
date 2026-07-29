@@ -31,7 +31,6 @@ export interface AppointmentPdfService {
   name: string;
   description?: string | null;
   durationMin: number;
-  price?: number | null;
 }
 
 export interface AppointmentPdfCancellation {
@@ -106,8 +105,6 @@ function writeServiceInfo(
   field('Servicio', service.name, doc);
   if (service.description) bodyText(service.description, doc);
   field('Duración', `${service.durationMin} min`, doc);
-  if (service.price != null)
-    field('Precio', `$${service.price.toFixed(2)}`, doc);
 }
 
 function writeStatusBadge(doc: PDFKit.PDFDocument, status: string): void {

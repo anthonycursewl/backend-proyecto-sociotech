@@ -142,11 +142,21 @@
       "<rootDir>/src/"
     ],
     "moduleNameMapper": {
-      "^@user/(.*)$": "<rootDir>/src/modules/user/$1",
+      "^@auth/infrastructure/(.*)$": "<rootDir>/src/modules/auth/infrastructure/$1",
+      "^@auth/domain/(.*)$": "<rootDir>/src/modules/auth/domain/$1",
       "^@auth/(.*)$": "<rootDir>/src/modules/auth/$1",
-      "^@shared/(.*)$": "<rootDir>/src/modules/shared/$1",
+      "^@user/domain/(.*)$": "<rootDir>/src/modules/user/domain/$1",
+      "^@user/(.*)$": "<rootDir>/src/modules/user/$1",
+      "^@clinical/application/(.*)$": "<rootDir>/src/modules/clinical/application/$1",
+      "^@clinical/entities/(.*)$": "<rootDir>/src/modules/clinical/domain/entities/$1",
+      "^@clinical/domain/(.*)$": "<rootDir>/src/modules/clinical/domain/$1",
       "^@clinical/(.*)$": "<rootDir>/src/modules/clinical/$1",
-      "^@audit/(.*)$": "<rootDir>/src/modules/audit/$1"
+      "^@shared/(.*)$": "<rootDir>/src/modules/shared/$1",
+      "^@patient/(.*)$": "<rootDir>/src/modules/patient/$1",
+      "^@audit/(.*)$": "<rootDir>/src/modules/audit/$1",
+      "^@services/(.*)$": "<rootDir>/src/modules/services/$1",
+      "^@telemetry/(.*)$": "<rootDir>/src/modules/telemetry/$1",
+      "^@sync/(.*)$": "<rootDir>/src/modules/sync/$1"
     }
   }
 }

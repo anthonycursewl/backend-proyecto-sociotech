@@ -134,14 +134,25 @@ export class AppointmentService {
   async getMyAppointments(
     userId: string,
     filter?: MyAppointmentsFilter,
+    status?: string,
+    scheduledTo?: string,
+    scheduledFrom?: string,
   ): Promise<Appointment[]> {
     const patient = await this.patientService.findByUserId(userId);
     if (!patient) {
       return [];
     }
 
-    const repoFilter = this.buildFilter(filter);
-    return await this.appointmentRepo.findByPatientId(patient.id, repoFilter);
+    const repoFilter: AppointmentFilter | undefined = {
+      ...(filter ? this.buildFilter(filter) : {}),
+      ...(status ? { statuses: status.split(',') as AppointmentStatus[] } : {}),
+      ...(scheduledTo ? { scheduledTo: new Date(scheduledTo) } : {}),
+      ...(scheduledFrom ? { scheduledFrom: new Date(scheduledFrom) } : {}),
+    };
+    return await this.appointmentRepo.findByPatientId(
+      patient.id,
+      Object.keys(repoFilter).length > 0 ? repoFilter : undefined,
+    );
   }
 
   private buildFilter(
@@ -157,7 +168,6 @@ export class AppointmentService {
       case MyAppointmentsFilter.PENDING:
         return {
           statuses: [AppointmentStatus.SCHEDULED],
-          scheduledFrom: now,
         };
       case MyAppointmentsFilter.UPCOMING:
         return {
@@ -166,17 +176,30 @@ export class AppointmentService {
           scheduledTo: sevenDaysFromNow,
         };
       case MyAppointmentsFilter.HISTORY:
-        return { scheduledTo: now };
+        return {
+          statuses: [
+            AppointmentStatus.COMPLETED,
+            AppointmentStatus.CANCELLED,
+            AppointmentStatus.NO_SHOW,
+          ],
+          scheduledTo: now,
+        };
     }
   }
 
   async findAll(
     filter?: AllAppointmentsFilter,
     doctorId?: string,
+    status?: string,
+    scheduledTo?: string,
+    scheduledFrom?: string,
   ): Promise<Appointment[]> {
     const repoFilter: AppointmentFilter | undefined = {
       ...(filter ? this.buildAllFilter(filter) : {}),
       ...(doctorId ? { doctorId } : {}),
+      ...(status ? { statuses: status.split(',') as AppointmentStatus[] } : {}),
+      ...(scheduledTo ? { scheduledTo: new Date(scheduledTo) } : {}),
+      ...(scheduledFrom ? { scheduledFrom: new Date(scheduledFrom) } : {}),
     };
     return await this.appointmentRepo.findAll(
       Object.keys(repoFilter).length > 0 ? repoFilter : undefined,
@@ -206,6 +229,11 @@ export class AppointmentService {
         };
       case AllAppointmentsFilter.HISTORY:
         return {
+          statuses: [
+            AppointmentStatus.COMPLETED,
+            AppointmentStatus.CANCELLED,
+            AppointmentStatus.NO_SHOW,
+          ],
           scheduledTo: now,
         };
     }
@@ -251,25 +279,21 @@ export class AppointmentService {
     return cancelled;
   }
 
-  async confirmAppointment(
-    appointmentId: string,
-    userId: string,
-  ): Promise<Appointment> {
-    const doctor = await this.doctorService.findByUserId(userId);
-    if (!doctor) {
-      throw new ForbiddenException('Solo los doctores pueden confirmar citas');
-    }
-
+  async confirmAppointment(appointmentId: string): Promise<Appointment> {
     const appointment = await this.findById(appointmentId);
 
-    if (appointment.doctorId !== doctor.id) {
-      throw new ForbiddenException('Esta cita no le pertenece');
+    if (
+      appointment.status === AppointmentStatus.CANCELLED ||
+      appointment.status === AppointmentStatus.COMPLETED ||
+      appointment.status === AppointmentStatus.NO_SHOW
+    ) {
+      throw new BadRequestException(
+        'No se puede confirmar una cita cancelada, completada o con inasistencia',
+      );
     }
 
-    if (appointment.status !== AppointmentStatus.SCHEDULED) {
-      throw new BadRequestException(
-        'Solo las citas agendadas pueden confirmarse',
-      );
+    if (appointment.status === AppointmentStatus.CONFIRMED) {
+      return appointment;
     }
 
     appointment.confirm();
@@ -344,17 +368,8 @@ export class AppointmentService {
     return cancelled;
   }
 
-  async complete(appointmentId: string, userId: string): Promise<Appointment> {
-    const doctor = await this.doctorService.findByUserId(userId);
-    if (!doctor) {
-      throw new ForbiddenException('Only doctors can complete appointments');
-    }
-
+  async complete(appointmentId: string): Promise<Appointment> {
     const appointment = await this.findById(appointmentId);
-
-    if (appointment.doctorId !== doctor.id) {
-      throw new ForbiddenException('Esta cita no le pertenece');
-    }
 
     if (appointment.status === AppointmentStatus.CANCELLED) {
       throw new BadRequestException('No se puede completar una cita cancelada');
@@ -392,20 +407,8 @@ export class AppointmentService {
     return completed;
   }
 
-  async markNoShow(
-    appointmentId: string,
-    userId: string,
-  ): Promise<Appointment> {
-    const doctor = await this.doctorService.findByUserId(userId);
-    if (!doctor) {
-      throw new ForbiddenException('Solo los doctores pueden marcar inasistencia');
-    }
-
+  async markNoShow(appointmentId: string): Promise<Appointment> {
     const appointment = await this.findById(appointmentId);
-
-    if (appointment.doctorId !== doctor.id) {
-      throw new ForbiddenException('Esta cita no le pertenece');
-    }
 
     if (appointment.status === AppointmentStatus.CANCELLED) {
       throw new BadRequestException(

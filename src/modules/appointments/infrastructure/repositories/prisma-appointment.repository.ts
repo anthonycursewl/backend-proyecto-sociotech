@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import {
-  APPOINTMENT_REPOSITORY,
-  AppointmentFilter,
-  AppointmentRepository,
-} from '../../domain/repositories/appointment-repository.port';
+import type { AppointmentFilter } from '../../domain/repositories/appointment-repository.port';
+import type { AppointmentRepository } from '../../domain/repositories/appointment-repository.port';
 import {
   Appointment,
   AppointmentStatus,
 } from '../../domain/entities/appointment.entity';
 import { AppointmentsPrismaService } from '../db/prisma.service';
+import type { Prisma } from '@prisma/client';
 
 type AppointmentDoctorRow = {
   id: string;
@@ -226,11 +224,7 @@ export class PrismaAppointmentRepository implements AppointmentRepository {
   }
 
   async findAll(filter?: AppointmentFilter): Promise<Appointment[]> {
-    const where: {
-      status?: { in: AppointmentStatus[] };
-      scheduledAt?: { gte?: Date; lt?: Date };
-      doctorId?: string;
-    } = {};
+    const where: Prisma.AppointmentWhereInput = {};
 
     if (filter?.statuses?.length) {
       where.status = { in: filter.statuses };
@@ -246,7 +240,7 @@ export class PrismaAppointmentRepository implements AppointmentRepository {
 
     const appointments = await this.prisma.appointment.findMany({
       where: Object.keys(where).length > 0 ? where : undefined,
-      orderBy: { scheduledAt: 'desc' },
+      orderBy: { scheduledAt: 'asc' },
       include: this.defaultInclude(),
     });
     return appointments.map((a) =>
@@ -258,11 +252,7 @@ export class PrismaAppointmentRepository implements AppointmentRepository {
     patientId: string,
     filter?: AppointmentFilter,
   ): Promise<Appointment[]> {
-    const where: {
-      patientId: string;
-      status?: { in: AppointmentStatus[] };
-      scheduledAt?: { gte?: Date; lt?: Date };
-    } = { patientId };
+    const where: Prisma.AppointmentWhereInput = { patientId };
 
     if (filter?.statuses?.length) {
       where.status = { in: filter.statuses };
@@ -275,7 +265,7 @@ export class PrismaAppointmentRepository implements AppointmentRepository {
 
     const appointments = await this.prisma.appointment.findMany({
       where,
-      orderBy: { scheduledAt: 'desc' },
+      orderBy: { scheduledAt: 'asc' },
       include: this.defaultInclude(),
     });
     return appointments.map((a) =>

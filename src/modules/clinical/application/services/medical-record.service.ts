@@ -100,7 +100,7 @@ export class MedicalRecordService {
 
     if (dto.appointmentId && userId) {
       try {
-        await this.appointmentService.complete(dto.appointmentId, userId);
+        await this.appointmentService.complete(dto.appointmentId);
       } catch (err) {
         this.logger.warn(
           `Failed to auto-complete appointment ${dto.appointmentId} after HC creation: ${err instanceof Error ? err.message : 'unknown'}`,
@@ -117,6 +117,13 @@ export class MedicalRecordService {
       throw new NotFoundException('Historial clínico no encontrado');
     }
     return record.toPlain() as MedicalRecordResponse;
+  }
+
+  async findAll(
+    pagination?: CursorPagination,
+  ): Promise<MedicalRecordResponse[]> {
+    const records = await this.recordRepo.findAll(pagination);
+    return records.map((r) => r.toPlain() as MedicalRecordResponse);
   }
 
   async findByPatientId(

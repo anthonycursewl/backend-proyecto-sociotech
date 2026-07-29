@@ -41,6 +41,20 @@ export class MedicalRecordController {
     return this.medicalRecordService.create(dto, req.user!.userId);
   }
 
+  @Get()
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions('medical-records', 'read')
+  async findAll(
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pagination =
+      cursor || limit
+        ? { cursor, limit: limit ? parseInt(limit) : undefined }
+        : undefined;
+    return this.medicalRecordService.findAll(pagination);
+  }
+
   @Get('me')
   @UseGuards(PermissionsGuard)
   @CheckPermissions('medical-records', 'read:own')

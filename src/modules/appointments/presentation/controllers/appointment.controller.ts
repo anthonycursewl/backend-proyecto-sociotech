@@ -56,7 +56,7 @@ export class AppointmentController {
     return AppointmentResponseDto.fromEntity(apt);
   }
 
-  @Get('me')
+  @Get('me') 
   @UseGuards(PermissionsGuard)
   @CheckPermissions('appointments', 'read:own')
   async getMyAppointments(
@@ -66,6 +66,9 @@ export class AppointmentController {
     const appointments = await this.appointmentService.getMyAppointments(
       req.user!.userId,
       query.filter,
+      query.status,
+      query.scheduledTo,
+      query.scheduledFrom,
     );
     return AppointmentResponseDto.fromEntities(appointments);
   }
@@ -100,6 +103,9 @@ export class AppointmentController {
     const appointments = await this.appointmentService.findAll(
       query.filter,
       query.doctorId,
+      query.status,
+      query.scheduledTo,
+      query.scheduledFrom,
     );
     return AppointmentResponseDto.fromEntities(appointments);
   }
@@ -126,12 +132,8 @@ export class AppointmentController {
   @Audit('appointments:confirm', 'Appointment')
   async confirm(
     @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: RequestWithUser,
   ): Promise<AppointmentResponseDto> {
-    const apt = await this.appointmentService.confirmAppointment(
-      id,
-      req.user!.userId,
-    );
+    const apt = await this.appointmentService.confirmAppointment(id);
     await this.cacheManager.del(`appointment:${id}`);
     return AppointmentResponseDto.fromEntity(apt);
   }
@@ -142,9 +144,8 @@ export class AppointmentController {
   @Audit('appointments:complete', 'Appointment')
   async complete(
     @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: RequestWithUser,
   ): Promise<AppointmentResponseDto> {
-    const apt = await this.appointmentService.complete(id, req.user!.userId);
+    const apt = await this.appointmentService.complete(id);
     await this.cacheManager.del(`appointment:${id}`);
     return AppointmentResponseDto.fromEntity(apt);
   }
@@ -155,9 +156,8 @@ export class AppointmentController {
   @Audit('appointments:no-show', 'Appointment')
   async noShow(
     @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: RequestWithUser,
   ): Promise<AppointmentResponseDto> {
-    const apt = await this.appointmentService.markNoShow(id, req.user!.userId);
+    const apt = await this.appointmentService.markNoShow(id);
     await this.cacheManager.del(`appointment:${id}`);
     return AppointmentResponseDto.fromEntity(apt);
   }

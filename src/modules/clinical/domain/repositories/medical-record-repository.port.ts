@@ -10,6 +10,7 @@ export interface CursorPagination {
 export interface MedicalRecordRepository {
   save(record: MedicalRecord): Promise<MedicalRecord>;
   findById(id: string): Promise<MedicalRecord | null>;
+  findAll(pagination?: CursorPagination): Promise<MedicalRecord[]>;
   findByPatientId(
     patientId: string,
     pagination?: CursorPagination,

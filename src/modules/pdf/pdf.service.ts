@@ -153,7 +153,6 @@ export class PdfService {
         name: service?.name ?? '',
         description: service?.description ?? null,
         durationMin: service?.durationMin ?? 0,
-        price: service?.price ?? null,
       },
       scheduledAt: appointment.scheduledAt,
       timeSlot: appointment.timeSlot,
