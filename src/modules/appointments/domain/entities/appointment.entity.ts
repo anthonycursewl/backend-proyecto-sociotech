@@ -151,10 +151,12 @@ export class Appointment {
     this.props.updatedAt = new Date();
   }
 
-  reschedule(scheduledAt: Date, durationMinutes: number) {
+  reschedule(scheduledAt: Date, durationMinutes: number, reason?: string, notes?: string) {
     this.props.scheduledAt = scheduledAt;
     this.props.durationMinutes = durationMinutes;
     this.props.status = AppointmentStatus.SCHEDULED;
+    if (reason !== undefined) this.props.reason = reason;
+    if (notes !== undefined) this.props.notes = notes;
     this.props.updatedAt = new Date();
   }
 }

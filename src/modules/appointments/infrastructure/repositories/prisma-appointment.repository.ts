@@ -347,6 +347,7 @@ export class PrismaAppointmentRepository implements AppointmentRepository {
 
     const updateData: Record<string, unknown> = {};
     if (data.status !== undefined) updateData.status = data.status;
+    if (data.reason !== undefined) updateData.reason = data.reason;
     if (data.notes !== undefined) updateData.notes = data.notes;
     if (data.scheduledAt !== undefined)
       updateData.scheduledAt = data.scheduledAt;

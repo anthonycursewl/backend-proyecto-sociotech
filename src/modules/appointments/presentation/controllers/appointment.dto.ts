@@ -298,6 +298,14 @@ export class RescheduleAppointmentDto {
   @IsDateString()
   @IsNotEmpty()
   scheduledAt: string;
+
+  @IsOptional()
+  @IsString()
+  reason?: string;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }
 
 export class AvailableSlotsQueryDto {

@@ -20,6 +20,7 @@ import {
   CancelAppointmentDto,
   MyAppointmentsFilter,
   AllAppointmentsFilter,
+  RescheduleAppointmentDto,
 } from '../../presentation/controllers/appointment.dto';
 import { PatientService } from '../../../patient/application/services/patient.service';
 import { DoctorService } from '../../../clinical/application/services/doctor.service';
@@ -422,7 +423,7 @@ export class AppointmentService {
   async reschedule(
     appointmentId: string,
     userId: string,
-    dto: { scheduledAt: string },
+    dto: RescheduleAppointmentDto,
   ): Promise<Appointment> {
     const patient = await this.patientService.findByUserId(userId);
     if (!patient) {
@@ -482,7 +483,7 @@ export class AppointmentService {
     }
 
     const oldDate = appointment.scheduledAt;
-    appointment.reschedule(newScheduledAt, duration);
+    appointment.reschedule(newScheduledAt, duration, dto.reason, dto.notes);
     const rescheduled = await this.appointmentRepo.update(
       appointmentId,
       appointment,
