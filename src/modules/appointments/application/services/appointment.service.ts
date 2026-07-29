@@ -56,15 +56,6 @@ export class AppointmentService {
     }
 
     const scheduledDate = new Date(dto.scheduledAt);
-    const tomorrow = new Date();
-    tomorrow.setUTCHours(0, 0, 0, 0);
-    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-
-    if (scheduledDate < tomorrow) {
-      throw new BadRequestException(
-        'Las citas solo pueden agendarse a partir de mañana',
-      );
-    }
 
     await this.availabilityService.validateSlot(
       dto.doctorId,
@@ -463,15 +454,6 @@ export class AppointmentService {
     const newScheduledAt = new Date(dto.scheduledAt);
     if (isNaN(newScheduledAt.getTime())) {
       throw new BadRequestException('Fecha de agendamiento inválida');
-    }
-
-    const tomorrow = new Date();
-    tomorrow.setUTCHours(0, 0, 0, 0);
-    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-    if (newScheduledAt < tomorrow) {
-      throw new BadRequestException(
-        'Las citas solo pueden reprogramarse a partir de mañana',
-      );
     }
 
     if (newScheduledAt.getTime() === appointment.scheduledAt.getTime()) {
